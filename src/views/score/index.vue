@@ -66,6 +66,9 @@
 </template>
 
 <script>
+/**
+ * 成绩统计：按班级与考试名称筛选，查看学生成绩列表。
+ */
 import ClassSelect from '@/components/ClassSelect'
 import { getExamScore } from '@/api/score'
 export default {

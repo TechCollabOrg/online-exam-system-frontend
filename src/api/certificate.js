@@ -1,6 +1,10 @@
 import request from '@/utils/request'
 
 /**
+ * 证书 API：模板维护（教师/管理员）、学生「我的证书」分页。
+ */
+
+/**
  * 分页查询证书模板。
  * @param {object} params 分页与筛选参数
  * @returns {Promise}

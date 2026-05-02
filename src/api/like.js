@@ -1,5 +1,8 @@
-
 import request from '@/utils/request'
+
+/**
+ * 点赞 API：讨论/回复点赞与状态查询。
+ */
 
 /**
  * 点赞接口。

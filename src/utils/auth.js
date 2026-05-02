@@ -1,5 +1,9 @@
 import Cookies from 'js-cookie'
 
+/**
+ * 登录态与客户端缓存：JWT 放 Cookie；用户 id、角色、班级、讨论上下文等放 localStorage，供 `request` 与业务页读取。
+ */
+
 const TokenKey = 'Authorization'
 const UserIdKey = 'class_activity_system_user_id'
 const roleKey = 'class_activity_system_role'

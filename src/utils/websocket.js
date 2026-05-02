@@ -1,12 +1,7 @@
-/*
- * @Author: 魏进 3413105907@qq.com
- * @Date: 2025-03-26 13:48:29
- * @LastEditors: 魏进 3413105907@qq.com
- * @LastEditTime: 2025-03-29 10:35:02
- * @FilePath: \online-recruitment-system-frontend\src\utils\websocket.js
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+/**
+ * 与后端的简单 WebSocket 长连接：断线重连、Element 通知、供业务通过事件总线订阅消息。
  */
-import { getUserId,getGradeId,getRole } from './auth'
+import { getUserId, getGradeId, getRole } from './auth'
 import { Notification } from 'element-ui'
 import Vue from 'vue'
 

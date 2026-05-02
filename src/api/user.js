@@ -1,12 +1,8 @@
-/*
- * @Author: 暮安 14122148+muanananan@user.noreply.gitee.com
- * @Date: 2024-03-04 10:34:47
- * @LastEditors: 暮安 14122148+muanananan@user.noreply.gitee.com
- * @LastEditTime: 2024-05-13 11:04:09
- * @FilePath: \vue-admin-template\src\api\user.js
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 import request from '@/utils/request'
+
+/**
+ * 用户与账号 API：创建/分页/导入用户、个人信息、头像上传、在线时长上报等。
+ */
 
 /**
  * POST `/api/user` — 创建用户（后端按角色限制：教师只能创建学生，管理员可创建教师与学生）。

@@ -1,6 +1,10 @@
 import request from '@/utils/request'
 
 /**
+ * 阅卷 API：待阅考试、待阅考生、作答明细、批量打分。
+ */
+
+/**
  * 分页查询考试答卷列表（阅卷端）。
  * @param {object} params 查询参数
  * @returns {Promise}

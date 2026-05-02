@@ -3,6 +3,9 @@
 </template>
 
 <script>
+/**
+ * 考试剩余时间展示：接收剩余秒数 `v-model`，本地格式化分秒并在归零时向外抛事件。
+ */
 export default {
   name: 'ExamTimer',
   props: {

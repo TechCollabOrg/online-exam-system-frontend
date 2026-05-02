@@ -16,6 +16,9 @@
 </template>
 
 <script>
+/**
+ * 主布局：侧栏导航 + 顶栏 + 内容区；移动端点击遮罩收起侧栏，逻辑见 ResizeMixin。
+ */
 import { Navbar, Sidebar, AppMain } from './components'
 import ResizeMixin from './mixin/ResizeHandler'
 import routes from '@/router'

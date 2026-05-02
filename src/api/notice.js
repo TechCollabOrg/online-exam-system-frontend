@@ -1,5 +1,8 @@
-
 import request from '@/utils/request'
+
+/**
+ * 公告 API：发布、修改、列表与最新公告。
+ */
 
 /**
  * 新增公告。

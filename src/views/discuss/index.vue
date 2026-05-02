@@ -107,6 +107,9 @@
 </template>
 
 <script>
+/**
+ * 课堂讨论列表：教师看自己发帖、学生按班级看帖；支持发帖与删除。
+ */
 import { discussionpageOwner,discussionpageStudent,discussionAdd,discussionDel } from "@/api/discussion";
 import ClassSelect from "@/components/ClassSelect";
 // import {getRole} from '@/utils/auth'

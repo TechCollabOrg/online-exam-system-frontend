@@ -1,11 +1,4 @@
-<!--
- * @Author: st 2946594574@qq.com
- * @Date: 2024-03-04 10:55:05
- * @LastEditors: yangiiiiii 14122140+yangiiiiiii@user.noreply.gitee.com
- * @LastEditTime: 2024-05-16 15:13:43
- * @FilePath: \com-project\src\views\login\index.vue
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
--->
+<!-- 登录页：用户名/密码/图形验证码，成功回调写入 Token 与角色并连接 WebSocket -->
 <template>
   <div class="login-container">
     <el-form

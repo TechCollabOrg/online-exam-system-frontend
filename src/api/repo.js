@@ -1,6 +1,10 @@
 import request from '@/utils/request'
 
 /**
+ * 题库 API：增删改查、分页、刷题入口列表、下拉选项。
+ */
+
+/**
  * 新建题库。
  * @param {object} data 题库信息
  * @returns {Promise}

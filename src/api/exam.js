@@ -1,5 +1,8 @@
-
 import request from '@/utils/request'
+
+/**
+ * 考试模块 API：试卷分页、学生开考、组卷题目、证书绑定等（路径相对环境变量 `VUE_APP_BASE_API`）。
+ */
 
 /**
  * 教师端分页查询考试列表。

@@ -1,5 +1,8 @@
-
 import request from '@/utils/request'
+
+/**
+ * 成绩 API：分页查询、导出、单场考试得分明细。
+ */
 
 /**
  * 分页查询成绩列表。

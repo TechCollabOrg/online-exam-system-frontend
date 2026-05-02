@@ -1,6 +1,10 @@
 import request from '@/utils/request'
 
 /**
+ * 考试/刷题记录 API：历史分页、单场详情、答题回顾。
+ */
+
+/**
  * 考试记录详情。
  * @param {object} params 查询参数
  * @returns {Promise}

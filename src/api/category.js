@@ -1,6 +1,10 @@
 import request from '@/utils/request'
 
 /**
+ * 题库分类 API：树、一级分类、子节点及分类 CRUD。
+ */
+
+/**
  * 获取一级题目分类列表。
  * @returns {Promise}
  */

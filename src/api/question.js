@@ -1,5 +1,8 @@
-
 import request from '@/utils/request'
+
+/**
+ * 试题 API：单题/批量导入、分页、选项维护、上传等。
+ */
 
 /**
  * 新增单题。

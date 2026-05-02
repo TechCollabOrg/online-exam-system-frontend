@@ -1,6 +1,10 @@
 import request from '@/utils/request'
 
 /**
+ * 统计 API：学生/教师/管理员维度的班级人数、考试场次等聚合。
+ */
+
+/**
  * 学生端仪表盘：班级相关统计。
  * @returns {Promise}
  */

@@ -181,6 +181,9 @@
 </template>
 
 <script>
+/**
+ * 学生在线答题页：倒计时、答题卡、客观/主观作答、交卷与作弊上报。
+ */
 import {
   quDetail,
   handExam,

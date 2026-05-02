@@ -1,5 +1,9 @@
 import router from '@/router'
 
+/**
+ * 多页签导航：记录已打开路由、高亮与 sessionStorage 同步，供顶栏标签关闭/切换。
+ */
+
 /** 多页签导航状态，持久化在 sessionStorage(TAGS) */
 const state = {
   tags: JSON.parse(sessionStorage.getItem('TAGS')) || []

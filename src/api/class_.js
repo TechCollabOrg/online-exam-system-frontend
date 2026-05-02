@@ -1,5 +1,8 @@
-
 import request from '@/utils/request'
+
+/**
+ * 班级 API：班级 CRUD、学生加入/退出、教师任课关联（路径中的 grades 对应后端班级）。
+ */
 
 /**
  * 创建班级。

@@ -1,5 +1,8 @@
-
 import request from '@/utils/request'
+
+/**
+ * 讨论回复 API：发表、删除、按讨论拉取列表。
+ */
 
 /**
  * 发表回复。

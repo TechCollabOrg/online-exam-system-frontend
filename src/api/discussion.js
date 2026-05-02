@@ -1,5 +1,8 @@
-
 import request from '@/utils/request'
+
+/**
+ * 课堂讨论 API：发帖、列表、详情、回复联动。
+ */
 
 /**
  * 发布讨论帖。

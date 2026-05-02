@@ -116,6 +116,9 @@
   </div>
 </template>
 <script>
+/**
+ * 教师阅卷入口：待阅卷考试分页，进入单场批改。
+ */
 import { answerExamPging } from '@/api/answer'
 export default {
   data() {

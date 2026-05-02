@@ -1,9 +1,13 @@
 import { login, logout, getInfo } from '@/api/user'
-import { getToken, setToken, removeToken,setUserId,removeUserId,setRole,removeRole,setGradeId } from '@/utils/auth'
+import { getToken, setToken, removeToken, setUserId, removeUserId, setRole, removeRole, setGradeId } from '@/utils/auth'
 
 import { resetRouter } from '@/router'
 import { parseJwt } from '@/utils/jwtUtils'
 import { connectWebSocket, disconnectWebSocket } from '@/utils/websocket'
+
+/**
+ * Vuex 用户模块：登录/登出、拉取资料、与 `resetRouter` 及 WebSocket 连接配合。
+ */
 
 /** @returns {object} user 模块初始 state（从 Cookie 恢复 token） */
 const getDefaultState = () => {

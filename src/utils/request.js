@@ -5,6 +5,8 @@ import { getToken, setToken } from '@/utils/auth'
 import router from '@/router'
 
 /**
+ * 全站 HTTP 出口：`@/api` 均经此实例，负责 baseURL、Authorization、业务 code 与 401/5xx 提示。
+ *
  * 业务请求 axios 实例：附带 Token、处理刷新 Authorization、统一业务码与 HTTP 错误提示。
  */
 const service = axios.create({

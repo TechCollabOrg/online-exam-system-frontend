@@ -1,5 +1,5 @@
 /**
- * Created by PanJiaChen on 16/11/18.
+ * 通用工具：时间格式化、参数序列化、防抖等（部分来自 vue-element-admin 模板）。
  */
 
 /**

@@ -1,6 +1,10 @@
 import { post } from '@/utils/request'
 
 /**
+ * 通用 CRUD 封装：由调用方传入完整路径，适用于动态表格或少量遗留接口。
+ */
+
+/**
  * 通用 POST 分页或列表查询。
  * @param {string} url 接口路径
  * @param {object} query 请求体

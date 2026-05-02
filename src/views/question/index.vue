@@ -160,6 +160,9 @@
 </template>
 
 <script>
+/**
+ * 试题库管理：分页、题型筛选、导入 Excel、编辑删除。
+ */
 import { quPaging, quDel, quUpdate, importQue } from '@/api/question'
 import RepoSelect from '@/components/RepoSelect'
 

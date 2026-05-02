@@ -7,6 +7,9 @@ Vue.use(Router)
 import Layout from '@/layout'
 
 /**
+ * 全站路由表：按角色拆分 asyncRoutes，与侧边栏、面包屑、页签 `meta.title` 一致。
+ * 以下英文段为 vue-element-admin 对 meta 字段的说明，保留作对照。
+ *
  * Note: sub-menu only appear when route children.length >= 1
  * Detail see: https://panjiachen.github.io/vue-element-admin-site/guide/essentials/router-and-nav.html
  *

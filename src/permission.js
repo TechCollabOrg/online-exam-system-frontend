@@ -1,5 +1,5 @@
 /**
- * 路由进度条与标签页 meta；登录校验见 src/main.js。
+ * 二次路由增强：NProgress、浏览器标题、多页签（menu/ADD_TAG）；**鉴权以 main.js 中白名单 + Token 为准**。
  */
 import router from './router'
 import store from './store'
