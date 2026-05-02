@@ -325,6 +325,9 @@ export default {
     this.getExamPage()
   },
   methods: {
+    /**
+     * delExam：页面业务方法。
+     */
     delExam(row) {
       this.$confirm('此操作将永久删除该考试, 是否继续?', '提示', {
         confirmButtonText: '确定',
@@ -355,10 +358,16 @@ export default {
           })
         })
     },
+    /**
+     * showExam：页面业务方法。
+     */
     showExam(row) {
       localStorage.setItem("exam-details-examId", row.id)
       this.$router.push({name: 'exam-details'})
     },
+    /**
+     * updateExam：页面业务方法。
+     */
     updateExam() {
       const data = {
         examDuration: this.form.examDuration,
@@ -394,23 +403,38 @@ export default {
       })
     },
     // 分页查询
+    /**
+     * getExamPage：页面业务方法。
+     */
     async getExamPage(pageNum, pageSize, title = null) {
       const params = { pageNum: pageNum, pageSize: pageSize, title: title }
       const res = await examPaging(params)
       this.data = res.data
     },
+    /**
+     * searchExam：页面业务方法。
+     */
     searchExam() {
       this.getExamPage(this.pageNum, this.pageSize, this.input)
     },
 
+    /**
+     * screenInfo：页面业务方法。
+     */
     screenInfo(row) {
       this.$router.push({ name: 'exam-add', query: { zhi: row }})
     },
+    /**
+     * handleSizeChange：页面业务方法。
+     */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val
       this.getExamPage(this.pageNum, val,this.input)
     },
+    /**
+     * handleCurrentChange：页面业务方法。
+     */
     handleCurrentChange(val) {
       // 设置当前页逻辑
       this.pageNum = val

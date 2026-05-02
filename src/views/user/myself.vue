@@ -136,6 +136,9 @@ export default {
   },
   methods: {
     // 退出班级逻辑
+    /**
+     * exitGrade：页面业务方法。
+     */
     exitGrade() {
       this.$confirm('退出班级, 是否继续?', '提示', {
         confirmButtonText: '确定',
@@ -173,6 +176,9 @@ export default {
         })
     },
     // 获取个人系信息
+    /**
+     * getInfoFun：页面业务方法。
+     */
     async getInfoFun() {
       const res = await getInfo()
       if (res.code) {
@@ -182,16 +188,25 @@ export default {
       }
     },
     // 修改文件逻辑
+    /**
+     * handleFileChange：页面业务方法。
+     */
     handleFileChange(file, fileList) {
       this.fileList = fileList // 收集文件信息
     },
     // 移除文件处理方法
+    /**
+     * handleRemove：页面业务方法。
+     */
     handleRemove(file, fileList) {
       if (fileList.length === 0) {
         this.hasFiles = false
       }
     },
     // 上传文件逻辑
+    /**
+     * importAvatar：页面业务方法。
+     */
     importAvatar() {
       if (this.fileList.length > 0) {
         const formData = new FormData() // 创建FormData对象
@@ -214,10 +229,16 @@ export default {
       }
     },
     // 添加班级按钮
+    /**
+     * addClassBt：页面业务方法。
+     */
     addClassBt() {
       this.addClassDialogVisible = true
     },
     // 添加班级逻辑
+    /**
+     * addClass：页面业务方法。
+     */
     addClass() {
       const params = { code: this.form.code }
       userAddClass(params).then((res) => {

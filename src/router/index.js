@@ -427,6 +427,7 @@ export const constantRoutes = [
   { path: '*', redirect: '/404', hidden: true }
 ]
 
+/** 创建 Router 实例（history 模式可按需开启） */
 const createRouter = () => new Router({
   // mode: 'history', // require service support
   scrollBehavior: () => ({ y: 0 }),
@@ -435,7 +436,10 @@ const createRouter = () => new Router({
 
 const router = createRouter()
 
-// Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
+/**
+ * 重置动态路由 matcher（退出登录或切换账号时调用）。
+ * @see https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
+ */
 export function resetRouter() {
   const newRouter = createRouter()
   router.matcher = newRouter.matcher // reset router

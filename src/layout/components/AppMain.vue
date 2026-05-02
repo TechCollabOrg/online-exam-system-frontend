@@ -7,9 +7,13 @@
 </template>
 
 <script>
+/**
+ * 主内容区：缓存 router-view，页面切换带动画。
+ */
 export default {
   name: 'AppMain',
   computed: {
+    /** 用完整路径作 key，切换路由时强制刷新页面级缓存 */
     key() {
       return this.$route.path
     }

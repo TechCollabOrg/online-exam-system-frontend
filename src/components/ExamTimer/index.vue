@@ -40,6 +40,9 @@ export default {
     }
   },
   methods: {
+    /**
+     * startCountdown：页面业务方法。
+     */
     startCountdown() {
       // 使用setInterval替换setTimeout
       this.timer = setInterval(() => {

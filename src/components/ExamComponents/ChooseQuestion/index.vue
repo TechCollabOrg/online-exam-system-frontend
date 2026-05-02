@@ -194,18 +194,30 @@ export default {
     this.getQuPage();
   },
   methods: {
+    /**
+     * handleRepoChangeSingle：页面业务方法。
+     */
     handleRepoChangeSingle(repo) {
       console.log("单选题库变化:", repo);
     },
+    /**
+     * updateRow：页面业务方法。
+     */
     updateRow(row) {
       localStorage.setItem("quId", row.id);
       this.$router.push({ name: "questions-add" });
     },
 
+    /**
+     * handleFileChange：页面业务方法。
+     */
     handleFileChange(file, fileList) {
       this.fileList = fileList;
     },
 
+    /**
+     * handleRemove：页面业务方法。
+     */
     handleRemove(file, fileList) {
       if (fileList.length === 0) {
         this.hasFiles = false;
@@ -239,6 +251,9 @@ export default {
       });
     },
 
+    /**
+     * searchQu：页面业务方法。
+     */
     searchQu() {
       this.pageNum = 1; // 搜索时重置页码
       this.getQuPage(
@@ -250,10 +265,16 @@ export default {
       );
     },
 
+    /**
+     * screenInfo：页面业务方法。
+     */
     screenInfo(row, index, done) {
       this.$router.push({ name: "questions-add", query: { zhi: row } });
     },
 
+    /**
+     * handleSizeChange：页面业务方法。
+     */
     handleSizeChange(val) {
       this.pageSize = val;
        this.pageNum,
@@ -266,6 +287,9 @@ export default {
         this.selValue);
     },
 
+    /**
+     * handleCurrentChange：页面业务方法。
+     */
     handleCurrentChange(val) {
       this.pageNum = val;
       this.getQuPage(
@@ -275,6 +299,9 @@ export default {
         this.selectedRepoSingleSearch,
         this.selValue);
     },
+    /**
+     * scoreFun：页面业务方法。
+     */
     scoreFun(){
       this.questionList.radioCount = 0;
       this.questionList.multiCount = 0;
@@ -323,6 +350,9 @@ export default {
       // 触发自定义事件，将选中的ID数组传递给父组件
       this.$emit("selected-change", data);
     },
+    /**
+     * handleSelectionChange：页面业务方法。
+     */
     handleSelectionChange(val) {
       // 合并新旧选中项，去重
       const newSelected = [...this.selectedRows];
@@ -397,6 +427,9 @@ export default {
     },
 
     // 清空所有选中
+    /**
+     * clearSelection：页面业务方法。
+     */
     clearSelection() {
       this.selectedRows = []; // 清空内部存储
       this.$refs.multipleTable.clearSelection(); // 清空表格UI的选中状态

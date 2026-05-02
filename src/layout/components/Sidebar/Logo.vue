@@ -14,6 +14,9 @@
 </template>
 
 <script>
+/**
+ * 侧栏折叠态切换 Logo / 标题展示。
+ */
 export default {
   name: 'SidebarLogo',
   props: {
@@ -22,6 +25,7 @@ export default {
       required: true
     }
   },
+  /** 站点标题与默认 Logo 图片地址 */
   data() {
     return {
       title: 'Vue Admin Template',

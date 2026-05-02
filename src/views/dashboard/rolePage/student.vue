@@ -92,6 +92,9 @@ export default {
   },
   methods: {
     // 获取登录时长
+    /**
+     * getDailyFun：页面业务方法。
+     */
     getDailyFun() {
       getDaily().then((res) => {
         if (res.code === 1) {
@@ -127,6 +130,9 @@ export default {
       })
     },
     // 分页查询
+    /**
+     * getNotice：页面业务方法。
+     */
     async getNotice(pageNum, pageSize) {
       const params = { pageNum: pageNum, pageSize: pageSize }
       const res = await noticeGetNew(params)
@@ -138,15 +144,24 @@ export default {
       }
       // this.transformData(res);
     },
+    /**
+     * initCharts：页面业务方法。
+     */
     initCharts() {
       this.myChart = echarts.init(this.$refs.charts)
       this.myChart.setOption(this.option)
     },
+    /**
+     * resizeChart：页面业务方法。
+     */
     resizeChart() {
       if (this.myChart) {
         this.myChart.resize()
       }
     },
+    /**
+     * handleNodeClick：页面业务方法。
+     */
     handleNodeClick(data) {
       //  (data);
     }

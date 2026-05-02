@@ -83,6 +83,9 @@ export default {
     this.decode()
   },
   methods: {
+    /**
+     * handleTagClose：页面业务方法。
+     */
     handleTagClose(item) {
       if (this.$route.path === item.path) {
         this.$store.commit('menu/REMOVE_TAG', item)
@@ -96,14 +99,23 @@ export default {
         this.$store.commit('menu/REMOVE_TAG', item)
       }
     },
+    /**
+     * decode：页面业务方法。
+     */
     decode() {
       const token = getToken()
       const user = parseJwt(token)
       this.user = JSON.parse(user.userInfo)
     },
+    /**
+     * toggleSideBar：页面业务方法。
+     */
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
     },
+    /**
+     * logout：页面业务方法。
+     */
     async logout() {
       this.$store.dispatch('logoutUser')
       await this.$store.dispatch('user/logout')

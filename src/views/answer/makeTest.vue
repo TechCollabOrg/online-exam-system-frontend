@@ -152,6 +152,9 @@ export default {
   },
   methods: {
     // 点击答题卡题号, 右侧题目滑动
+    /**
+     * handleTag：页面业务方法。
+     */
     handleTag(index) {
       // 高亮选中的题目index标签
       this.quIndex = index
@@ -160,12 +163,18 @@ export default {
       page.scrollIntoView()
     },
     // 获取用户作答信息
+    /**
+     * getUserAnswerDetail：页面业务方法。
+     */
     async getUserAnswerDetail() {
       const params = { userId: this.info.userId, examId: this.info.examId }
 
       const res = await answerDetail(params)
       this.waitQuList = res.data
     },
+    /**
+     * subCorrect：页面业务方法。
+     */
     subCorrect() {
       const list = []
       // 校验合法

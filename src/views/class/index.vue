@@ -171,6 +171,9 @@ export default {
     this.role = getRole()
   },
   methods: {
+    /**
+     * joinClass：页面业务方法。
+     */
     joinClass() {
       const params = { code: this.teacharForm.classCode }
       teacherJoinClass(params).then((res) => {
@@ -189,6 +192,9 @@ export default {
         }
       })
     },
+    /**
+     * exitClass：页面业务方法。
+     */
     exitClass(row) {
       const classId = row['id']
       teacherExitClass(classId).then((res) => {
@@ -207,11 +213,17 @@ export default {
       })
     },
     // 分页查询
+    /**
+     * getClassPage：页面业务方法。
+     */
     async getClassPage(pageNum, pageSize, title = null) {
       const params = { pageNum: pageNum, pageSize: pageSize, gradeName: title }
       const res = await classPaging(params)
       this.data = res.data
     },
+    /**
+     * addClass：页面业务方法。
+     */
     addClass() {
       const data = { gradeName: this.addForm.gradeName }
       classAdd(data).then((res) => {
@@ -231,6 +243,9 @@ export default {
         }
       })
     },
+    /**
+     * delClass：页面业务方法。
+     */
     delClass(row) {
       this.$confirm('此操作将永久删除该班级, 是否继续?', '提示', {
         confirmButtonText: '确定',
@@ -261,6 +276,9 @@ export default {
           })
         })
     },
+    /**
+     * updateClass：页面业务方法。
+     */
     updateClass() {
       classUpdate(this.form.id, { gradeName: this.form.gradeName })
         .then((res) => {
@@ -285,21 +303,36 @@ export default {
           })
         })
     },
+    /**
+     * updateRow：页面业务方法。
+     */
     updateRow(row) {
       this.dialogFormVisible = true
       this.form = row
     },
+    /**
+     * searchExam：页面业务方法。
+     */
     searchExam() {
       this.getClassPage(this.pageNum, this.pageSize, this.formInline.searchTitle)
     },
+    /**
+     * handleClick：页面业务方法。
+     */
     handleClick(row) {
       (row)
     },
+    /**
+     * handleSizeChange：页面业务方法。
+     */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val
       this.getClassPage(this.pageNum, val,this.formInline.searchTitle)
     },
+    /**
+     * handleCurrentChange：页面业务方法。
+     */
     handleCurrentChange(val) {
       // 设置当前页逻辑
       this.pageNum = val

@@ -99,10 +99,16 @@ export default {
   },
   methods: {
     // 分页查询
+    /**
+     * getExamDetils：页面业务方法。
+     */
     async getExamDetils(examId) {
       const res = await getExamDetail(examId)
       this.data = res.data
     },
+    /**
+     * startExam：页面业务方法。
+     */
     startExam() {
       examStart(this.receivedRow).then((res) => {
         if (res.code) {

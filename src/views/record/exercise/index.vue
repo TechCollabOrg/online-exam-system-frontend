@@ -148,26 +148,44 @@ export default {
     this.getExerciseRecordPaging()
   },
   methods: {
+    /**
+     * searchExam：页面业务方法。
+     */
     searchExam() {
       this.getExerciseRecordPaging(this.pageNum, this.pageSize, this.searchTitle)
     },
     // 分页查询
+    /**
+     * getExerciseRecordPaging：页面业务方法。
+     */
     async getExerciseRecordPaging(pageNum, pageSize, repoName) {
       const params = { pageNum: pageNum, pageSize: pageSize, repoName: repoName }
       const res = await recordExercisePaging(params)
       this.data = res.data
     },
+    /**
+     * onSubmit：页面业务方法。
+     */
     onSubmit() {
       //  ("submit!");
     },
+    /**
+     * handleSizeChange：页面业务方法。
+     */
     handleSizeChange(val) {
       this.pageSize = val
       this.getExerciseRecordPaging(this.pageNum, this.pageSize, this.searchTitle)
     },
+    /**
+     * handleCurrentChange：页面业务方法。
+     */
     handleCurrentChange(val) {
       this.pageNum = val
       this.getExerciseRecordPaging(this.pageNum, this.pageSize, this.searchTitle)
     },
+    /**
+     * handleClose：页面业务方法。
+     */
     handleClose(done) {
       this.$confirm('确认关闭？')
         .then((_) => {

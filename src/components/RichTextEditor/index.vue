@@ -112,6 +112,9 @@ export default {
   },
   methods: {
     // 点击图片按钮
+    /**
+     * handleImageClick：页面业务方法。
+     */
     handleImageClick() {
       const input = document.querySelector("#quillEditorUploadInput");
       input.setAttribute("accept", "image/*");
@@ -119,6 +122,9 @@ export default {
     },
 
     // 点击视频按钮
+    /**
+     * handleVideoClick：页面业务方法。
+     */
     handleVideoClick() {
       const input = document.querySelector("#quillEditorUploadInput");
       input.setAttribute("accept", "video/*");
@@ -126,6 +132,9 @@ export default {
     },
 
     // 上传前处理
+    /**
+     * beforeUpload：页面业务方法。
+     */
     beforeUpload(file) {
       this.loading = true;
       const isLt10M = file.size / 1024 / 1024 < 10;
@@ -137,6 +146,9 @@ export default {
     },
 
     // 上传成功
+    /**
+     * uploadSuccess：页面业务方法。
+     */
     uploadSuccess(res, file) {
       this.loading = false;
       if (res.code !== 200) {
@@ -161,6 +173,9 @@ export default {
     },
 
     // 上传失败
+    /**
+     * uploadError：页面业务方法。
+     */
     uploadError(err) {
       this.loading = false;
       this.$message.error("上传失败");
@@ -168,31 +183,49 @@ export default {
     },
 
     // 获取编辑器实例
+    /**
+     * getEditor：页面业务方法。
+     */
     getEditor() {
       return this.$refs.quillEditor.quill;
     },
 
     // 设置内容
+    /**
+     * setContent：页面业务方法。
+     */
     setContent(content) {
       this.content = content;
     },
 
     // 清空内容
+    /**
+     * clear：页面业务方法。
+     */
     clear() {
       this.content = "";
     },
 
     // 失去焦点事件
+    /**
+     * onEditorBlur：页面业务方法。
+     */
     onEditorBlur(quill) {
       this.$emit("blur", quill);
     },
 
     // 获得焦点事件
+    /**
+     * onEditorFocus：页面业务方法。
+     */
     onEditorFocus(quill) {
       this.$emit("focus", quill);
     },
 
     // 准备富文本编辑器
+    /**
+     * onEditorReady：页面业务方法。
+     */
     onEditorReady(quill) {
       if (this.disabled) {
         quill.enable(false);
@@ -201,6 +234,9 @@ export default {
     },
 
     // 内容改变事件
+    /**
+     * onEditorChange：页面业务方法。
+     */
     onEditorChange({ quill, html, text }) {
       this.$emit("change", { quill, html, text });
     },

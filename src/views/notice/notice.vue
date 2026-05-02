@@ -101,22 +101,34 @@ export default {
   },
   methods: {
     // 编辑公告按钮
+    /**
+     * updateRow：页面业务方法。
+     */
     updateRow(row) {
       this.editVisible = true
       this.form = row
     },
     // 查看公告按钮
+    /**
+     * showRow：页面业务方法。
+     */
     showRow(row) {
       this.showVisible = true
       this.form = row
     },
     // 分页查询
+    /**
+     * getNoticePage：页面业务方法。
+     */
     async getNoticePage(pageNum, pageSize, title = null) {
       const params = { pageNum: pageNum, pageSize: pageSize, title: title }
       const res = await noticePaging(params)
       this.data = res.data
     },
     // 新增公告
+    /**
+     * addNotice：页面业务方法。
+     */
     addNotice(noticeForm) {
       // 建立公告数据
       const data = { title: noticeForm.title, content: noticeForm.content, gradeIds: noticeForm.gradeIds.join(','), isPublic: noticeForm.isPublic ? 1 : 0 }
@@ -138,6 +150,9 @@ export default {
       })
     },
     // 更新公告方法
+    /**
+     * updateNotice：页面业务方法。
+     */
     updateNotice(noticeForm) {
       const data = { title: noticeForm.title, content: noticeForm.content, gradeIds: noticeForm.gradeIds.join(','), isPublic: noticeForm.isPublic ? 1 : 0 }
       noticeUpdate(this.form.id, data).then((res) => {
@@ -157,10 +172,16 @@ export default {
       })
     },
     // 搜索公告
+    /**
+     * searchNotice：页面业务方法。
+     */
     searchNotice() {
       this.getNoticePage(this.pageNum, this.pageSize, this.searchTitle)
     },
     // 删除公告
+    /**
+     * delNotice：页面业务方法。
+     */
     delNotice(id) {
       this.$confirm('此操作将永久删除该公告, 是否继续?', '提示', {
         confirmButtonText: '确定',
@@ -195,11 +216,17 @@ export default {
         })
     },
 
+    /**
+     * handleSizeChange：页面业务方法。
+     */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val
       this.getNoticePage(this.pageNum, val,this.searchTitle)
     },
+    /**
+     * handleCurrentChange：页面业务方法。
+     */
     handleCurrentChange(val) {
       // 设置当前页逻辑
       this.pageNum = val

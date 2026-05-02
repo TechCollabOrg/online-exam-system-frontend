@@ -253,6 +253,9 @@ export default {
   },
   methods: {
     // 分页查询
+    /**
+     * getRepoPage：页面业务方法。
+     */
     async getRepoPage(pageNum = this.pageNum, pageSize = this.pageSize, title = null, categoryId = null) {
       try {
         const params = {
@@ -273,6 +276,9 @@ export default {
       }
     },
     // 获取分类列表
+    /**
+     * fetchCategories：页面业务方法。
+     */
     async fetchCategories() {
       try {
         const res = await getCategoryTree()
@@ -289,6 +295,9 @@ export default {
       }
     },
     // 将分类树扁平化为列表
+    /**
+     * flattenCategoryTree：页面业务方法。
+     */
     flattenCategoryTree(tree, result = []) {
       if (!tree || !tree.length) return result
 
@@ -304,6 +313,9 @@ export default {
       return result
     },
     // 处理分类列表，添加父级分类名称
+    /**
+     * processCategoryList：页面业务方法。
+     */
     processCategoryList(tree, parentName = null, result = []) {
       if (!tree || !tree.length) return result
 
@@ -320,13 +332,22 @@ export default {
       })
       return result
     },
+    /**
+     * searchRepo：页面业务方法。
+     */
     searchRepo() {
       this.getRepoPage(this.pageNum, this.pageSize, this.searchTitle, this.searchCategory)
     },
+    /**
+     * updateRow：页面业务方法。
+     */
     updateRow(row) {
       this.dialogFormVisible = true
       this.form = { ...row }
     },
+    /**
+     * submitAddRepo：页面业务方法。
+     */
     submitAddRepo() {
       if (!this.addRepoForm.title) {
         this.$message.warning('请输入题库名称')
@@ -367,6 +388,9 @@ export default {
         })
     },
     // 编辑题库
+    /**
+     * submitEditRepo：页面业务方法。
+     */
     submitEditRepo() {
       if (!this.form.title) {
         this.$message.warning('请输入题库名称')
@@ -401,6 +425,9 @@ export default {
         })
     },
     // 删除题库
+    /**
+     * delRepo：页面业务方法。
+     */
     delRepo(row) {
       this.$confirm('此操作将永久删除该题库, 是否继续?', '提示', {
         confirmButtonText: '确定',
@@ -435,6 +462,9 @@ export default {
         })
     },
     // 分类管理相关方法
+    /**
+     * addCategory：页面业务方法。
+     */
     addCategory() {
       this.categoryForm = {
         name: '',
@@ -442,6 +472,9 @@ export default {
       }
       this.addCategoryDialogVisible = true
     },
+    /**
+     * editCategory：页面业务方法。
+     */
     editCategory(row) {
       this.categoryForm = {
         id: row.id,
@@ -450,6 +483,9 @@ export default {
       }
       this.editCategoryDialogVisible = true
     },
+    /**
+     * submitAddCategory：页面业务方法。
+     */
     submitAddCategory() {
       if (!this.categoryForm.name) {
         this.$message.warning('请输入分类名称')
@@ -476,6 +512,9 @@ export default {
           this.$message.error('添加分类失败')
         })
     },
+    /**
+     * submitEditCategory：页面业务方法。
+     */
     submitEditCategory() {
       if (!this.categoryForm.name) {
         this.$message.warning('请输入分类名称')
@@ -502,6 +541,9 @@ export default {
           this.$message.error('修改分类失败')
         })
     },
+    /**
+     * deleteCategory：页面业务方法。
+     */
     deleteCategory(id) {
       this.$confirm('确认删除该分类?', '提示', {
         confirmButtonText: '确定',
@@ -528,14 +570,23 @@ export default {
         })
       })
     },
+    /**
+     * handleClose：页面业务方法。
+     */
     handleClose(done) {
       done()
     },
+    /**
+     * handleSizeChange：页面业务方法。
+     */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val
       this.getRepoPage(this.pageNum, val, this.searchTitle, this.searchCategory)
     },
+    /**
+     * handleCurrentChange：页面业务方法。
+     */
     handleCurrentChange(val) {
       // 设置当前页逻辑
       this.pageNum = val

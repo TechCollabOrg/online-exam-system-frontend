@@ -191,6 +191,9 @@ export default {
     this.ExamDetail();
   },
   methods: {
+    /**
+     * isCheck：页面业务方法。
+     */
     isCheck(myOption, sort) {
       const arr = myOption.split(",").map(Number); // 将字符串转换为数字数组
       if (arr.includes(sort)) {
@@ -199,6 +202,9 @@ export default {
         return false;
       }
     },
+    /**
+     * numberToLetter：页面业务方法。
+     */
     numberToLetter(input) {
       const numberToCharMap = {
         0: "A",
@@ -231,11 +237,17 @@ export default {
       }
     },
     // 分页查询
+    /**
+     * ExamDetail：页面业务方法。
+     */
     async ExamDetail() {
       const res = await details(this.examId);
       this.data = res.data;
     },
     // 点击答题卡题号, 右侧题目滑动
+    /**
+     * handleTag：页面业务方法。
+     */
     handleTag(index) {
       // 高亮选中的题目index标签
       this.quIndex = index;

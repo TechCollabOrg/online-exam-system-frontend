@@ -83,6 +83,9 @@ export default {
     }
   },
   methods:{
+    /**
+     * toggleLike：页面业务方法。
+     */
     async toggleLike(id){
       const data = {
         discussionId:this.currentDiscussionId,

@@ -33,9 +33,15 @@ export default {
     }
   },
   methods: {
+    /**
+     * selectQuestion：页面业务方法。
+     */
     selectQuestion(item) {
       this.$emit('select-question', item)
     },
+    /**
+     * getCardItemClass：页面业务方法。
+     */
     getCardItemClass(item) {
       // 当前题目
       if (item.questionId === this.currentItem.questionId) {

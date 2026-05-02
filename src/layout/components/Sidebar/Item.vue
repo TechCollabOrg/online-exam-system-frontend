@@ -1,4 +1,7 @@
 <script>
+/**
+ * 菜单项渲染（函数式组件）：根据 icon 渲染 Element 图标或 svg-icon。
+ */
 export default {
   name: 'MenuItem',
   functional: true,
@@ -12,6 +15,7 @@ export default {
       default: ''
     }
   },
+  /** @param {import('vue').CreateElement} h */
   render(h, context) {
     const { icon, title } = context.props
     const vnodes = []

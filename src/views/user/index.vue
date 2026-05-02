@@ -154,6 +154,9 @@ export default {
   },
   methods: {
     // 分页查询用户
+    /**
+     * getUserPage：页面业务方法。
+     */
     async getUserPage(pageNum, pageSize, realName = null, gradeId = null) {
       const params = {
         pageNum: pageNum,
@@ -165,6 +168,9 @@ export default {
       this.data = res.data
     },
     // 搜索功能用户
+    /**
+     * searchUser：页面业务方法。
+     */
     searchUser() {
       this.getUserPage(
         this.pageNum,
@@ -174,18 +180,27 @@ export default {
       )
     },
     // 设置每页多少条逻辑
+    /**
+     * handleSizeChange：页面业务方法。
+     */
     handleSizeChange(val) {
       this.pageSize = val
       this.getUserPage(this.pageNum, val,this.searchForm.searchRealName,
       this.searchForm.searchClass)
     },
     // 设置当前页逻辑
+    /**
+     * handleCurrentChange：页面业务方法。
+     */
     handleCurrentChange(val) {
       this.pageNum = val
       this.getUserPage(val, this.pageSize,this.searchForm.searchRealName,
       this.searchForm.searchClass)
     },
     // 添加用户逻辑
+    /**
+     * addUser：页面业务方法。
+     */
     addUser() {
       const data = {
         userName: this.addForm.userName,
@@ -217,6 +232,9 @@ export default {
       })
     },
     // 上传文件逻辑
+    /**
+     * importUser：页面业务方法。
+     */
     importUser() {
       if (this.fileList.length > 0) {
         const formData = new FormData() // 创建FormData对象
@@ -242,16 +260,25 @@ export default {
       }
     },
     // 上传文件出触发
+    /**
+     * handleFileChange：页面业务方法。
+     */
     handleFileChange(file, fileList) {
       this.fileList = fileList // 收集文件信息
     },
     // 移除文件处理方法
+    /**
+     * handleRemove：页面业务方法。
+     */
     handleRemove(file, fileList) {
       if (fileList.length === 0) {
         this.hasFiles = false
       }
     },
     // 删除用户方法
+    /**
+     * delUser：页面业务方法。
+     */
     delUser(row) {
       this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
         confirmButtonText: '确定',
@@ -284,6 +311,9 @@ export default {
         })
     },
     // 将用户移出班级
+    /**
+     * removeUserClass：页面业务方法。
+     */
     removeUserClass(row) {
       userClassRemove(row.id).then((res) => {
         if (res.code) {
@@ -302,6 +332,9 @@ export default {
       })
     },
     // 下载模板
+    /**
+     * startDownload：页面业务方法。
+     */
     async startDownload() {
       const a = document.createElement('a')
       a.href = './template/ImportUserTemplate.xlsx'

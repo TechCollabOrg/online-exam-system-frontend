@@ -141,36 +141,57 @@ export default {
   },
   methods: {
 
+    /**
+     * searchExam：页面业务方法。
+     */
     searchExam() {
       this.getExamRecordPaging(this.pageNum, this.pageSize, this.searchTitle)
     },
 
+    /**
+     * toggleSort：页面业务方法。
+     */
     toggleSort() {
       this.getExamRecordPaging(this.pageNum, this.pageSize, this.searchTitle)
     },
     // 分页查询
+    /**
+     * getExamRecordPaging：页面业务方法。
+     */
     async getExamRecordPaging(pageNum, pageSize, examName) {
       const params = { pageNum: pageNum, pageSize: pageSize, examName: examName, isASC: this.isASC }
       const res = await recordExamPaging(params)
       this.data = res.data
     },
 
+    /**
+     * screenInfo：页面业务方法。
+     */
     screenInfo(row) {
       localStorage.setItem('record_exam_examId', row.id)
       this.$router.push({ name: 'exam-record-detail', query: { zhi: row }})
     },
 
+    /**
+     * handleSizeChange：页面业务方法。
+     */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val
       this.getExamRecordPaging(this.pageNum, val, this.searchTitle)
     },
+    /**
+     * handleCurrentChange：页面业务方法。
+     */
     handleCurrentChange(val) {
       // 设置当前页逻辑
       this.pageNum = val
       this.getExamRecordPaging(val, this.pageSize, this.searchTitle)
     },
 
+    /**
+     * handleClose：页面业务方法。
+     */
     handleClose(done) {
       this.$confirm('确认关闭？')
         .then((_) => {

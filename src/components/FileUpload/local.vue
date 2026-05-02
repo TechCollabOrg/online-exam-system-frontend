@@ -75,6 +75,9 @@ export default {
 
   methods: {
 
+    /**
+     * fillValue：页面业务方法。
+     */
     fillValue() {
       this.fileList = []
       this.fileUrl = this.value
@@ -84,21 +87,33 @@ export default {
     },
 
     // 文件超出个数限制时的钩子
+    /**
+     * handleExceed：页面业务方法。
+     */
     handleExceed() {
       this.$message.warning(`每次只能上传 ${this.limit} 个文件`)
     },
     // 删除文件之前的钩子
+    /**
+     * beforeRemove：页面业务方法。
+     */
     beforeRemove() {
       return this.$confirm(`确定移除文件吗？`)
     },
 
     // 文件列表移除文件时的钩子
+    /**
+     * handleRemove：页面业务方法。
+     */
     handleRemove() {
       this.$emit('input', '')
       this.fileList = []
     },
 
     // 文件上传成功时的钩子
+    /**
+     * handleSuccess：页面业务方法。
+     */
     handleSuccess(response) {
       if (response.code === 1) {
         this.$message({

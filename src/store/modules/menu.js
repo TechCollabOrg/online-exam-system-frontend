@@ -1,12 +1,17 @@
 import router from '@/router'
 
+/** 多页签导航状态，持久化在 sessionStorage(TAGS) */
 const state = {
   tags: JSON.parse(sessionStorage.getItem('TAGS')) || []
 }
 
 const losePath = ['/404']
+
 const mutations = {
-  // 添加标签
+  /**
+   * 新增或激活路由标签；已存在则仅切换 checked。
+   * @param {{ path: string, title?: string, checked?: boolean }} tag
+   */
   ADD_TAG: (state, tag) => {
     const pathList = state.tags.map(item => item.path)
     if (!losePath.includes(tag.path)) {
@@ -31,7 +36,10 @@ const mutations = {
       sessionStorage.setItem('TAGS', JSON.stringify(state.tags))
     }
   },
-  // 删除标签
+  /**
+   * 关闭指定标题的标签；若当前路由与被关一致则回退到最后一个标签路由。
+   * @param {{ title: string, path: string }} tag
+   */
   REMOVE_TAG(state, tag) {
     (state.tags)
     if (state.tags && state.tags.length === 1) {
@@ -47,6 +55,7 @@ const mutations = {
     })
     sessionStorage.setItem('TAGS', JSON.stringify(state.tags))
   },
+  /** 清空所有页签状态 */
   CLOSE_SIDEBAR: (state) => {
     state.tags = []
   }

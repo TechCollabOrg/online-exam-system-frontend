@@ -253,14 +253,23 @@ export default {
     this.getQuPage()
   },
   methods: {
+    /**
+     * handleRepoChangeSingle：页面业务方法。
+     */
     handleRepoChangeSingle(repo) {
       ('单选题库变化:', repo)
       // 这里可以进一步处理repo对象，比如更新UI或发送网络请求等
     },
+    /**
+     * updateRow：页面业务方法。
+     */
     updateRow(row) {
       localStorage.setItem('quId', row.id)
       this.$router.push({ name: 'questions-add' })
     },
+    /**
+     * importQu：页面业务方法。
+     */
     importQu() {
       if (this.fileList && this.fileList.length > 0 && this.selectedRepoSingle  != '') {
         const formData = new FormData() // 创建FormData对象
@@ -294,16 +303,25 @@ export default {
         this.$message.warning('请选择文件后再上传！')
       }
     },
+    /**
+     * handleFileChange：页面业务方法。
+     */
     handleFileChange(file, fileList) {
       this.fileList = fileList // 收集文件信息
     },
     // 移除文件处理方法
+    /**
+     * handleRemove：页面业务方法。
+     */
     handleRemove(file, fileList) {
       if (fileList.length === 0) {
         this.hasFiles = false
       }
     },
     // 分页查询
+    /**
+     * getQuPage：页面业务方法。
+     */
     async getQuPage(pageNum, pageSize, content = null, repoId = null, type = null) {
       const params = {
         pageNum: pageNum,
@@ -316,6 +334,9 @@ export default {
       this.data = res.data
     },
     // 编辑题库
+    /**
+     * updateQu：页面业务方法。
+     */
     updateQu() {
       quUpdate(this.form.id, { title: this.form.title })
         .then((res) => {
@@ -347,6 +368,9 @@ export default {
         })
     },
     // 删除试题
+    /**
+     * delQu：页面业务方法。
+     */
     delQu(row) {
       this.$confirm('此操作将永久删除该试题, 是否继续?', '提示', {
         confirmButtonText: '确定',
@@ -385,6 +409,9 @@ export default {
           })
         })
     },
+    /**
+     * searchQu：页面业务方法。
+     */
     searchQu() {
       this.getQuPage(
         this.pageNum,
@@ -395,10 +422,16 @@ export default {
       )
     },
 
+    /**
+     * screenInfo：页面业务方法。
+     */
     screenInfo(row, index, done) {
       this.$router.push({ name: 'questions-add', query: { zhi: row }})
     },
 
+    /**
+     * handleSizeChange：页面业务方法。
+     */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val
@@ -406,6 +439,9 @@ export default {
         this.selectedRepoSingleSearch,
         this.selValue)
     },
+    /**
+     * handleCurrentChange：页面业务方法。
+     */
     handleCurrentChange(val) {
       // 设置当前页逻辑
       this.pageNum = val
@@ -414,6 +450,9 @@ export default {
         this.selValue)
     },
     // 下载模板
+    /**
+     * startDownload：页面业务方法。
+     */
     async startDownload() {
       const a = document.createElement('a')
       a.href = './template/ImportQuestionTemplate.xlsx'

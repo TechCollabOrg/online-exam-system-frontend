@@ -196,6 +196,9 @@ export default {
   },
 
   methods: {
+    /**
+     * handHandExam：页面业务方法。
+     */
     handHandExam() {
       const that = this;
       // 交卷保存答案
@@ -224,11 +227,17 @@ export default {
         });
     },
 
+    /**
+     * getSingleQuFun：页面业务方法。
+     */
     getSingleQuFun(quId) {
       getSingleQu(quId).then((res) => {
         this.quData = res.data;
       });
     },
+    /**
+     * getUserBookListFun：页面业务方法。
+     */
     getUserBookListFun() {
       getUserBookList(this.examId).then((res) => {
         this.userBookList = res.data;
@@ -237,6 +246,9 @@ export default {
         this.lastIndex = this.userBookList.length;
       });
     },
+    /**
+     * numberToLetter：页面业务方法。
+     */
     numberToLetter(input) {
       const numberToCharMap = {
         0: "A",
@@ -269,6 +281,9 @@ export default {
       }
     },
     // 获取题目类型
+    /**
+     * getQuestionType：页面业务方法。
+     */
     getQuestionType(type) {
       const typeMap = {
         1: '单选题',
@@ -301,6 +316,9 @@ export default {
       this.handSave(this.index);
     },
     // 保存答案
+    /**
+     * handSave：页面业务方法。
+     */
     handSave(index) {
       if (index - 1 >= this.lastIndex) {
         this.handHandExam();

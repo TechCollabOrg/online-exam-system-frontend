@@ -141,25 +141,40 @@ export default {
     this.getAnswerPage()
   },
   methods: {
+    /**
+     * searchExam：页面业务方法。
+     */
     searchExam() {
       this.getAnswerPage(this.pageNum, this.pageSize, this.searchTitle)
     },
+    /**
+     * getAnswerPage：页面业务方法。
+     */
     getAnswerPage(pageNum, pageSize, examName) {
       const params = { pageNum: pageNum, pageSize: pageSize, examName: examName }
       answerExamPging(params).then((res) => {
         this.data = res.data
       })
     },
+    /**
+     * handleSizeChange：页面业务方法。
+     */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val
       this.getAnswerPage(this.pageNum, val,this.searchTitle)
     },
+    /**
+     * handleCurrentChange：页面业务方法。
+     */
     handleCurrentChange(val) {
       // 设置当前页逻辑
       this.pageNum = val
       this.getAnswerPage(val, this.pageSize,this.searchTitle)
     },
+    /**
+     * screenInfo：页面业务方法。
+     */
     screenInfo(row) {
       localStorage.setItem('answer_examId', row.examId)
       this.$router.push({ name: 'answer-show', query: { zhi: row }})

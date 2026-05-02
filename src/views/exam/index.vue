@@ -265,11 +265,17 @@ export default {
   },
   methods: {
     // 检查问题列表是否存在
+    /**
+     * hasQuestions：页面业务方法。
+     */
     hasQuestions(list) {
       return list && list.length > 0
     },
 
     // 检查选项是否被选中
+    /**
+     * isCheck：页面业务方法。
+     */
     isCheck(myOption, sort) {
       if (!myOption) return false
       const arr = myOption.split(',').map(Number)
@@ -277,10 +283,16 @@ export default {
     },
 
     // 处理对话框关闭
+    /**
+     * handleClose：页面业务方法。
+     */
     handleClose() {
       this.examPreVisible = false
     },
     // 将0-5转换为A-F
+    /**
+     * numberToLetter：页面业务方法。
+     */
     numberToLetter(input) {
       if (input === null || input === undefined) return ''
 
@@ -309,6 +321,9 @@ export default {
     },
 
     // 交卷前预览
+    /**
+     * handHandExamPre：页面业务方法。
+     */
     handHandExamPre() {
       this.handSave(this.cardItem)
       examCollect(this.examId).then((res) => {
@@ -321,6 +336,9 @@ export default {
       })
     },
     // 切换页面检测
+    /**
+     * pageHidden：页面业务方法。
+     */
     pageHidden(e = null) {
       if (document.visibilityState === 'hidden') {
         examCheat(this.examId).then((res) => {
@@ -339,6 +357,9 @@ export default {
     },
 
     // 开始考试
+    /**
+     * startExam：页面业务方法。
+     */
     startExam(examId) {
       examQuList(examId).then((res) => {
         this.paperData = res.data
@@ -389,6 +410,9 @@ export default {
     },
     // 清空Session
     // 使用函数清除以 "exam_" 开头的所有键值对
+    /**
+     * clearSessionStorageByPrefix：页面业务方法。
+     */
     clearSessionStorageByPrefix(prefix) {
       Object.keys(sessionStorage)
         .filter(key => key.startsWith(prefix))
@@ -396,6 +420,9 @@ export default {
     },
 
     // 交卷
+    /**
+     * doHandler：页面业务方法。
+     */
     doHandler(isAutomatic = false) {
       const performSubmit = () => {
         this.handleText = isAutomatic ? '时间到，正在自动交卷...' : '正在交卷，请等待...'
@@ -454,6 +481,9 @@ export default {
     },
 
     // 保存答案
+    /**
+     * handSave：页面业务方法。
+     */
     handSave(item, callback) {
       // 更新上一题/下一题按钮状态
       this.showPrevious = item.sort > 0
@@ -590,6 +620,9 @@ export default {
     },
 
     // 更新题目状态
+    /**
+     * updateQuestionStatus：页面业务方法。
+     */
     updateQuestionStatus(questionId, status) {
       // 在所有题型列表中查找并更新状态
       const updateListStatus = (list) => {
@@ -608,6 +641,9 @@ export default {
     },
 
     // 提交最后一题答案
+    /**
+     * submitLastAnswer：页面业务方法。
+     */
     submitLastAnswer() {
       const currentItem = this.cardItem
       // 获取题目ID
@@ -709,6 +745,9 @@ export default {
 
 
     // 试卷详情
+    /**
+     * fetchQuData：页面业务方法。
+     */
     fetchQuData(item) {
       // 打开
       const loading = Loading.service({
@@ -763,6 +802,9 @@ export default {
     },
 
     // 试卷详情
+    /**
+     * fetchData：页面业务方法。
+     */
     fetchData(examId) {
       examQuList(examId).then((response) => {
         // 试卷内容
@@ -781,6 +823,9 @@ export default {
     },
 
     // 设置第一个题目
+    /**
+     * setFirstQuestion：页面业务方法。
+     */
     setFirstQuestion() {
       if (this.paperData.radioList && this.paperData.radioList.length > 0) {
         this.cardItem = this.paperData.radioList[0]
@@ -794,6 +839,9 @@ export default {
     },
 
     // 合并所有题目
+    /**
+     * mergeAllQuestions：页面业务方法。
+     */
     mergeAllQuestions() {
       const addQuestionsToAllItems = (questionList) => {
         if (questionList && questionList.length > 0) {
@@ -808,11 +856,17 @@ export default {
     },
 
     // 处理滚动事件
+    /**
+     * handleScroll：页面业务方法。
+     */
     handleScroll() {
       // 实现滚动逻辑
     },
 
     // 获取左侧距离
+    /**
+     * getLfetDistance：页面业务方法。
+     */
     getLfetDistance() {
       const body = document.querySelector('body')
       this.flexLeft = (body.offsetWidth - 1200) / 2

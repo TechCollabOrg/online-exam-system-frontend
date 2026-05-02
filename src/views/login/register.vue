@@ -216,6 +216,9 @@ export default {
     // this.getEmail()
   },
   methods: {
+    /**
+     * registerFn：页面业务方法。
+     */
     registerFn() {
       this.$refs.registerForm.validate(valid => {
         if (valid) {
@@ -276,10 +279,16 @@ export default {
         }
       })
     },
+    /**
+     * getVerify：页面业务方法。
+     */
     getVerify() {
       this.$refs.captchaImg.src = `/api/auths/captcha?${Math.random()}`
     },
 
+    /**
+     * showPwd：页面业务方法。
+     */
     showPwd() {
       if (this.passwordType === 'password') {
         this.passwordType = ''
@@ -290,6 +299,9 @@ export default {
         this.$refs.password.focus()
       })
     },
+    /**
+     * showPwd2：页面业务方法。
+     */
     showPwd2() {
       if (this.checkedPasswordType === 'password') {
         this.checkedPasswordType = ''

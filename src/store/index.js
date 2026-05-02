@@ -9,20 +9,26 @@ import menu from './modules/menu'
 import { trackPresence } from '@/api/user'
 Vue.use(Vuex)
 
+/**
+ * 根 Store：挂载业务模块，并提供登录心跳定时任务占位逻辑。
+ */
 const store = new Vuex.Store({
   state: {
     isUserLoggedIn: false,
     heartbeatIntervalId: null
   },
   mutations: {
+    /**
+     * 设置登录态；为 true 时启动定时心跳（每 5 分钟）。
+     * @param {boolean} value
+     */
     setUserLoggedIn(state, value) {
       state.isUserLoggedIn = value
       if (value && !state.heartbeatIntervalId) {
         this.dispatch('sendHeartbeat')
         state.heartbeatIntervalId = setInterval(() => {
-          // 这里可以触发发送心跳的action
           this.dispatch('sendHeartbeat')
-        }, 300000) // 每5分钟发送一次心跳
+        }, 300000)
       } else if (!value && state.heartbeatIntervalId) {
         clearInterval(state.heartbeatIntervalId)
         state.heartbeatIntervalId = null
@@ -31,21 +37,17 @@ const store = new Vuex.Store({
   },
 
   actions: {
+    /** 调用后端 track-presence 接口保持会话统计 */
     sendHeartbeat({ commit, state }) {
-      // alert('发送心跳请求');
-      // 发送心跳请求到后端
       trackPresence({ userId: state.userId }).then(response => {
       })
         .catch(error => {
           console.error('心跳发送失败:', error)
         })
     },
+    /** 演示用登录：仅切换本地登录标记 */
     loginUser({ commit }, userData) {
-      // 登录逻辑，这里简化处理，实际应包含登录请求
-      // 假设登录成功后设置用户登录状态
       commit('setUserLoggedIn', true)
-      // 设置用户ID到state，具体获取方式根据实际情况调整
-      // commit('setUserId', userData.id)
     },
     logoutUser({ commit }) {
       commit('setUserLoggedIn', false)

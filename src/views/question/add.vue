@@ -211,6 +211,9 @@ export default {
   },
   methods: {
     // 获取单题详情
+    /**
+     * getQuDetail：页面业务方法。
+     */
     async getQuDetail() {
       const res = await quDetail(this.quId)
       if (res.code) {
@@ -224,6 +227,9 @@ export default {
         this.postForm = res.data
       }
     },
+    /**
+     * handleTypeChange：页面业务方法。
+     */
     handleTypeChange(v) {
       this.postForm.options = []
       if (v === 3) {
@@ -243,10 +249,16 @@ export default {
     },
 
     // 添加子项
+    /**
+     * handleAdd：页面业务方法。
+     */
     handleAdd() {
       this.postForm.options.push({ isRight: false, content: '' })
     },
 
+    /**
+     * removeItem：页面业务方法。
+     */
     removeItem(index) {
       const actualIndex = this.postForm.options.findIndex((option, idx) => {
         return idx === index && !option.isDeleted
@@ -263,11 +275,17 @@ export default {
       }
     },
 
+    /**
+     * fetchData：页面业务方法。
+     */
     fetchData(id) {
       fetchDetail(id).then((response) => {
         this.postForm = response.data
       })
     },
+    /**
+     * submitForm：页面业务方法。
+     */
     submitForm() {
       (JSON.stringify(this.postForm))
 
@@ -371,6 +389,9 @@ export default {
         }
       })
     },
+    /**
+     * onCancel：页面业务方法。
+     */
     onCancel() {
       this.$router.push({ name: 'questions-management' })
     }

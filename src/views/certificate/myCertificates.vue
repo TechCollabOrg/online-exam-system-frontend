@@ -137,28 +137,46 @@ export default {
     this.jwtInfo = getTokenInfo()
   },
   methods: {
+    /**
+     * searchExam：页面业务方法。
+     */
     searchExam() {
       this.getCerPage(this.pageNum, this.pageSize, this.formInline.searchTitle)
     },
+    /**
+     * handleSizeChange：页面业务方法。
+     */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val
       this.getCerPage(this.pageNum, val)
     },
+    /**
+     * handleCurrentChange：页面业务方法。
+     */
     handleCurrentChange(val) {
       // 设置当前页逻辑
       this.pageNum = val
       this.getCerPage(val, this.pageSize)
     },
     // 分页查询
+    /**
+     * getCerPage：页面业务方法。
+     */
     async getCerPage(pageNum, pageSize, examName) {
       const params = { pageNum: pageNum, pageSize: pageSize, examName: examName }
       const res = await certificateMy(params)
       this.data = res.data
     },
+    /**
+     * handleClose：页面业务方法。
+     */
     handleClose() {
       this.dialogVisible = false
     },
+    /**
+     * preview：页面业务方法。
+     */
     preview(row) {
       this.currentdata = row
       var vm = this
@@ -175,6 +193,9 @@ export default {
         }
       })
     },
+    /**
+     * getChapter：页面业务方法。
+     */
     getChapter() {
       this.getChapter = this.getChapter.bind(this)
     }

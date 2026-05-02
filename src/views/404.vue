@@ -23,9 +23,13 @@
 
 <script>
 
+/**
+ * 404 占位页：展示静态插画与提示文案。
+ */
 export default {
   name: 'Page404',
   computed: {
+    /** 404 主标题下方说明文字 */
     message() {
       return 'The webmaster said that you can not enter this page...'
     }

@@ -110,6 +110,9 @@ export default {
   },
   methods: {
     // 分页查询
+    /**
+     * getExamGradePage：页面业务方法。
+     */
     async getExamGradePage(pageNum, pageSize, searchTitle = null) {
       const params = { pageNum: pageNum, pageSize: pageSize, title: searchTitle, isASC: this.isASC }
       const res = await getGradeExamList(params)
@@ -117,11 +120,17 @@ export default {
     },
 
     // 切换排序方式
+    /**
+     * toggleSort：页面业务方法。
+     */
     toggleSort() {
       this.getExamGradePage(this.pageNum, this.pageSize, this.searchTitle)
     },
 
     // 考试状态判断
+    /**
+     * getExamStatus：页面业务方法。
+     */
     getExamStatus(row) {
       const now = new Date().getTime()
       const endTime = new Date(row.endTime).getTime()
@@ -147,22 +156,37 @@ export default {
         }
       }
     },
+    /**
+     * searchExamStu：页面业务方法。
+     */
     searchExamStu() {
       this.getExamGradePage(this.pageNum, this.pageSize, this.searchTitle)
     },
+    /**
+     * handleSizeChange：页面业务方法。
+     */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val
       this.getExamGradePage(this.pageNum, val,this.searchTitle)
     },
+    /**
+     * handleCurrentChange：页面业务方法。
+     */
     handleCurrentChange(val) {
       // 设置当前页逻辑
       this.pageNum = val
       this.getExamGradePage(val, this.pageSize,this.searchTitle)
     },
+    /**
+     * handleClick：页面业务方法。
+     */
     handleClick(row) {
     },
 
+    /**
+     * screenInfo：页面业务方法。
+     */
     screenInfo(row) {
       const status = this.getExamStatus(row)
       if (status.disabled) {

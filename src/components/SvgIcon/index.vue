@@ -9,6 +9,9 @@
 // doc: https://panjiachen.github.io/vue-element-admin-site/feature/component/svg-icon.html#usage
 import { isExternal } from '@/utils/validate'
 
+/**
+ * SVG 图标：支持 symbol 雪碧图（#icon-xxx）或外链 mask 图标。
+ */
 export default {
   name: 'SvgIcon',
   props: {
@@ -22,12 +25,15 @@ export default {
     }
   },
   computed: {
+    /** @returns {boolean} iconClass 是否为 http(s) 等外链 */
     isExternal() {
       return isExternal(this.iconClass)
     },
+    /** symbol id，对应 svg-sprite 中的图标名 */
     iconName() {
       return `#icon-${this.iconClass}`
     },
+    /** 合并自定义 className */
     svgClass() {
       if (this.className) {
         return 'svg-icon ' + this.className
@@ -35,6 +41,7 @@ export default {
         return 'svg-icon'
       }
     },
+    /** 外链图标使用 CSS mask 着色 */
     styleExternalIcon() {
       return {
         mask: `url(${this.iconClass}) no-repeat 50% 50%`,

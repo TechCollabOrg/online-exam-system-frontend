@@ -1,3 +1,7 @@
+/**
+ * 修复 iOS 下 SubMenu mouseleave 误触发的 mixin。
+ * @see https://github.com/PanJiaChen/vue-element-admin/issues/1135
+ */
 export default {
   computed: {
     device() {
@@ -5,11 +9,10 @@ export default {
     }
   },
   mounted() {
-    // In order to fix the click on menu on the ios device will trigger the mouseleave bug
-    // https://github.com/PanJiaChen/vue-element-admin/issues/1135
     this.fixBugIniOS()
   },
   methods: {
+    /** 改写 el-submenu 的 handleMouseleave，移动端直接短路 */
     fixBugIniOS() {
       const $subMenu = this.$refs.subMenu
       if ($subMenu) {

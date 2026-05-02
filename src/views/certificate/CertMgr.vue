@@ -199,6 +199,9 @@ export default {
       const res = await certificatePaging(params)
       this.data = res.data
     },
+    /**
+     * searchCertificate：页面业务方法。
+     */
     searchCertificate() {
       this.getCertificatePage(
         this.pageNum,
@@ -207,6 +210,9 @@ export default {
         this.searchCertificationNuit
       )
     },
+    /**
+     * updateCertificate：页面业务方法。
+     */
     updateCertificate() {
       const data = {
         certificateName: this.form.certificateName,
@@ -228,6 +234,9 @@ export default {
         }
       })
     },
+    /**
+     * addCertificate：页面业务方法。
+     */
     addCertificate() {
       const data = {
         certificateName: this.form.certificateName,
@@ -251,6 +260,9 @@ export default {
         }
       })
     },
+    /**
+     * delCertificate：页面业务方法。
+     */
     delCertificate(id) {
       this.$confirm('此操作将永久删除该证书, 是否继续?', '提示', {
         confirmButtonText: '确定',
@@ -282,18 +294,27 @@ export default {
         })
     },
 
+    /**
+     * handleSizeChange：页面业务方法。
+     */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val
       this.getCertificatePage(this.pageNum, val,this.searchCertificateName,
       this.searchCertificationNuit)
     },
+    /**
+     * handleCurrentChange：页面业务方法。
+     */
     handleCurrentChange(val) {
       // 设置当前页逻辑
       this.pageNum = val
       this.getCertificatePage(val, this.pageSize,this.searchCertificateName,
       this.searchCertificationNuit)
     },
+    /**
+     * handleClick：页面业务方法。
+     */
     handleClick(row) {
     }
   }

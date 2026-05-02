@@ -54,11 +54,17 @@ export default {
     this.fetchCertificates()
   },
   methods: {
+    /**
+     * fetchCertificates：页面业务方法。
+     */
     fetchCertificates() {
       certificatePaging({ pageNum: 1, pageSize: 1000 }).then((response) => {
         this.certificateList = response.data.records || []
       })
     },
+    /**
+     * handleCertificateChange：页面业务方法。
+     */
     handleCertificateChange(selectedIds) {
       const selectedCertificates = this.certificateList.filter((cert) =>
         selectedIds.includes(cert.id)

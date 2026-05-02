@@ -39,16 +39,25 @@ export default {
   },
     methods:{
         // 收到websocket消息的方法
+        /**
+         * handleMessage：页面业务方法。
+         */
         handleMessage(res) {
             if(res.type === 'DISCUSSION' && res.data.discussionId === this.currentDiscussionId){
                 this.getDiscussionRelyFun(this.currentDiscussionId,2)
             }
         },
+        /**
+         * getDiscussionRelyFun：页面业务方法。
+         */
         getDiscussionRelyFun(id,order=1){
             getDiscussionRely(id,order).then((res)=>{
                 this.relyData = res.data
             });
         },
+        /**
+         * handleLike：页面业务方法。
+         */
         handleLike(){
            this.getDiscussionRelyFun(this.currentDiscussionId,4)
         }

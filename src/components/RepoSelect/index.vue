@@ -62,12 +62,18 @@ export default {
   },
   methods: {
 
+    /**
+     * fetchData：页面业务方法。
+     */
     fetchData(q) {
       // , title: q, excludes: this.excludes
       fetchPaging({ pageNum: 1, pageSize: 1000 }).then((res) => {
         this.dataList = res.data
       })
     },
+    /**
+     * handlerChange：页面业务方法。
+     */
     handlerChange(e) {
       const obj = this.dataList.find((item) => {
         return item.id === e

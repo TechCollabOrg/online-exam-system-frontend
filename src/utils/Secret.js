@@ -1,10 +1,14 @@
 import CryptoJS from 'crypto-js'
 
-// 默认的 KEY 与 iv 如果没有给
 const KEY = CryptoJS.enc.Utf8.parse('63eeac68cf074c8c')
 const IV = CryptoJS.enc.Utf8.parse('63eeac68cf074c8c')
+
 /**
- * AES加密 ：字符串 key iv  返回base64
+ * AES(CBC/ZeroPadding) 加密，默认内置 KEY/IV，也可传入自定义密钥与向量。
+ * @param {string} word 明文
+ * @param {string} [keyStr] 可选密钥字符串（UTF-8）
+ * @param {string} [ivStr] 可选 IV 字符串（UTF-8）
+ * @returns {string} Base64 密文
  */
 export function Encrypt(word, keyStr, ivStr) {
   let key = KEY
@@ -21,10 +25,13 @@ export function Encrypt(word, keyStr, ivStr) {
   })
   return CryptoJS.enc.Base64.stringify(encrypted.ciphertext)
 }
+
 /**
- * AES 解密 ：字符串 key iv  返回base64
- *
- * @return {string}
+ * AES(CBC/ZeroPadding) 解密。
+ * @param {string} word Base64 密文
+ * @param {string} [keyStr] 可选密钥
+ * @param {string} [ivStr] 可选 IV
+ * @returns {string} UTF-8 明文
  */
 export function Decrypt(word, keyStr, ivStr) {
   let key = KEY

@@ -149,20 +149,32 @@ export default {
 
   },
   methods: {
+    /**
+     * handleRadioChange：页面业务方法。
+     */
     handleRadioChange(value) {
       this.getDiscussionRelyFun(this.currentDiscussionId,value)
     },
     // 收到websocket消息的方法
+    /**
+     * handleMessage：页面业务方法。
+     */
     handleMessage(res) {
       if(res.type === 'DISCUSSION' && res.data.discussionId === this.currentDiscussionId){
         this.getDiscussionRelyFun(this.currentDiscussionId,2)
       }
     },
     // 投屏模式
+    /**
+     * projectionScreen：页面业务方法。
+     */
     projectionScreen(){
       this.$router.push({name: 'discussion-block',query: { discussionId: this.currentDiscussionId }})
     },
     //删除回复
+    /**
+     * delReply：页面业务方法。
+     */
     delReply(id){
       replyDel(id).then(res=>{
         if(res.code){
@@ -176,6 +188,9 @@ export default {
       })
     },
     //展示是否删除
+    /**
+     * showIsDel：页面业务方法。
+     */
     showIsDel(replyId){
         this.$confirm('此操作将永久删除该回复, 是否继续?', '提示', {
           confirmButtonText: '确定',
@@ -191,6 +206,9 @@ export default {
         });
     },
     // 回复
+    /**
+     * submitFun：页面业务方法。
+     */
     submitFun(){
       this.form.discussionId = this.currentDiscussionId
       replyAdd(this.form).then(res=>{
@@ -205,6 +223,9 @@ export default {
       })
 
     },
+    /**
+     * getDiscussionDetailsFun：页面业务方法。
+     */
     getDiscussionDetailsFun() {
       discussionDetail(this.currentDiscussionId).then((res) => {
         this.form.content = res.data.answer;
@@ -213,6 +234,9 @@ export default {
         this.getDiscussionRelyFun(this.currentDiscussionId,1)
       });
     },
+    /**
+     * getDiscussionRelyFun：页面业务方法。
+     */
     getDiscussionRelyFun(id,order=1){
       getDiscussionRely(id,order).then((res)=>{
         this.relyData = res.data
@@ -222,15 +246,24 @@ export default {
     // 失去焦点事件
     onEditorBlur(quill) {},
     // 获得焦点事件
+    /**
+     * onEditorFocus：页面业务方法。
+     */
     onEditorFocus(quill) {
       console.log("editor focus!", quill);
     },
     // 准备富文本编辑器
+    /**
+     * onEditorReady：页面业务方法。
+     */
     onEditorReady(quill) {
       // 移除禁用编辑器的逻辑，或者根据实际情况调整 this.isEdit 的值
       console.log("editor ready!", quill);
     },
     // 内容改变事件
+    /**
+     * onEditorChange：页面业务方法。
+     */
     onEditorChange({ quill, html, text }) {
       console.log("editor change!", quill, html, text);
       this.form.content = html;

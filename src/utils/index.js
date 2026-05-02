@@ -3,9 +3,9 @@
  */
 
 /**
- * Parse the time to string
- * @param {(Object|string|number)} time
- * @param {string} cFormat
+ * 将日期格式化为字符串（支持时间戳、Date、Safari 兼容字符串）。
+ * @param {(Object|string|number)} time 时间
+ * @param {string} [cFormat] 形如 {y}-{m}-{d} 的占位模板
  * @returns {string | null}
  */
 export function parseTime(time, cFormat) {
@@ -52,8 +52,9 @@ export function parseTime(time, cFormat) {
 }
 
 /**
- * @param {number} time
- * @param {string} option
+ * 相对时间文案（刚刚 / N 分钟前）或按模板格式化。
+ * @param {number} time 毫秒时间戳
+ * @param {string} [option] 传入则走 parseTime
  * @returns {string}
  */
 export function formatTime(time, option) {
@@ -95,7 +96,8 @@ export function formatTime(time, option) {
 }
 
 /**
- * @param {string} url
+ * 将查询字符串解析为普通对象（不解码嵌套）。
+ * @param {string} url 含 ? 的完整 URL 或 query 部分
  * @returns {Object}
  */
 export function param2Obj(url) {

@@ -105,6 +105,9 @@ export default {
     this.currentRole = getRole()
   },
   methods: {
+    /**
+     * toggleLike：页面业务方法。
+     */
     toggleLike() {
       this.discussionData.isLike = this.discussionData.isLike === 0 ? 1 : 0;
       const data = {
@@ -115,6 +118,9 @@ export default {
         this.onConfirm();
       })
     },
+    /**
+     * showIsDel：页面业务方法。
+     */
     showIsDel(id){
       console.log(111111)
       this.delFun(id);

@@ -85,6 +85,9 @@ export default {
     })
   },
   methods: {
+    /**
+     * handleClickOutside：页面业务方法。
+     */
     handleClickOutside() {
       this.$store.dispatch('app/closeSideBar', { withoutAnimation: false })
     }

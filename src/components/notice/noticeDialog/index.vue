@@ -147,6 +147,9 @@ export default {
     }
   },
   methods: {
+    /**
+     * handleCancel：页面业务方法。
+     */
     handleCancel() {
       this.visible = false
       if (this.editType === 1) {
@@ -154,6 +157,9 @@ export default {
         this.refresh()
       }
     },
+    /**
+     * refresh：页面业务方法。
+     */
     refresh() {
       this.noticeForm = {
         title: '',
@@ -162,6 +168,9 @@ export default {
         content: ''
       }
     },
+    /**
+     * handleConfirm：页面业务方法。
+     */
     handleConfirm() {
       // 调用父组件传入的确认回调方法，并传递 repoForm 数据
       this.onConfirm(this.noticeForm);
@@ -174,14 +183,23 @@ export default {
       }
     },
     // 失去焦点事件
+    /**
+     * onEditorBlur：页面业务方法。
+     */
     onEditorBlur(quill) {
     },
     // 获得焦点事件
+    /**
+     * onEditorFocus：页面业务方法。
+     */
     onEditorFocus(quill) {
       // quill.enable(false);
       ('editor focus!', quill)
     },
     // 准备富文本编辑器
+    /**
+     * onEditorReady：页面业务方法。
+     */
     onEditorReady(quill) {
       if (!this.isEdit) {
         quill.enable(false)
@@ -190,6 +208,9 @@ export default {
       ('editor ready!', quill)
     },
     // 内容改变事件
+    /**
+     * onEditorChange：页面业务方法。
+     */
     onEditorChange({ quill, html, text }) {
       ('editor change!', quill, html, text)
       this.content = html

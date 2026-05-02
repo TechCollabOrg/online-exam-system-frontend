@@ -62,6 +62,9 @@ export default {
     this.fetchClasses()
   },
   methods: {
+    /**
+     * fetchClasses：页面业务方法。
+     */
     fetchClasses(query = '') {
       // 使用query参数进行过滤，如果需要可以根据props.excludes进一步过滤
       fetchClasses({ pageNum: 1, pageSize: 1000, name: query }).then((response) => {
@@ -74,6 +77,9 @@ export default {
     //   this.$emit('change', selectedClasses) // 发送选中的班级对象数组到父组件
     //   this.$emit('input', selectedIds) // 更新v-model绑定的值
     // }
+    /**
+     * handleClassChange：页面业务方法。
+     */
     handleClassChange(selectedIds) {
       // 确保selectedIds始终是一个数组，即使是单选情况下传入的是单个值
       const idsArray = Array.isArray(selectedIds) ? selectedIds : [selectedIds]

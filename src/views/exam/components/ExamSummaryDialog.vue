@@ -143,6 +143,9 @@ export default {
   },
   methods: {
     // 检查选项是否被选中
+    /**
+     * isCheck：页面业务方法。
+     */
     isCheck(myOption, sort) {
       if (!myOption) return false
       const arr = myOption.split(',').map(Number)
@@ -150,23 +153,35 @@ export default {
     },
 
     // 处理对话框关闭
+    /**
+     * handleClose：页面业务方法。
+     */
     handleClose(done) {
       this.$emit('close')
       done()
     },
 
     // 取消按钮
+    /**
+     * onCancel：页面业务方法。
+     */
     onCancel() {
       this.dialogVisible = false
     },
 
     // 确认按钮
+    /**
+     * onConfirm：页面业务方法。
+     */
     onConfirm() {
       this.$emit('confirm')
       this.dialogVisible = false
     },
 
     // 获取答案颜色
+    /**
+     * getAnswerColor：页面业务方法。
+     */
     getAnswerColor(isRight) {
       if (isRight === 1) return 'green'
       if (isRight === 0) return 'red'
@@ -174,6 +189,9 @@ export default {
     },
 
     // 将数字转换为字母
+    /**
+     * numberToLetter：页面业务方法。
+     */
     numberToLetter(input) {
       if (input === null || input === undefined) return ''
 

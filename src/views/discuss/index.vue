@@ -139,6 +139,9 @@ export default {
   },
   methods: {
     //弹出提示框
+    /**
+     * handleDel：页面业务方法。
+     */
     handleDel(id){
         this.$confirm('此操作将永久删除该讨论, 是否继续?', '提示', {
           confirmButtonText: '确定',
@@ -154,6 +157,9 @@ export default {
         });
     },
     //删除讨论
+    /**
+     * delDiscussion：页面业务方法。
+     */
     delDiscussion(id){
       discussionDel(id).then(res=>{
         if(res.code){
@@ -171,6 +177,9 @@ export default {
       })
     },
     //提交表单
+    /**
+     * handleConfirm：页面业务方法。
+     */
     handleConfirm(){
       discussionAdd(this.discussionForm).then(res=>{
         if(res.code){
@@ -191,10 +200,16 @@ export default {
           }
       })
     },
+    /**
+     * showRow：页面业务方法。
+     */
     showRow(row) {
       // this.$router.push({name: 'discussion-detail',query: { row: row }})
       this.$router.push({name: 'discussion-detail',query:{discussionId: row.id}})
     },
+    /**
+     * searchDiscussion：页面业务方法。
+     */
     searchDiscussion() {
       this.getDiscussionPage(
         this.pageNum,
@@ -204,6 +219,9 @@ export default {
       );
     },
     // 分页查询
+    /**
+     * getDiscussionPage：页面业务方法。
+     */
     async getDiscussionPage(pageNum, pageSize, title = null, gradeId = null) {
       const params = {
         currentPage: pageNum,
@@ -222,12 +240,18 @@ export default {
         this.data = res.data
       }
     },
+    /**
+     * handleSizeChange：页面业务方法。
+     */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val;
       this.getDiscussionPage(this.pageNum, val,this.searchForm.searchTitle,
       this.searchForm.gradeId);
     },
+    /**
+     * handleCurrentChange：页面业务方法。
+     */
     handleCurrentChange(val) {
       // 设置当前页逻辑
       this.pageNum = val;

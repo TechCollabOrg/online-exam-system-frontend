@@ -26,6 +26,9 @@ export default {
     }
   },
   methods: {
+    /**
+     * linkProps：页面业务方法。
+     */
     linkProps(to) {
       if (this.isExternal) {
         return {

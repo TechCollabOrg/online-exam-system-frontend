@@ -402,6 +402,9 @@ export default {
   },
   methods: {
     // 根据答案返回class
+    /**
+     * getOptionClass：页面业务方法。
+     */
     getOptionClass(option) {
       // 未提交答案不做样式处理
       if (!this.rightQuAnswer.data) return ''
@@ -428,6 +431,9 @@ export default {
     },
 
     // 重置答题状态
+    /**
+     * resetAnswerState：页面业务方法。
+     */
     resetAnswerState() {
       this.radioValue = ''
       this.multiValue = []
@@ -436,6 +442,9 @@ export default {
       this.isAnswered = false
     },
     // 处理题型切换逻辑
+    /**
+     * handleQuestionTypeSwitch：页面业务方法。
+     */
     handleQuestionTypeSwitch() {
       const currentList = {
         1: this.paperData.radioList,
@@ -462,11 +471,17 @@ export default {
     },
 
     // 修改结束刷题逻辑：确认后显示答题统计弹框
+    /**
+     * exitFun：页面业务方法。
+     */
     exitFun() {
       this.statisticsDialogVisible = true
     },
 
     // 点击弹框中“确定结束”按钮后的处理：关闭弹框并进行跳转或其他后续处理
+    /**
+     * finishExam：页面业务方法。
+     */
     finishExam() {
       // 删除当前标签页
       this.$store.commit('menu/REMOVE_TAG', {
@@ -478,9 +493,15 @@ export default {
       this.$router.push({ name: 'exercise-center', params: { id: this.paperId }})
     },
     // 取消弹框，不结束刷题
+    /**
+     * onDialogCancel：页面业务方法。
+     */
     onDialogCancel() {
       this.statisticsDialogVisible = false
     },
+    /**
+     * test：页面业务方法。
+     */
     async test() {
     
       const res = await getQuestion(null, this.repoId)
@@ -511,6 +532,9 @@ export default {
       this.getCurrentQuDetial()
     },
     // 获取试题Id列表
+    /**
+     * getQuestionList：页面业务方法。
+     */
     async getQuestionList() {
       const res = await getQuestion(null, this.repoId)
       this.quList = res.data
@@ -540,6 +564,9 @@ export default {
         this.initQuId()
       }
     },
+    /**
+     * numberToLetter：页面业务方法。
+     */
     numberToLetter(sort) {
       switch (sort) {
         case 1:
@@ -558,6 +585,9 @@ export default {
           return '' // 默认值，或者可以处理其他情况
       }
     },
+    /**
+     * change：页面业务方法。
+     */
     change(index) {
       this.number = index
       this.preText = '上一题'
@@ -569,6 +599,9 @@ export default {
       setTimeout(() => this.getCurrentQuDetial(), 200)
     },
 
+    /**
+     * getRightAnswer：页面业务方法。
+     */
     getRightAnswer() {
       // eslint-disable-next-line vue/no-template-shadow
       const arr = []

@@ -23,6 +23,9 @@ export default {
     }
   },
   methods: {
+    /**
+     * toggleClick：页面业务方法。
+     */
     toggleClick() {
       this.$emit('toggleClick')
     }

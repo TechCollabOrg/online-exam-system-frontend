@@ -4,19 +4,19 @@
  */
 
 /**
- * @param {string} path
- * @returns {Boolean}
+ * 判断是否为外部链接（http(s)/mailto/tel）。
+ * @param {string} path 路由或 URL 片段
+ * @returns {boolean}
  */
 export function isExternal(path) {
   return /^(https?:|mailto:|tel:)/.test(path)
 }
 
 /**
- * @param {string} str
- * @returns {Boolean}
+ * 校验用户名非空（模板项目占位逻辑，可按业务替换）。
+ * @param {string} str 输入串
+ * @returns {boolean}
  */
 export function validUsername(str) {
-  // const valid_map = ['admin', 'editor','zhangsan']
-  // return valid_map.indexOf(str.trim()) >= 0
   return str.trim().length > 0
 }

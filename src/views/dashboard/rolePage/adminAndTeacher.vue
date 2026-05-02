@@ -138,6 +138,9 @@ export default {
 
   methods: {
     // 获取所有数据
+    /**
+     * fetchAllData：页面业务方法。
+     */
     async fetchAllData() {
       this.loading = true
       try {
@@ -184,6 +187,9 @@ export default {
     },
 
     // 处理错误
+    /**
+     * handleError：页面业务方法。
+     */
     handleError(error) {
       this.loading = false
       this.error = true
@@ -192,6 +198,9 @@ export default {
     },
 
     // 处理窗口大小变化
+    /**
+     * handleResize：页面业务方法。
+     */
     handleResize() {
       if (this.classChartInstance) {
         this.classChartInstance.resize()
@@ -202,6 +211,9 @@ export default {
     },
 
     // 初始化图表
+    /**
+     * initCharts：页面业务方法。
+     */
     initCharts() {
       this.$nextTick(() => {
         // 确保DOM已经渲染
@@ -215,6 +227,9 @@ export default {
     },
 
     // 处理班级人数分布数据
+    /**
+     * processChartData：页面业务方法。
+     */
     processChartData(data) {
       if (data.length === 0) {
         this.chartData = [{ name: '暂无数据', value: 1 }]
@@ -234,6 +249,9 @@ export default {
     },
 
     // 处理班级试卷分布数据
+    /**
+     * processChartData2：页面业务方法。
+     */
     processChartData2(data) {
       // 新增逻辑：检查数据是否为空
       if (data.length === 0) {
@@ -255,6 +273,9 @@ export default {
     },
 
     // 更新班级人数分布图表
+    /**
+     * updateClassChart：页面业务方法。
+     */
     updateClassChart() {
       if (!this.classChartInstance) return
 
@@ -319,6 +340,9 @@ export default {
     },
 
     // 更新班级试卷分布图表
+    /**
+     * updateExamChart：页面业务方法。
+     */
     updateExamChart() {
       if (!this.examChartInstance) return
 

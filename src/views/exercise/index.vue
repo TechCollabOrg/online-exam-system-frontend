@@ -98,10 +98,16 @@ export default {
     this.fetchCategories()
   },
   methods: {
+    /**
+     * queryRepo：页面业务方法。
+     */
     queryRepo() {
       this.getExercisePage(this.pageNum, this.pageSize, this.repoTitle, this.categoryId)
     },
     // 分页查询
+    /**
+     * getExercisePage：页面业务方法。
+     */
     async getExercisePage(pageNum, pageSize, title = null, categoryId = null) {
       const params = { 
         pageNum: pageNum, 
@@ -113,6 +119,9 @@ export default {
       this.data = res.data
     },
     // 获取分类列表
+    /**
+     * fetchCategories：页面业务方法。
+     */
     async fetchCategories() {
       try {
         const res = await getCategoryTree()
@@ -127,6 +136,9 @@ export default {
       }
     },
     // 将分类树扁平化为列表
+    /**
+     * flattenCategoryTree：页面业务方法。
+     */
     flattenCategoryTree(tree, result = []) {
       if (!tree || !tree.length) return result
 
@@ -141,17 +153,29 @@ export default {
       })
       return result
     },
+    /**
+     * screenInfo：页面业务方法。
+     */
     screenInfo(id, repoTitle) {
       this.$router.push({ name: 'start-exercise', query: { repoId: id, repoTitle: repoTitle }})
     },
+    /**
+     * handleSizeChange：页面业务方法。
+     */
     handleSizeChange(val) {
       this.pageSize = val
       this.getExercisePage(this.pageNum, val, this.repoTitle, this.categoryId)
     },
+    /**
+     * handleCurrentChange：页面业务方法。
+     */
     handleCurrentChange(val) {
       this.pageNum = val
       this.getExercisePage(val, this.pageSize, this.repoTitle, this.categoryId)
     },
+    /**
+     * handleClick：页面业务方法。
+     */
     handleClick(row) {
       console.log(row)
     }

@@ -84,6 +84,9 @@ export default {
     )
   },
   methods: {
+    /**
+     * searchFun：页面业务方法。
+     */
     searchFun() {
       this.getAnswerUserPage(
         this.pageNum,
@@ -91,12 +94,18 @@ export default {
         this.examId
       )
     },
+    /**
+     * getAnswerUserPage：页面业务方法。
+     */
     getAnswerUserPage(pageNum, pageSize, examId, realName) {
       const params = { pageNum: pageNum, pageSize: pageSize, examId: examId, 'realName': this.realName }
       answerUserPging(params).then((res) => {
         this.data = res.data
       })
     },
+    /**
+     * screenInfo：页面业务方法。
+     */
     screenInfo(row) {
       sessionStorage.setItem('answer_info', JSON.stringify(row))
       this.$router.push({ name: 'makeTest' })

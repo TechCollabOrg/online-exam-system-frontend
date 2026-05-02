@@ -84,6 +84,9 @@ export default {
     return {}
   },
   methods: {
+    /**
+     * hasOneShowingChild：页面业务方法。
+     */
     hasOneShowingChild(children = [], parent) {
       const showingChildren = children.filter((item) => {
         if (item.hidden) {
@@ -108,6 +111,9 @@ export default {
 
       return false
     },
+    /**
+     * resolvePath：页面业务方法。
+     */
     resolvePath(routePath) {
       if (isExternal(routePath)) {
         return routePath

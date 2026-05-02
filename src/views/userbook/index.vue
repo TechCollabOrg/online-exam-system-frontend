@@ -144,26 +144,41 @@ export default {
     this.getUserBookPage()
   },
   methods: {
+    /**
+     * handleSizeChange：页面业务方法。
+     */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val
       this.getUserBookPage(this.pageNum, val, this.searchTitle)
     },
+    /**
+     * handleCurrentChange：页面业务方法。
+     */
     handleCurrentChange(val) {
       // 设置当前页逻辑
       this.pageNum = val
       this.getUserBookPage(val, this.pageSize, this.searchTitle)
     },
     // 分页查询
+    /**
+     * getUserBookPage：页面业务方法。
+     */
     async getUserBookPage(pageNum, pageSize, examName = null) {
       const params = { pageNum: pageNum, pageSize: pageSize, examName: examName }
       const res = await userbookPaging(params)
       this.data = res.data
     },
+    /**
+     * searchUserBook：页面业务方法。
+     */
     searchUserBook() {
       this.getUserBookPage(this.pageNum, this.pageSize, this.searchTitle)
     },
 
+    /**
+     * handleClose：页面业务方法。
+     */
     handleClose(done) {
       this.$confirm('确认关闭？')
         .then((_) => {
@@ -172,6 +187,9 @@ export default {
         .catch((_) => {})
     },
 
+    /**
+     * screenInfo：页面业务方法。
+     */
     screenInfo(row) {
       localStorage.setItem('userbook_examId', row.examId)
       this.$router.push({ path: '/rebrush' })

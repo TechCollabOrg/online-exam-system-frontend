@@ -131,6 +131,9 @@ export default {
   },
   methods: {
     // 分页查询
+    /**
+     * getScorePage：页面业务方法。
+     */
     async getScorePage() {
       const params = {
         pageNum: this.pageNum,
@@ -141,19 +144,31 @@ export default {
       const res = await getExamScore(params)
       this.data = res.data
     },
+    /**
+     * onSubmit：页面业务方法。
+     */
     onSubmit() {
       this.getScorePage()
     },
+    /**
+     * handleSizeChange：页面业务方法。
+     */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val
       this.getScorePage()
     },
+    /**
+     * handleCurrentChange：页面业务方法。
+     */
     handleCurrentChange(val) {
       // 设置当前页逻辑
       this.pageNum = val
       this.getScorePage()
     },
+    /**
+     * handleClick：页面业务方法。
+     */
     handleClick(row) {
     }
   }

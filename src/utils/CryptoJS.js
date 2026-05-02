@@ -1,4 +1,6 @@
-
+/**
+ * 前端 AES 加解密工具（ECB + PKCS7），与后端约定密钥为 Base64 字符串。
+ */
 import CryptoJS from 'crypto-js'
 
 /**

@@ -131,6 +131,9 @@ export default {
     localStorage.removeItem('gradeId')
   },
   methods: {
+    /**
+     * updateRow：页面业务方法。
+     */
     updateRow(row) {
         row.type= 1;
         console.log(row)
@@ -138,6 +141,9 @@ export default {
         this.$router.push({ name: 'exam-record-detail', query: { data: row }})
       },
     // 分页查询
+    /**
+     * getScorePage：页面业务方法。
+     */
     async getScorePage() {
       const params = {
         pageNum: this.pageNum,
@@ -149,6 +155,9 @@ export default {
       const res = await scorePaging(params)
       this.data = res.data
     },
+    /**
+     * getExportScores：页面业务方法。
+     */
     getExportScores() {
       exportScores(this.examId, this.gradeId).then(res => {
         (res) // 控制台输出：Blob {size: 30208, type: 'application/x-msdownload'}
@@ -176,21 +185,33 @@ export default {
       })
     },
 
+    /**
+     * onSubmit：页面业务方法。
+     */
     onSubmit() {
       this.getScorePage()
       //  ("submit!");
     },
+    /**
+     * handleSizeChange：页面业务方法。
+     */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val
       this.getScorePage(this.pageNum, val)
     },
+    /**
+     * handleCurrentChange：页面业务方法。
+     */
     handleCurrentChange(val) {
       // 设置当前页逻辑
       this.pageNum = val
       this.getScorePage(val, this.pageSize)
     },
 
+    /**
+     * handleClick：页面业务方法。
+     */
     handleClick(row) {
     }
   }

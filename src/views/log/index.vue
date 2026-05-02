@@ -64,6 +64,9 @@ export default {
   },
   methods: {
     // 获取不同类型的颜色
+    /**
+     * getBehaviorColor：页面业务方法。
+     */
     getBehaviorColor(behavior) {
       if (behavior === "设备登录") {
         return "green";
@@ -75,17 +78,26 @@ export default {
       return "black"; // 默认颜色
     },
     // 分页查询
+    /**
+     * getLogPageFun：页面业务方法。
+     */
     async getLogPageFun(pageNum, pageSize, title = null) {
       const params = { pageNum: pageNum, pageSize: pageSize };
       const res = await getLogPage(params);
       this.data = res.data;
     },
 
+    /**
+     * handleSizeChange：页面业务方法。
+     */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val;
       this.getLogPageFun(this.pageNum, val);
     },
+    /**
+     * handleCurrentChange：页面业务方法。
+     */
     handleCurrentChange(val) {
       // 设置当前页逻辑
       this.pageNum = val;

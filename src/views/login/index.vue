@@ -172,11 +172,17 @@ export default {
     })
   },
   methods: {
+    /**
+     * getVerify：页面业务方法。
+     */
     getVerify() {
       this.$refs.captchaImg.src = `/api/auths/captcha?${Math.random()}`
       // obj.src = "/api/auths/captcha?" + Math.random();
     },
 
+    /**
+     * showPwd：页面业务方法。
+     */
     showPwd() {
       if (this.passwordType === 'password') {
         this.passwordType = ''
@@ -187,6 +193,9 @@ export default {
         this.$refs.password.focus()
       })
     },
+    /**
+     * handleLogin：页面业务方法。
+     */
     handleLogin() {
       verifyCode(this.loginForm.code).then((res) => {
         if (res.code) {

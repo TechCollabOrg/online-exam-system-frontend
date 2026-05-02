@@ -76,6 +76,9 @@ export default {
   },
 
   methods: {
+    /**
+     * handleConfirm：页面业务方法。
+     */
     handleConfirm() {
       // 调用父组件传入的确认回调方法，并传递 repoForm 数据
       this.onConfirm(this.repoForm)

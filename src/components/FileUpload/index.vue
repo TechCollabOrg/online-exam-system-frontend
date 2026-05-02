@@ -56,6 +56,9 @@ export default {
 
   methods: {
 
+    /**
+     * fillValue：页面业务方法。
+     */
     fillValue() {
       this.fileUrl = this.value
     }

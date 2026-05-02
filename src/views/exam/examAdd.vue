@@ -387,6 +387,9 @@ export default {
   },
   methods: {
     // 点击tab
+    /**
+     * handleClick：页面业务方法。
+     */
     handleClick(tab, event) {
       this.$refs.questionSelector.clearSelection();
       // console.log(event)
@@ -404,6 +407,9 @@ export default {
       console.log(tab, event);
     },
     // 子组件选择的ids
+    /**
+     * handleSelectedChange：页面业务方法。
+     */
     handleSelectedChange(selectedIds) {
       var ids = [];
       selectedIds.selectedRows.forEach((item) => {
@@ -424,6 +430,9 @@ export default {
       this.selectedQuestionIds = selectedIds;
       // 或者执行其他需要的操作
     },
+    /**
+     * handleSave：页面业务方法。
+     */
     handleSave() {
       if (this.repoList[0].addQuType === "1") {
         this.$refs.postForm.validate((valid) => {
@@ -539,6 +548,9 @@ export default {
       }
     },
 
+    /**
+     * handleCheckChange：页面业务方法。
+     */
     handleCheckChange() {
       const that = this;
       // 置空
@@ -550,13 +562,22 @@ export default {
     },
 
     // 添加子项
+    /**
+     * handleAdd：页面业务方法。
+     */
     handleAdd() {
       this.repoList.push();
     },
 
+    /**
+     * removeItem：页面业务方法。
+     */
     removeItem(index) {
       this.repoList.splice(index, 1);
     },
+    /**
+     * formatDateToISOString：页面业务方法。
+     */
     formatDateToISOString(date) {
       if (!(date instanceof Date)) {
         return null;
@@ -575,6 +596,9 @@ export default {
       // 输出示例："2025-05-14 09:00:00"（保留用户选择的本地时间）
     },
 
+    /**
+     * submitForm：页面业务方法。
+     */
     submitForm() {
       console.log("postForm", this.postForm);
       // 校验和处理数据
@@ -631,14 +655,23 @@ export default {
       });
     },
 
+    /**
+     * filterNode：页面业务方法。
+     */
     filterNode(value, data) {
       if (!value) return true;
       return data.deptName.indexOf(value) != -1;
     },
+    /**
+     * onCertificateChange：页面业务方法。
+     */
     onCertificateChange() {
       // 方法实现...
     },
     onClassChange() {},
+    /**
+     * repoChange：页面业务方法。
+     */
     repoChange(e, row) {
       // 赋值ID
       row.id = e.id;

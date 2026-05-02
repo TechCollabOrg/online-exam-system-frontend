@@ -44,9 +44,15 @@ export default {
     }
   },
   methods: {
+    /**
+     * cancelFun：页面业务方法。
+     */
     cancelFun() {
       this.$router.push({ path: 'index' })
     },
+    /**
+     * updatePassword：页面业务方法。
+     */
     updatePassword() {
       const data = { originPassword: this.updatePasswordForm.originPassword,
         newPassword: this.updatePasswordForm.newPassword,
