@@ -1,6 +1,11 @@
 
 import request from '@/utils/request'
 
+/**
+ * 教师端分页查询考试列表。
+ * @param {object} params 分页与标题筛选
+ * @returns {Promise}
+ */
 export function examPaging(params) {
   return request({
     url: 'exams/paging',
@@ -9,14 +14,11 @@ export function examPaging(params) {
   })
 }
 
-// export function repoAdd(data) {
-//   return request({
-//     url: 'repo',
-//     method: 'post',
-//     data
-//   })
-// }
-
+/**
+ * 批量删除考试。
+ * @param {string} ids 考试 id，多个逗号分隔
+ * @returns {Promise}
+ */
 export function examDel(ids) {
   return request({
     url: 'exams/' + ids,
@@ -24,6 +26,12 @@ export function examDel(ids) {
   })
 }
 
+/**
+ * 更新考试信息。
+ * @param {string|number} id 考试 id
+ * @param {object} data 考试表单
+ * @returns {Promise}
+ */
 export function examUpdate(id, data) {
   return request({
     url: `exams/${id}`,
@@ -31,6 +39,12 @@ export function examUpdate(id, data) {
     data
   })
 }
+
+/**
+ * 查询班级下的考试列表（学生端）。
+ * @param {object} params 查询参数
+ * @returns {Promise}
+ */
 export function getGradeExamList(params) {
   return request({
     url: 'exams/grade',
@@ -39,12 +53,23 @@ export function getGradeExamList(params) {
   })
 }
 
+/**
+ * 获取考试详情（规则、时间等）。
+ * @param {string|number} examId 考试 id
+ * @returns {Promise}
+ */
 export function getExamDetail(examId) {
   return request({
     url: 'exams/detail?examId=' + examId,
     method: 'get'
   })
 }
+
+/**
+ * 学生开始考试。
+ * @param {string|number} examId 考试 id
+ * @returns {Promise}
+ */
 export function examStart(examId) {
   return request({
     url: 'exams/start?examId=' + examId,
@@ -52,6 +77,11 @@ export function examStart(examId) {
   })
 }
 
+/**
+ * 获取考试中题目 id 列表。
+ * @param {string|number} examId 考试 id
+ * @returns {Promise}
+ */
 export function examQuList(examId) {
   return request({
     url: 'exams/question/list/' + examId,
@@ -59,6 +89,11 @@ export function examQuList(examId) {
   })
 }
 
+/**
+ * 考试中填空/作答提交。
+ * @param {object} data 答题数据
+ * @returns {Promise}
+ */
 export function fillAnswer(data) {
   return request({
     url: 'exams/full-answer',
@@ -67,6 +102,11 @@ export function fillAnswer(data) {
   })
 }
 
+/**
+ * 查询考试中某一题的详情。
+ * @param {object} params 含 examId、quId 等
+ * @returns {Promise}
+ */
 export function quDetail(params) {
   return request({
     url: 'exams/question/single',
@@ -75,6 +115,11 @@ export function quDetail(params) {
   })
 }
 
+/**
+ * 交卷。
+ * @param {string|number} examId 考试 id
+ * @returns {Promise}
+ */
 export function handExam(examId) {
   return request({
     url: 'exams/hand-exam/' + examId,
@@ -82,6 +127,11 @@ export function handExam(examId) {
   })
 }
 
+/**
+ * 创建考试。
+ * @param {object} data 考试新增表单
+ * @returns {Promise}
+ */
 export function saveData(data) {
   return request({
     url: 'exams',
@@ -90,6 +140,11 @@ export function saveData(data) {
   })
 }
 
+/**
+ * 上报切屏等作弊行为。
+ * @param {string|number} examId 考试 id
+ * @returns {Promise}
+ */
 export function examCheat(examId) {
   return request({
     url: `exams/cheat/${examId}`,
@@ -98,6 +153,11 @@ export function examCheat(examId) {
   })
 }
 
+/**
+ * 收藏错题或题目（业务依后端约定）。
+ * @param {string|number} examId 考试 id
+ * @returns {Promise}
+ */
 export function examCollect(examId) {
   return request({
     url: `exams/collect/${examId}`,
@@ -105,7 +165,11 @@ export function examCollect(examId) {
   })
 }
 
-
+/**
+ * 获取考试统计/详情扩展信息。
+ * @param {string|number} examId 考试 id
+ * @returns {Promise}
+ */
 export function details(examId) {
   return request({
     url: `exams//details//${examId}`,

@@ -42,7 +42,7 @@ if (process.env.NODE_ENV === 'development') {
 Vue.prototype.$echarts = echarts
 const whiteList = ['/login', '/register']
 
-// 判断是否有token，如果有token，则允许访问，否则跳转到登录页面
+/** 全局守卫：除登录/注册外需 Cookie Token，否则跳转登录并带回跳地址 */
 router.beforeEach((to, from, next) => {
   // 获取token，这里以从localStorage获取为例
   const token = getToken('Authorization')
@@ -63,7 +63,7 @@ router.beforeEach((to, from, next) => {
   }
 })
 
-// 路由守卫，在路由切换前判断是否连接 WebSocket
+/** 非登录注册页进入时尝试建立 WebSocket（公告推送等） */
 router.beforeEach((to, from, next) => {
   const isLoginOrRegister = ['login', 'register'].includes(to.name)
   // 页面加载时 不是登录页或注册页 尝试重新连接

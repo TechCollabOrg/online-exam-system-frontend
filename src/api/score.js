@@ -1,6 +1,11 @@
 
 import request from '@/utils/request'
 
+/**
+ * 分页查询成绩列表。
+ * @param {object} params 分页与考试/班级筛选
+ * @returns {Promise}
+ */
 export function scorePaging(params) {
   return request({
     url: 'score/paging',
@@ -9,6 +14,11 @@ export function scorePaging(params) {
   })
 }
 
+/**
+ * 查询某场考试的成绩明细。
+ * @param {object} params 查询参数
+ * @returns {Promise}
+ */
 export function getExamScore(params) {
   return request({
     url: 'score/getExamScore',
@@ -17,6 +27,12 @@ export function getExamScore(params) {
   })
 }
 
+/**
+ * 导出成绩 Excel。
+ * @param {string|number} examId 考试 id
+ * @param {string|number} gradeId 班级 id
+ * @returns {Promise<Blob>}
+ */
 export function exportScores(examId, gradeId) {
   return request({
     url: `score/export/${examId}/${gradeId}`,
@@ -24,4 +40,3 @@ export function exportScores(examId, gradeId) {
     responseType: 'blob'
   })
 }
-

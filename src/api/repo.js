@@ -1,5 +1,10 @@
 import request from '@/utils/request'
 
+/**
+ * 新建题库。
+ * @param {object} data 题库信息
+ * @returns {Promise}
+ */
 export function repoAdd(data) {
   return request({
     url: 'repo',
@@ -8,6 +13,11 @@ export function repoAdd(data) {
   })
 }
 
+/**
+ * 分页查询题库。
+ * @param {object} params 分页参数
+ * @returns {Promise}
+ */
 export function repoPaging(params) {
   return request({
     url: 'repo/paging',
@@ -16,6 +26,11 @@ export function repoPaging(params) {
   })
 }
 
+/**
+ * 删除题库。
+ * @param {string|number} id 题库 id
+ * @returns {Promise}
+ */
 export function repoDel(id) {
   return request({
     url: 'repo/' + id,
@@ -23,6 +38,12 @@ export function repoDel(id) {
   })
 }
 
+/**
+ * 更新题库。
+ * @param {string|number} id 题库 id
+ * @param {object} data 题库数据
+ * @returns {Promise}
+ */
 export function repoUpdate(id, data) {
   return request({
     url: 'repo/' + id,
@@ -32,8 +53,9 @@ export function repoUpdate(id, data) {
 }
 
 /**
- * 保存题库
- * @param data
+ * 获取题库简要列表（下拉/选择用）。
+ * @param {object} params 筛选参数
+ * @returns {Promise}
  */
 export function fetchPaging(params) {
   return request({

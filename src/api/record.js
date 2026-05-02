@@ -1,5 +1,10 @@
 import request from '@/utils/request'
 
+/**
+ * 考试记录详情。
+ * @param {object} params 查询参数
+ * @returns {Promise}
+ */
 export function recordExamDetail(params) {
   return request({
     url: 'records/exam/detail',
@@ -8,6 +13,11 @@ export function recordExamDetail(params) {
   })
 }
 
+/**
+ * 分页查询考试记录。
+ * @param {object} params 分页参数
+ * @returns {Promise}
+ */
 export function recordExamPaging(params) {
   return request({
     url: 'records/exam/paging',
@@ -16,6 +26,11 @@ export function recordExamPaging(params) {
   })
 }
 
+/**
+ * 分页查询练习记录。
+ * @param {object} params 分页参数
+ * @returns {Promise}
+ */
 export function recordExercisePaging(params) {
   return request({
     url: 'records/exercise/paging',
@@ -24,6 +39,11 @@ export function recordExercisePaging(params) {
   })
 }
 
+/**
+ * 练习记录详情。
+ * @param {object} params 查询参数
+ * @returns {Promise}
+ */
 export function recordExerciseDetail(params) {
   return request({
     url: 'records/exercise/detail',

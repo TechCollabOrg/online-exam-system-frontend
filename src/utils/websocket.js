@@ -25,10 +25,10 @@ const maxReconnectCount = 10 // 设置最大重连次数
 // eslint-disable-next-line no-unused-vars
 let isManuallyClosed = false // 标记是否是主动断开连接
 
-// 定义全局事件总线
+/** 供页面订阅 WebSocket 推送的全局事件总线 */
 const EventBus = new Vue()
 
-// 连接 WebSocket
+/** 建立连接（含按 userId 查询参数）；失败时指数退避重连 */
 const connectWebSocket = () => {
   if (!getUserId()) {
     console.error('用户 ID 未设置，无法连接 WebSocket')
@@ -89,7 +89,11 @@ const connectWebSocket = () => {
   }
 }
 
-// 封装发送消息的方法
+/**
+ * 向服务端发送 JSON 消息；未连接时尝试重连。
+ * @param {object} message 负载对象
+ * @returns {boolean} 是否已发送
+ */
 function sendMessage(message) {
   console.log('-------------')
   console.log(socket)
@@ -121,7 +125,7 @@ function sendMessage(message) {
   }
 }
 
-// 断开 WebSocket 连接的方法
+/** 主动关闭连接并停止重连 */
 function disconnectWebSocket() {
   if (socket) {
     isManuallyClosed = true // 标记为主动断开

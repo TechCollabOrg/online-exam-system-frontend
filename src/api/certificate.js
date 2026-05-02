@@ -1,5 +1,10 @@
 import request from '@/utils/request'
 
+/**
+ * 分页查询证书模板。
+ * @param {object} params 分页与筛选参数
+ * @returns {Promise}
+ */
 export function certificatePaging(params) {
   return request({
     url: 'certificate/paging',
@@ -7,6 +12,12 @@ export function certificatePaging(params) {
     params
   })
 }
+
+/**
+ * 删除证书模板。
+ * @param {string|number} id 证书 id
+ * @returns {Promise}
+ */
 export function certificateDel(id) {
   return request({
     url: 'certificate/delete/' + id,
@@ -14,6 +25,12 @@ export function certificateDel(id) {
 
   })
 }
+
+/**
+ * 新增证书模板。
+ * @param {object} data 证书数据
+ * @returns {Promise}
+ */
 export function certificateAdd(data) {
   return request({
     url: 'certificate',
@@ -22,6 +39,12 @@ export function certificateAdd(data) {
   })
 }
 
+/**
+ * 更新证书模板。
+ * @param {string|number} id 证书 id
+ * @param {object} data 证书数据
+ * @returns {Promise}
+ */
 export function certificateUpdate(id, data) {
   return request({
     url: 'certificate/' + id,
@@ -30,6 +53,11 @@ export function certificateUpdate(id, data) {
   })
 }
 
+/**
+ * 分页查询当前用户已获得的证书。
+ * @param {object} params 分页参数
+ * @returns {Promise}
+ */
 export function certificateMy(params) {
   return request({
     url: 'certificate/paging/my',

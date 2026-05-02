@@ -1,4 +1,6 @@
-
+/**
+ * 路由进度条与标签页 meta；登录校验见 src/main.js。
+ */
 import router from './router'
 import store from './store'
 // import { Message } from 'element-ui'
@@ -11,6 +13,7 @@ NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
 // const whiteList = ['/login'] // no redirect whitelist
 
+/** 切换路由时启动 NProgress、设置标题、维护菜单页签 */
 router.beforeEach(async(to, from, next) => {
   // start progress bar
   NProgress.start()
@@ -69,6 +72,7 @@ router.beforeEach(async(to, from, next) => {
   //   }
 })
 
+/** 路由切换完成后结束进度条 */
 router.afterEach(() => {
   // finish progress bar
   NProgress.done()

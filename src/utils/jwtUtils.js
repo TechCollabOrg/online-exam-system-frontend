@@ -1,13 +1,22 @@
 import { getToken } from '@/utils/auth'
 import { jwtDecode } from 'jwt-decode'
+
+/**
+ * 手动解析 JWT payload（三段式拆开后 Base64Url 解码）。
+ * @param {string} token 原始 JWT 字符串
+ * @returns {object} payload 对象
+ */
 export function parseJwt(token) {
-  // 分割JWT的三个部分
   var parts = token.split('.')
-  // 解码JWT的payload部分
   var payload = decodeBase64Url(parts[1])
-  // 将解码后的payload转换为对象
   return JSON.parse(payload)
 }
+
+/**
+ * Base64Url 解码为 UTF-8 字符串。
+ * @param {string} input JWT payload 段（未 padding）
+ * @returns {string}
+ */
 function decodeBase64Url(input) {
   var base64 = input.replace(/-/g, '+').replace(/_/g, '/')
   switch (base64.length % 4) {
@@ -25,21 +34,22 @@ function decodeBase64Url(input) {
   return decodeURIComponent(atob(base64))
 }
 
-// export function getTokenInfo() {
-//     const token = getToken();
-//     const user = parseJwt(token);
-//     return JSON.parse(user.userInfo)
-//   }
-
+/**
+ * 从 Cookie 中的 Token 解析 `userInfo` 字段（JSON）。
+ * @returns {object}
+ */
 export function getTokenInfo() {
   const token = getToken()
   const decodedToken = jwtDecode(token)
-  return JSON.parse(decodedToken.userInfo) // 假设userInfo是直接在payload中的
+  return JSON.parse(decodedToken.userInfo)
 }
 
+/**
+ * 从 Token 中读取角色 id。
+ * @returns {*}
+ */
 export function getRole() {
   const token = getToken()
   const decodedToken = jwtDecode(token)
-  return JSON.parse(decodedToken.userInfo)['roleId'] // 假设userInfo是直接在payload中的
+  return JSON.parse(decodedToken.userInfo)['roleId']
 }
-

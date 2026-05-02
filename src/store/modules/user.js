@@ -5,6 +5,7 @@ import { resetRouter } from '@/router'
 import { parseJwt } from '@/utils/jwtUtils'
 import { connectWebSocket, disconnectWebSocket } from '@/utils/websocket'
 
+/** @returns {object} user 模块初始 state（从 Cookie 恢复 token） */
 const getDefaultState = () => {
   return {
     token: getToken(),
@@ -35,7 +36,9 @@ const mutations = {
 }
 
 const actions = {
-  // user login
+  /**
+   * 调用登录接口，解析 JWT，写入角色与班级上下文并连接 WebSocket。
+   */
   login({ commit }, userInfo) {
     return new Promise((resolve, reject) => {
       login(userInfo).then(response => {
@@ -71,7 +74,9 @@ const actions = {
     })
   },
 
-  // get user info
+  /**
+   * 拉取当前用户展示信息（姓名、头像等）。
+   */
   getInfo({ commit, state }) {
     return new Promise((resolve, reject) => {
       getInfo(state.token).then(response => {
@@ -92,7 +97,7 @@ const actions = {
     })
   },
 
-  // reset token
+  /** 清除本地 Token 与内存状态（未请求后端注销） */
   resetToken({ commit }) {
     return new Promise(resolve => {
       removeToken() // 移除token
@@ -102,7 +107,7 @@ const actions = {
     })
   },
 
-  // user logout
+  /** 请求后端注销并清空本地存储、断开 WebSocket、重置路由 */
   logout({ commit, state }) {
     return new Promise((resolve, reject) => {
       logout(state.token).then(() => {

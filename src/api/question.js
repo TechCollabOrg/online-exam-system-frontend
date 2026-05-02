@@ -1,6 +1,11 @@
 
 import request from '@/utils/request'
 
+/**
+ * 新增单题。
+ * @param {object} data 题目数据
+ * @returns {Promise}
+ */
 export function quAdd(data) {
   return request({
     url: 'questions/single',
@@ -8,6 +13,12 @@ export function quAdd(data) {
     data
   })
 }
+
+/**
+ * 分页查询题目。
+ * @param {object} params 分页与筛选
+ * @returns {Promise}
+ */
 export function quPaging(params) {
   return request({
     url: 'questions/paging',
@@ -16,6 +27,12 @@ export function quPaging(params) {
   })
 }
 
+/**
+ * 更新题目。
+ * @param {string|number} id 题目 id
+ * @param {object} data 题目数据
+ * @returns {Promise}
+ */
 export function quUpdate(id, data) {
   return request({
     url: `questions/${id}`,
@@ -24,6 +41,11 @@ export function quUpdate(id, data) {
   })
 }
 
+/**
+ * 批量删除题目。
+ * @param {string} ids 题目 id 列表
+ * @returns {Promise}
+ */
 export function quDel(ids) {
   return request({
     url: 'questions/batch/' + ids,
@@ -31,6 +53,11 @@ export function quDel(ids) {
   })
 }
 
+/**
+ * 单题详情。
+ * @param {string|number} id 题目 id
+ * @returns {Promise}
+ */
 export function quDetail(id) {
   return request({
     url: `questions/single/${id}`,
@@ -38,6 +65,12 @@ export function quDetail(id) {
   })
 }
 
+/**
+ * 向题库导入题目（如 Excel）。
+ * @param {string|number} id 题库 id
+ * @param {FormData|object} data 上传数据
+ * @returns {Promise}
+ */
 export function importQue(id, data) {
   return request({
     url: `questions/import/${id}`,
@@ -46,10 +79,10 @@ export function importQue(id, data) {
   })
 }
 
-// fetchDetail, saveData
 /**
- * 题库详情
- * @param data
+ * 遗留接口：题库详情（依赖全局 post，与主 axios 封装并存）。
+ * @param {string|number} id 题库 id
+ * @returns {Promise}
  */
 export function fetchDetail(id) {
   // eslint-disable-next-line no-undef
@@ -57,8 +90,9 @@ export function fetchDetail(id) {
 }
 
 /**
- * 保存题库
- * @param data
+ * 遗留接口：保存题库（依赖全局 post）。
+ * @param {object} data 题库数据
+ * @returns {Promise}
  */
 export function saveData(data) {
   // eslint-disable-next-line no-undef

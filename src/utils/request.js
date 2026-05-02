@@ -4,7 +4,9 @@ import store from '@/store'
 import { getToken, setToken } from '@/utils/auth'
 import router from '@/router'
 
-// create an axios instance
+/**
+ * 业务请求 axios 实例：附带 Token、处理刷新 Authorization、统一业务码与 HTTP 错误提示。
+ */
 const service = axios.create({
   baseURL: process.env.VUE_APP_BASE_API, // url = base url + request url
   withCredentials: true, // send cookies when cross-domain requests
@@ -12,7 +14,7 @@ const service = axios.create({
   crossDomain: true
 })
 
-// request interceptor
+/** 请求拦截：写入 Authorization */
 service.interceptors.request.use(
   config => {
     // do something before request is sent
@@ -31,7 +33,7 @@ service.interceptors.request.use(
   }
 )
 
-// response interceptor
+/** 响应拦截：刷新 Token、校验业务 code、HTTP 状态分流提示 */
 service.interceptors.response.use(
   /**
    * If you want to get http information such as headers or status
@@ -112,7 +114,11 @@ service.interceptors.response.use(
   }
 )
 
-// 错误处理函数
+/**
+ * 按 HTTP 状态弹出提示并可在 401 时跳转登录（备用，与拦截器并列存在）。
+ * @param {number} status HTTP 状态码
+ * @param {string} message 提示文案
+ */
 function handleErrorResponse(status, message) {
   switch (status) {
     case 401:
