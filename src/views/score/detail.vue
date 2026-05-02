@@ -132,7 +132,9 @@ export default {
   },
   methods: {
     /**
-     * updateRow：页面业务方法。
+
+     * 表格「编辑」操作：打开对话框或跳转编辑页并回填当前行数据（题库/题目/公告等多页复用）。
+
      */
     updateRow(row) {
         row.type= 1;
@@ -142,7 +144,9 @@ export default {
       },
     // 分页查询
     /**
-     * getScorePage：页面业务方法。
+
+     * 分页查询成绩列表，按考试/班级筛选绑定 score 模块表格。
+
      */
     async getScorePage() {
       const params = {
@@ -156,7 +160,9 @@ export default {
       this.data = res.data
     },
     /**
-     * getExportScores：页面业务方法。
+
+     * 调用 exportScores 下载 Excel 文件流，处理 blob 保存文件名。
+
      */
     getExportScores() {
       exportScores(this.examId, this.gradeId).then(res => {
@@ -186,14 +192,20 @@ export default {
     },
 
     /**
-     * onSubmit：页面业务方法。
+
+
+     * 查询表单提交：同步筛选条件到 query 对象并请求第一页数据。
+
+
      */
     onSubmit() {
       this.getScorePage()
       //  ("submit!");
     },
     /**
-     * handleSizeChange：页面业务方法。
+
+     * Element Table 分页：同步修改 pageSize，重置或保持当前页并重新拉取列表数据。
+
      */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
@@ -201,7 +213,9 @@ export default {
       this.getScorePage(this.pageNum, val)
     },
     /**
-     * handleCurrentChange：页面业务方法。
+
+     * Element Table 分页：同步当前页码 pageNum，触发列表接口刷新表格数据。
+
      */
     handleCurrentChange(val) {
       // 设置当前页逻辑
@@ -210,7 +224,11 @@ export default {
     },
 
     /**
-     * handleClick：页面业务方法。
+
+
+     * 表格/卡片行点击：根据行数据跳转详情、打开编辑弹窗、触发导出或路由 push（各页 @click 传参不同）。
+
+
      */
     handleClick(row) {
     }

@@ -266,7 +266,9 @@ export default {
   methods: {
     // 检查问题列表是否存在
     /**
-     * hasQuestions：页面业务方法。
+
+     * 判断某题型列表是否存在且非空，用于卷面按题型区块渲染。
+
      */
     hasQuestions(list) {
       return list && list.length > 0
@@ -274,7 +276,9 @@ export default {
 
     // 检查选项是否被选中
     /**
-     * isCheck：页面业务方法。
+
+     * 判断某题的选项 sort 是否出现在已保存答案字符串（逗号分隔 id）中，用于回显勾选状态。
+
      */
     isCheck(myOption, sort) {
       if (!myOption) return false
@@ -284,14 +288,18 @@ export default {
 
     // 处理对话框关闭
     /**
-     * handleClose：页面业务方法。
+
+     * 关闭当前对话框，并重置可见状态（部分页面顺带清空表单或停止计时）。
+
      */
     handleClose() {
       this.examPreVisible = false
     },
     // 将0-5转换为A-F
     /**
-     * numberToLetter：页面业务方法。
+
+     * 将选项序号 0–5 映射为 A–F；支持单个数字或逗号分隔的多选序号串，用于卷面展示。
+
      */
     numberToLetter(input) {
       if (input === null || input === undefined) return ''
@@ -322,7 +330,9 @@ export default {
 
     // 交卷前预览
     /**
-     * handHandExamPre：页面业务方法。
+
+     * 交卷前预览：先保存当前题再调用 collect 接口拉取答题汇总，打开预览对话框。
+
      */
     handHandExamPre() {
       this.handSave(this.cardItem)
@@ -337,7 +347,9 @@ export default {
     },
     // 切换页面检测
     /**
-     * pageHidden：页面业务方法。
+
+     * 浏览器页签隐藏（visibilitychange）：上报切屏作弊记录，必要时强制收卷或跳转提示页。
+
      */
     pageHidden(e = null) {
       if (document.visibilityState === 'hidden') {
@@ -358,7 +370,9 @@ export default {
 
     // 开始考试
     /**
-     * startExam：页面业务方法。
+
+     * 调用试卷题目 ID 列表接口 examQuList，填充 paperData 答题卡数据结构。
+
      */
     startExam(examId) {
       examQuList(examId).then((res) => {
@@ -411,7 +425,9 @@ export default {
     // 清空Session
     // 使用函数清除以 "exam_" 开头的所有键值对
     /**
-     * clearSessionStorageByPrefix：页面业务方法。
+
+     * 批量删除 sessionStorage 中以指定前缀开头的键，用于交卷后清理临时作答标记。
+
      */
     clearSessionStorageByPrefix(prefix) {
       Object.keys(sessionStorage)
@@ -421,7 +437,9 @@ export default {
 
     // 交卷
     /**
-     * doHandler：页面业务方法。
+
+     * 正式交卷：手动时先统计未答题并确认；自动或确认后调用 handExam，移除当前页签并跳转结果页。
+
      */
     doHandler(isAutomatic = false) {
       const performSubmit = () => {
@@ -482,7 +500,9 @@ export default {
 
     // 保存答案
     /**
-     * handSave：页面业务方法。
+
+     * 保存当前题答案：组装单选/多选/判断/简答答案串，变更时才调用 fillAnswer；成功后更新答题卡状态并切换题目。
+
      */
     handSave(item, callback) {
       // 更新上一题/下一题按钮状态
@@ -621,7 +641,9 @@ export default {
 
     // 更新题目状态
     /**
-     * updateQuestionStatus：页面业务方法。
+
+     * 在四类题型列表中按 questionId 更新 checkout 标记，驱动答题卡颜色与是否已答。
+
      */
     updateQuestionStatus(questionId, status) {
       // 在所有题型列表中查找并更新状态
@@ -642,7 +664,9 @@ export default {
 
     // 提交最后一题答案
     /**
-     * submitLastAnswer：页面业务方法。
+
+     * 仅提交最后一题：校验非空后与 handSave 类似走 fillAnswer，用于交卷前单独提交末题。
+
      */
     submitLastAnswer() {
       const currentItem = this.cardItem
@@ -746,7 +770,9 @@ export default {
 
     // 试卷详情
     /**
-     * fetchQuData：页面业务方法。
+
+     * 按题目 ID 请求 quDetail：加载题干与选项，并从服务端回显已保存的勾选或简答内容。
+
      */
     fetchQuData(item) {
       // 打开
@@ -803,7 +829,9 @@ export default {
 
     // 试卷详情
     /**
-     * fetchData：页面业务方法。
+
+     * 初始化或刷新列表数据：具体请求见函数体（如题库下拉 repo/list、题目编辑加载、整卷 examQuList 等）。
+
      */
     fetchData(examId) {
       examQuList(examId).then((response) => {
@@ -824,7 +852,9 @@ export default {
 
     // 设置第一个题目
     /**
-     * setFirstQuestion：页面业务方法。
+
+     * 按题型优先级（单选→多选→判断→简答）选取第一道题作为 cardItem 初始当前题。
+
      */
     setFirstQuestion() {
       if (this.paperData.radioList && this.paperData.radioList.length > 0) {
@@ -840,7 +870,9 @@ export default {
 
     // 合并所有题目
     /**
-     * mergeAllQuestions：页面业务方法。
+
+     * 将四类题目列表依次 push 到 allItem，形成统一排序的答题序列供上一题/下一题使用。
+
      */
     mergeAllQuestions() {
       const addQuestionsToAllItems = (questionList) => {
@@ -857,7 +889,9 @@ export default {
 
     // 处理滚动事件
     /**
-     * handleScroll：页面业务方法。
+
+     * 监听滚动容器（预留）：可用于懒加载或吸顶，当前实现可为空占位。
+
      */
     handleScroll() {
       // 实现滚动逻辑
@@ -865,7 +899,9 @@ export default {
 
     // 获取左侧距离
     /**
-     * getLfetDistance：页面业务方法。
+
+     * 根据 body 宽度与固定内容宽 1200 计算居中偏移 flexLeft，用于绝对定位布局。
+
      */
     getLfetDistance() {
       const body = document.querySelector('body')

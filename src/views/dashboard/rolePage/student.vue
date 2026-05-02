@@ -93,7 +93,9 @@ export default {
   methods: {
     // 获取登录时长
     /**
-     * getDailyFun：页面业务方法。
+
+     * 请求统计接口 stat/daily，更新学生仪表盘折线图数据。
+
      */
     getDailyFun() {
       getDaily().then((res) => {
@@ -131,7 +133,9 @@ export default {
     },
     // 分页查询
     /**
-     * getNotice：页面业务方法。
+
+     * 拉取最新公告列表，展示在学生首页公告栏。
+
      */
     async getNotice(pageNum, pageSize) {
       const params = { pageNum: pageNum, pageSize: pageSize }
@@ -145,14 +149,18 @@ export default {
       // this.transformData(res);
     },
     /**
-     * initCharts：页面业务方法。
+
+     * 基于 echarts 初始化或 setOption 绑定 DOM，渲染登录时长或统计图。
+
      */
     initCharts() {
       this.myChart = echarts.init(this.$refs.charts)
       this.myChart.setOption(this.option)
     },
     /**
-     * resizeChart：页面业务方法。
+
+     * 窗口尺寸变化时调用 chart.resize() 防止图表拉伸错位。
+
      */
     resizeChart() {
       if (this.myChart) {
@@ -160,7 +168,9 @@ export default {
       }
     },
     /**
-     * handleNodeClick：页面业务方法。
+
+     * 点击图表节点或树节点：下钻展示明细或联动其它组件。
+
      */
     handleNodeClick(data) {
       //  (data);

@@ -197,7 +197,9 @@ export default {
 
   methods: {
     /**
-     * handHandExam：页面业务方法。
+
+     * 错题再练场景下同正式考试交卷逻辑：调用相应提交接口并跳转结果。
+
      */
     handHandExam() {
       const that = this;
@@ -228,7 +230,11 @@ export default {
     },
 
     /**
-     * getSingleQuFun：页面业务方法。
+
+
+     * 错题本根据 quId 请求 userbooks/question/single 展示单题。
+
+
      */
     getSingleQuFun(quId) {
       getSingleQu(quId).then((res) => {
@@ -236,7 +242,9 @@ export default {
       });
     },
     /**
-     * getUserBookListFun：页面业务方法。
+
+     * 根据 examId 拉取错题本题目列表 userbooks/question/list。
+
      */
     getUserBookListFun() {
       getUserBookList(this.examId).then((res) => {
@@ -247,7 +255,9 @@ export default {
       });
     },
     /**
-     * numberToLetter：页面业务方法。
+
+     * 将选项序号 0–5 映射为 A–F；支持单个数字或逗号分隔的多选序号串，用于卷面展示。
+
      */
     numberToLetter(input) {
       const numberToCharMap = {
@@ -282,7 +292,9 @@ export default {
     },
     // 获取题目类型
     /**
-     * getQuestionType：页面业务方法。
+
+     * 将后端题型码映射为中文题型名称展示。
+
      */
     getQuestionType(type) {
       const typeMap = {
@@ -317,7 +329,9 @@ export default {
     },
     // 保存答案
     /**
-     * handSave：页面业务方法。
+
+     * 保存当前题答案：组装单选/多选/判断/简答答案串，变更时才调用 fillAnswer；成功后更新答题卡状态并切换题目。
+
      */
     handSave(index) {
       if (index - 1 >= this.lastIndex) {

@@ -40,7 +40,9 @@ export default {
     methods:{
         // 收到websocket消息的方法
         /**
-         * handleMessage：页面业务方法。
+
+         * WebSocket 或轮询收到新消息时的处理：追加回复列表或刷新未读数。
+
          */
         handleMessage(res) {
             if(res.type === 'DISCUSSION' && res.data.discussionId === this.currentDiscussionId){
@@ -48,7 +50,9 @@ export default {
             }
         },
         /**
-         * getDiscussionRelyFun：页面业务方法。
+
+         * 分页或排序加载回复列表，绑定到楼层组件列表数据。
+
          */
         getDiscussionRelyFun(id,order=1){
             getDiscussionRely(id,order).then((res)=>{
@@ -56,7 +60,9 @@ export default {
             });
         },
         /**
-         * handleLike：页面业务方法。
+
+         * 讨论块点赞：调用 doLike 接口，成功后刷新点赞数与样式。
+
          */
         handleLike(){
            this.getDiscussionRelyFun(this.currentDiscussionId,4)

@@ -85,7 +85,9 @@ export default {
   },
   methods: {
     /**
-     * hasOneShowingChild：页面业务方法。
+     * 判断是否应以「单菜单项」展示：过滤 hidden 子路由；
+     * 若仅剩一个可见子路由则把 onlyOneChild 指向该子路由；
+     * 若无可见子路由则构造 onlyOneChild 为父级占位（noShowingChildren）。
      */
     hasOneShowingChild(children = [], parent) {
       const showingChildren = children.filter((item) => {
@@ -112,7 +114,7 @@ export default {
       return false
     },
     /**
-     * resolvePath：页面业务方法。
+     * 解析菜单路径：外链直接返回；否则用 path.resolve 将 routePath 拼到 basePath 上得到完整路由 path。
      */
     resolvePath(routePath) {
       if (isExternal(routePath)) {

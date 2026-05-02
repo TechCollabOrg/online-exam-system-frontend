@@ -192,7 +192,9 @@ export default {
   },
   methods: {
     /**
-     * isCheck：页面业务方法。
+
+     * 判断某题的选项 sort 是否出现在已保存答案字符串（逗号分隔 id）中，用于回显勾选状态。
+
      */
     isCheck(myOption, sort) {
       const arr = myOption.split(",").map(Number); // 将字符串转换为数字数组
@@ -203,7 +205,9 @@ export default {
       }
     },
     /**
-     * numberToLetter：页面业务方法。
+
+     * 将选项序号 0–5 映射为 A–F；支持单个数字或逗号分隔的多选序号串，用于卷面展示。
+
      */
     numberToLetter(input) {
       const numberToCharMap = {
@@ -238,7 +242,9 @@ export default {
     },
     // 分页查询
     /**
-     * ExamDetail：页面业务方法。
+
+     * 跳转考试记录详情页：展示单场考试的作答与得分情况。
+
      */
     async ExamDetail() {
       const res = await details(this.examId);
@@ -246,7 +252,9 @@ export default {
     },
     // 点击答题卡题号, 右侧题目滑动
     /**
-     * handleTag：页面业务方法。
+
+     * 关闭面包屑标签或返回列表路由。
+
      */
     handleTag(index) {
       // 高亮选中的题目index标签

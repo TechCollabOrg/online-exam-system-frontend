@@ -84,7 +84,7 @@ export default {
   },
   methods:{
     /**
-     * toggleLike：页面业务方法。
+     * 回复点赞：组装 discussionId（路由 query 或本地存储）与 replyId，调用 like/doLike；成功则 onConfirm 刷新并 Message 提示。
      */
     async toggleLike(id){
       const data = {

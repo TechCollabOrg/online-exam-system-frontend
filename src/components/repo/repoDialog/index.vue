@@ -77,7 +77,9 @@ export default {
 
   methods: {
     /**
-     * handleConfirm：页面业务方法。
+
+     * 弹窗确定：执行 onConfirm 回调传入表单数据，由父级调用保存接口；关闭对话框并按页面约定重置表单。
+
      */
     handleConfirm() {
       // 调用父组件传入的确认回调方法，并传递 repoForm 数据

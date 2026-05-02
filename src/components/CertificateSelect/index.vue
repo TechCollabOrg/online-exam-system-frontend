@@ -55,7 +55,7 @@ export default {
   },
   methods: {
     /**
-     * fetchCertificates：页面业务方法。
+     * 分页加载证书模板列表（pageSize=1000），写入 certificateList 供下拉展示 certificateName。
      */
     fetchCertificates() {
       certificatePaging({ pageNum: 1, pageSize: 1000 }).then((response) => {
@@ -63,7 +63,7 @@ export default {
       })
     },
     /**
-     * handleCertificateChange：页面业务方法。
+     * 选中证书变更：根据 id 过滤出完整证书实体，emit change（选中项数组）与 input（v-model 绑定 id 或 id 列表）。
      */
     handleCertificateChange(selectedIds) {
       const selectedCertificates = this.certificateList.filter((cert) =>

@@ -144,7 +144,9 @@ export default {
   methods: {
     // 检查选项是否被选中
     /**
-     * isCheck：页面业务方法。
+
+     * 判断某题的选项 sort 是否出现在已保存答案字符串（逗号分隔 id）中，用于回显勾选状态。
+
      */
     isCheck(myOption, sort) {
       if (!myOption) return false
@@ -154,7 +156,9 @@ export default {
 
     // 处理对话框关闭
     /**
-     * handleClose：页面业务方法。
+
+     * 关闭当前对话框，并重置可见状态（部分页面顺带清空表单或停止计时）。
+
      */
     handleClose(done) {
       this.$emit('close')
@@ -163,7 +167,9 @@ export default {
 
     // 取消按钮
     /**
-     * onCancel：页面业务方法。
+
+     * 汇总弹窗或表单取消：关闭对话框或路由返回，不落库。
+
      */
     onCancel() {
       this.dialogVisible = false
@@ -171,7 +177,9 @@ export default {
 
     // 确认按钮
     /**
-     * onConfirm：页面业务方法。
+
+     * 交卷确认弹窗确定：触发父级执行 doHandler 或最终提交逻辑。
+
      */
     onConfirm() {
       this.$emit('confirm')
@@ -180,7 +188,9 @@ export default {
 
     // 获取答案颜色
     /**
-     * getAnswerColor：页面业务方法。
+
+     * 根据选项是否正确及用户是否选中，返回预览汇总里选项文字颜色样式。
+
      */
     getAnswerColor(isRight) {
       if (isRight === 1) return 'green'
@@ -190,7 +200,9 @@ export default {
 
     // 将数字转换为字母
     /**
-     * numberToLetter：页面业务方法。
+
+     * 将选项序号 0–5 映射为 A–F；支持单个数字或逗号分隔的多选序号串，用于卷面展示。
+
      */
     numberToLetter(input) {
       if (input === null || input === undefined) return ''

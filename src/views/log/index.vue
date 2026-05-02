@@ -65,7 +65,9 @@ export default {
   methods: {
     // 获取不同类型的颜色
     /**
-     * getBehaviorColor：页面业务方法。
+
+     * 按登录日志行为类型返回标签颜色类名，用于 el-tag 区分成功/失败等状态。
+
      */
     getBehaviorColor(behavior) {
       if (behavior === "设备登录") {
@@ -79,7 +81,9 @@ export default {
     },
     // 分页查询
     /**
-     * getLogPageFun：页面业务方法。
+
+     * 分页请求登录日志接口，将 records 与 total 绑定到表格与分页组件。
+
      */
     async getLogPageFun(pageNum, pageSize, title = null) {
       const params = { pageNum: pageNum, pageSize: pageSize };
@@ -88,7 +92,11 @@ export default {
     },
 
     /**
-     * handleSizeChange：页面业务方法。
+
+
+     * Element Table 分页：同步修改 pageSize，重置或保持当前页并重新拉取列表数据。
+
+
      */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
@@ -96,7 +104,9 @@ export default {
       this.getLogPageFun(this.pageNum, val);
     },
     /**
-     * handleCurrentChange：页面业务方法。
+
+     * Element Table 分页：同步当前页码 pageNum，触发列表接口刷新表格数据。
+
      */
     handleCurrentChange(val) {
       // 设置当前页逻辑

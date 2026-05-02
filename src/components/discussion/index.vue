@@ -106,7 +106,7 @@ export default {
   },
   methods: {
     /**
-     * toggleLike：页面业务方法。
+     * 切换帖子点赞态（本地先翻转 isLike），调用 discussion 模块 doLike 传 discussionId 与 replyId（此处为楼层 id），成功后执行 onConfirm 刷新列表。
      */
     toggleLike() {
       this.discussionData.isLike = this.discussionData.isLike === 0 ? 1 : 0;
@@ -119,7 +119,7 @@ export default {
       })
     },
     /**
-     * showIsDel：页面业务方法。
+     * 触发父级传入的删除回调 delFun(id)，由页面弹出二次确认并请求删除接口。
      */
     showIsDel(id){
       console.log(111111)

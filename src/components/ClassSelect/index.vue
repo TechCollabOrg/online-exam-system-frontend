@@ -63,7 +63,7 @@ export default {
   },
   methods: {
     /**
-     * fetchClasses：页面业务方法。
+     * 远程搜索班级：调用 grades/paging 拉取最多 1000 条，可用 query 作为名称筛选关键字填充下拉框。
      */
     fetchClasses(query = '') {
       // 使用query参数进行过滤，如果需要可以根据props.excludes进一步过滤
@@ -78,7 +78,7 @@ export default {
     //   this.$emit('input', selectedIds) // 更新v-model绑定的值
     // }
     /**
-     * handleClassChange：页面业务方法。
+     * 选中变更：把 id 规范为数组后在 classList 中解析出完整班级对象，emit change（对象数组）与 input（v-model，可为单 id 或 id 数组）。
      */
     handleClassChange(selectedIds) {
       // 确保selectedIds始终是一个数组，即使是单选情况下传入的是单个值

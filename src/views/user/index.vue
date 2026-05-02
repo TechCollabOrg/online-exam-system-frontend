@@ -155,7 +155,9 @@ export default {
   methods: {
     // 分页查询用户
     /**
-     * getUserPage：页面业务方法。
+
+     * 分页查询用户列表 user/paging。
+
      */
     async getUserPage(pageNum, pageSize, realName = null, gradeId = null) {
       const params = {
@@ -169,7 +171,9 @@ export default {
     },
     // 搜索功能用户
     /**
-     * searchUser：页面业务方法。
+
+     * 用户管理按姓名/班级筛选。
+
      */
     searchUser() {
       this.getUserPage(
@@ -181,7 +185,9 @@ export default {
     },
     // 设置每页多少条逻辑
     /**
-     * handleSizeChange：页面业务方法。
+
+     * Element Table 分页：同步修改 pageSize，重置或保持当前页并重新拉取列表数据。
+
      */
     handleSizeChange(val) {
       this.pageSize = val
@@ -190,7 +196,9 @@ export default {
     },
     // 设置当前页逻辑
     /**
-     * handleCurrentChange：页面业务方法。
+
+     * Element Table 分页：同步当前页码 pageNum，触发列表接口刷新表格数据。
+
      */
     handleCurrentChange(val) {
       this.pageNum = val
@@ -199,7 +207,9 @@ export default {
     },
     // 添加用户逻辑
     /**
-     * addUser：页面业务方法。
+
+     * 跳转新增用户或打开创建表单。
+
      */
     addUser() {
       const data = {
@@ -233,7 +243,9 @@ export default {
     },
     // 上传文件逻辑
     /**
-     * importUser：页面业务方法。
+
+     * Excel 批量导入用户 userImport。
+
      */
     importUser() {
       if (this.fileList.length > 0) {
@@ -261,14 +273,18 @@ export default {
     },
     // 上传文件出触发
     /**
-     * handleFileChange：页面业务方法。
+
+     * 本地上传 on-change：接收 el-upload 的 file 对象写入表单字段，或累加到待上传列表供「保存」时 multipart 提交。
+
      */
     handleFileChange(file, fileList) {
       this.fileList = fileList // 收集文件信息
     },
     // 移除文件处理方法
     /**
-     * handleRemove：页面业务方法。
+
+     * 移除文件后清空 v-model 与 fileList。
+
      */
     handleRemove(file, fileList) {
       if (fileList.length === 0) {
@@ -277,7 +293,9 @@ export default {
     },
     // 删除用户方法
     /**
-     * delUser：页面业务方法。
+
+     * 批量删除用户 userDel。
+
      */
     delUser(row) {
       this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
@@ -312,7 +330,9 @@ export default {
     },
     // 将用户移出班级
     /**
-     * removeUserClass：页面业务方法。
+
+     * 将选中用户移出班级 userClassRemove。
+
      */
     removeUserClass(row) {
       userClassRemove(row.id).then((res) => {
@@ -333,7 +353,9 @@ export default {
     },
     // 下载模板
     /**
-     * startDownload：页面业务方法。
+
+     * 触发后端导出接口（多为 blob 下载 Excel），处理文件名与浏览器保存。
+
      */
     async startDownload() {
       const a = document.createElement('a')

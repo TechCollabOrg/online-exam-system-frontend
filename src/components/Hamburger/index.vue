@@ -24,7 +24,7 @@ export default {
   },
   methods: {
     /**
-     * toggleClick：页面业务方法。
+     * 点击侧栏折叠按钮：向父组件抛出 toggleClick，由布局侧 dispatch app/toggleSideBar。
      */
     toggleClick() {
       this.$emit('toggleClick')

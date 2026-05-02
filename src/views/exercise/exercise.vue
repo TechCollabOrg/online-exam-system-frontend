@@ -403,7 +403,9 @@ export default {
   methods: {
     // 根据答案返回class
     /**
-     * getOptionClass：页面业务方法。
+
+     * 根据选项是否正确、是否当前选中，返回练习模式下选项卡片的样式 class。
+
      */
     getOptionClass(option) {
       // 未提交答案不做样式处理
@@ -432,7 +434,9 @@ export default {
 
     // 重置答题状态
     /**
-     * resetAnswerState：页面业务方法。
+
+     * 切换题目或重新开始时，清空 radio/checkbox/简答临时状态与解析展示。
+
      */
     resetAnswerState() {
       this.radioValue = ''
@@ -443,7 +447,9 @@ export default {
     },
     // 处理题型切换逻辑
     /**
-     * handleQuestionTypeSwitch：页面业务方法。
+
+     * 题型切换时重置选项选中、解析区域与上一题缓存，防止串题。
+
      */
     handleQuestionTypeSwitch() {
       const currentList = {
@@ -472,7 +478,9 @@ export default {
 
     // 修改结束刷题逻辑：确认后显示答题统计弹框
     /**
-     * exitFun：页面业务方法。
+
+     * 练习中途退出：确认后返回上一层路由或题库列表，并可选择是否提交进度。
+
      */
     exitFun() {
       this.statisticsDialogVisible = true
@@ -480,7 +488,9 @@ export default {
 
     // 点击弹框中“确定结束”按钮后的处理：关闭弹框并进行跳转或其他后续处理
     /**
-     * finishExam：页面业务方法。
+
+     * 练习完成：提交最后一题或汇总得分后关闭计时器并弹出成绩/解析对话框。
+
      */
     finishExam() {
       // 删除当前标签页
@@ -494,13 +504,17 @@ export default {
     },
     // 取消弹框，不结束刷题
     /**
-     * onDialogCancel：页面业务方法。
+
+     * 成绩或解析弹窗取消：仅关闭弹窗，不改变路由。
+
      */
     onDialogCancel() {
       this.statisticsDialogVisible = false
     },
     /**
-     * test：页面业务方法。
+
+     * 调试或占位方法：具体逻辑以模板绑定为准，可安全移除或改为正式提交。
+
      */
     async test() {
     
@@ -533,7 +547,9 @@ export default {
     },
     // 获取试题Id列表
     /**
-     * getQuestionList：页面业务方法。
+
+     * 根据 repoId 分页拉取练习题目列表，并初始化首题展示状态。
+
      */
     async getQuestionList() {
       const res = await getQuestion(null, this.repoId)
@@ -565,7 +581,9 @@ export default {
       }
     },
     /**
-     * numberToLetter：页面业务方法。
+
+     * 将选项序号 0–5 映射为 A–F；支持单个数字或逗号分隔的多选序号串，用于卷面展示。
+
      */
     numberToLetter(sort) {
       switch (sort) {
@@ -586,7 +604,9 @@ export default {
       }
     },
     /**
-     * change：页面业务方法。
+
+     * 题目切换：保存当前题答案到本地或服务端后，根据索引加载下一题数据与选项。
+
      */
     change(index) {
       this.number = index
@@ -600,7 +620,11 @@ export default {
     },
 
     /**
-     * getRightAnswer：页面业务方法。
+
+
+     * 展示解析时组装正确答案文本：拼接正确选项标签或简答参考答案。
+
+
      */
     getRightAnswer() {
       // eslint-disable-next-line vue/no-template-shadow

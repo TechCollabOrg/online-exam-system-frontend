@@ -145,7 +145,9 @@ export default {
   },
   methods: {
     /**
-     * handleSizeChange：页面业务方法。
+
+     * Element Table 分页：同步修改 pageSize，重置或保持当前页并重新拉取列表数据。
+
      */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
@@ -153,7 +155,9 @@ export default {
       this.getUserBookPage(this.pageNum, val, this.searchTitle)
     },
     /**
-     * handleCurrentChange：页面业务方法。
+
+     * Element Table 分页：同步当前页码 pageNum，触发列表接口刷新表格数据。
+
      */
     handleCurrentChange(val) {
       // 设置当前页逻辑
@@ -162,7 +166,9 @@ export default {
     },
     // 分页查询
     /**
-     * getUserBookPage：页面业务方法。
+
+     * 分页查询错题本记录 userbooks/paging。
+
      */
     async getUserBookPage(pageNum, pageSize, examName = null) {
       const params = { pageNum: pageNum, pageSize: pageSize, examName: examName }
@@ -170,14 +176,20 @@ export default {
       this.data = res.data
     },
     /**
-     * searchUserBook：页面业务方法。
+
+     * 按考试名称等筛选错题本记录。
+
      */
     searchUserBook() {
       this.getUserBookPage(this.pageNum, this.pageSize, this.searchTitle)
     },
 
     /**
-     * handleClose：页面业务方法。
+
+
+     * 关闭当前对话框，并重置可见状态（部分页面顺带清空表单或停止计时）。
+
+
      */
     handleClose(done) {
       this.$confirm('确认关闭？')
@@ -188,7 +200,11 @@ export default {
     },
 
     /**
-     * screenInfo：页面业务方法。
+
+
+     * 根据表格列配置的 prop 与格式化器，生成导出或预览用的展示文案映射。
+
+
      */
     screenInfo(row) {
       localStorage.setItem('userbook_examId', row.examId)

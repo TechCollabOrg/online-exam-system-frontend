@@ -254,7 +254,9 @@ export default {
   methods: {
     // 分页查询
     /**
-     * getRepoPage：页面业务方法。
+
+     * 分页查询题库列表，支持标题与分类筛选。
+
      */
     async getRepoPage(pageNum = this.pageNum, pageSize = this.pageSize, title = null, categoryId = null) {
       try {
@@ -277,7 +279,9 @@ export default {
     },
     // 获取分类列表
     /**
-     * fetchCategories：页面业务方法。
+
+     * 请求题目分类树接口，为题库/练习筛选下拉提供数据源。
+
      */
     async fetchCategories() {
       try {
@@ -296,7 +300,9 @@ export default {
     },
     // 将分类树扁平化为列表
     /**
-     * flattenCategoryTree：页面业务方法。
+
+     * 将后端返回的树形分类递归打平为一维数组，便于 el-option 或过滤使用。
+
      */
     flattenCategoryTree(tree, result = []) {
       if (!tree || !tree.length) return result
@@ -314,7 +320,9 @@ export default {
     },
     // 处理分类列表，添加父级分类名称
     /**
-     * processCategoryList：页面业务方法。
+
+     * 对接口返回的分类列表做规范化（排序、禁用不可选节点等）。
+
      */
     processCategoryList(tree, parentName = null, result = []) {
       if (!tree || !tree.length) return result
@@ -333,20 +341,26 @@ export default {
       return result
     },
     /**
-     * searchRepo：页面业务方法。
+
+     * 题库搜索：根据输入关键字触发 remote 或本地过滤 refresh。
+
      */
     searchRepo() {
       this.getRepoPage(this.pageNum, this.pageSize, this.searchTitle, this.searchCategory)
     },
     /**
-     * updateRow：页面业务方法。
+
+     * 表格「编辑」操作：打开对话框或跳转编辑页并回填当前行数据（题库/题目/公告等多页复用）。
+
      */
     updateRow(row) {
       this.dialogFormVisible = true
       this.form = { ...row }
     },
     /**
-     * submitAddRepo：页面业务方法。
+
+     * 新增题库：校验标题后 repoAdd，关闭弹窗并刷新分页。
+
      */
     submitAddRepo() {
       if (!this.addRepoForm.title) {
@@ -389,7 +403,9 @@ export default {
     },
     // 编辑题库
     /**
-     * submitEditRepo：页面业务方法。
+
+     * 编辑题库：repoUpdate 提交 isExercise、标题等字段。
+
      */
     submitEditRepo() {
       if (!this.form.title) {
@@ -426,7 +442,9 @@ export default {
     },
     // 删除题库
     /**
-     * delRepo：页面业务方法。
+
+     * 删除题库：repoDel 传入 id，成功后刷新表格。
+
      */
     delRepo(row) {
       this.$confirm('此操作将永久删除该题库, 是否继续?', '提示', {
@@ -463,7 +481,9 @@ export default {
     },
     // 分类管理相关方法
     /**
-     * addCategory：页面业务方法。
+
+     * 打开新增题目分类对话框并清空表单。
+
      */
     addCategory() {
       this.categoryForm = {
@@ -473,7 +493,9 @@ export default {
       this.addCategoryDialogVisible = true
     },
     /**
-     * editCategory：页面业务方法。
+
+     * 打开编辑分类对话框并回填选中节点数据。
+
      */
     editCategory(row) {
       this.categoryForm = {
@@ -484,7 +506,9 @@ export default {
       this.editCategoryDialogVisible = true
     },
     /**
-     * submitAddCategory：页面业务方法。
+
+     * 提交新增分类 API，成功后刷新分类树。
+
      */
     submitAddCategory() {
       if (!this.categoryForm.name) {
@@ -513,7 +537,9 @@ export default {
         })
     },
     /**
-     * submitEditCategory：页面业务方法。
+
+     * 提交更新分类 API，成功后刷新分类树。
+
      */
     submitEditCategory() {
       if (!this.categoryForm.name) {
@@ -542,7 +568,9 @@ export default {
         })
     },
     /**
-     * deleteCategory：页面业务方法。
+
+     * 删除分类节点：确认后 deleteCategory(id) 并刷新树与题库列表。
+
      */
     deleteCategory(id) {
       this.$confirm('确认删除该分类?', '提示', {
@@ -571,13 +599,17 @@ export default {
       })
     },
     /**
-     * handleClose：页面业务方法。
+
+     * 关闭当前对话框，并重置可见状态（部分页面顺带清空表单或停止计时）。
+
      */
     handleClose(done) {
       done()
     },
     /**
-     * handleSizeChange：页面业务方法。
+
+     * Element Table 分页：同步修改 pageSize，重置或保持当前页并重新拉取列表数据。
+
      */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
@@ -585,7 +617,9 @@ export default {
       this.getRepoPage(this.pageNum, val, this.searchTitle, this.searchCategory)
     },
     /**
-     * handleCurrentChange：页面业务方法。
+
+     * Element Table 分页：同步当前页码 pageNum，触发列表接口刷新表格数据。
+
      */
     handleCurrentChange(val) {
       // 设置当前页逻辑

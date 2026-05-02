@@ -148,7 +148,9 @@ export default {
   },
   methods: {
     /**
-     * handleCancel：页面业务方法。
+
+     * 对话框取消：关闭弹窗；若为新增场景可清空表单避免脏数据残留。
+
      */
     handleCancel() {
       this.visible = false
@@ -158,7 +160,9 @@ export default {
       }
     },
     /**
-     * refresh：页面业务方法。
+
+     * 重置公告表单字段为初始空值。
+
      */
     refresh() {
       this.noticeForm = {
@@ -169,7 +173,9 @@ export default {
       }
     },
     /**
-     * handleConfirm：页面业务方法。
+
+     * 弹窗确定：执行 onConfirm 回调传入表单数据，由父级调用保存接口；关闭对话框并按页面约定重置表单。
+
      */
     handleConfirm() {
       // 调用父组件传入的确认回调方法，并传递 repoForm 数据
@@ -184,13 +190,17 @@ export default {
     },
     // 失去焦点事件
     /**
-     * onEditorBlur：页面业务方法。
+
+     * Quill 失焦钩子：可做草稿保存，当前多为占位。
+
      */
     onEditorBlur(quill) {
     },
     // 获得焦点事件
     /**
-     * onEditorFocus：页面业务方法。
+
+     * Quill 获焦：调试或禁用只读切换，当前项目部分为空实现。
+
      */
     onEditorFocus(quill) {
       // quill.enable(false);
@@ -198,7 +208,9 @@ export default {
     },
     // 准备富文本编辑器
     /**
-     * onEditorReady：页面业务方法。
+
+     * Quill 就绪：按 isEdit 禁用编辑器实现查看模式，或注册自定义按钮。
+
      */
     onEditorReady(quill) {
       if (!this.isEdit) {
@@ -209,7 +221,9 @@ export default {
     },
     // 内容改变事件
     /**
-     * onEditorChange：页面业务方法。
+
+     * Quill 内容变更：同步 v-model 与 html，供表单提交。
+
      */
     onEditorChange({ quill, html, text }) {
       ('editor change!', quill, html, text)

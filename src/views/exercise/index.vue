@@ -99,14 +99,18 @@ export default {
   },
   methods: {
     /**
-     * queryRepo：页面业务方法。
+
+     * 根据筛选条件请求练习/题库列表分页接口，用于学生端题库入口表格。
+
      */
     queryRepo() {
       this.getExercisePage(this.pageNum, this.pageSize, this.repoTitle, this.categoryId)
     },
     // 分页查询
     /**
-     * getExercisePage：页面业务方法。
+
+     * 按分页与筛选参数调用练习记录分页 API，刷新 exercise 列表数据。
+
      */
     async getExercisePage(pageNum, pageSize, title = null, categoryId = null) {
       const params = { 
@@ -120,7 +124,9 @@ export default {
     },
     // 获取分类列表
     /**
-     * fetchCategories：页面业务方法。
+
+     * 请求题目分类树接口，为题库/练习筛选下拉提供数据源。
+
      */
     async fetchCategories() {
       try {
@@ -137,7 +143,9 @@ export default {
     },
     // 将分类树扁平化为列表
     /**
-     * flattenCategoryTree：页面业务方法。
+
+     * 将后端返回的树形分类递归打平为一维数组，便于 el-option 或过滤使用。
+
      */
     flattenCategoryTree(tree, result = []) {
       if (!tree || !tree.length) return result
@@ -154,27 +162,35 @@ export default {
       return result
     },
     /**
-     * screenInfo：页面业务方法。
+
+     * 根据表格列配置的 prop 与格式化器，生成导出或预览用的展示文案映射。
+
      */
     screenInfo(id, repoTitle) {
       this.$router.push({ name: 'start-exercise', query: { repoId: id, repoTitle: repoTitle }})
     },
     /**
-     * handleSizeChange：页面业务方法。
+
+     * Element Table 分页：同步修改 pageSize，重置或保持当前页并重新拉取列表数据。
+
      */
     handleSizeChange(val) {
       this.pageSize = val
       this.getExercisePage(this.pageNum, val, this.repoTitle, this.categoryId)
     },
     /**
-     * handleCurrentChange：页面业务方法。
+
+     * Element Table 分页：同步当前页码 pageNum，触发列表接口刷新表格数据。
+
      */
     handleCurrentChange(val) {
       this.pageNum = val
       this.getExercisePage(val, this.pageSize, this.repoTitle, this.categoryId)
     },
     /**
-     * handleClick：页面业务方法。
+
+     * 表格/卡片行点击：根据行数据跳转详情、打开编辑弹窗、触发导出或路由 push（各页 @click 传参不同）。
+
      */
     handleClick(row) {
       console.log(row)

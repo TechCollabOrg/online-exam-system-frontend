@@ -195,13 +195,17 @@ export default {
   },
   methods: {
     /**
-     * handleRepoChangeSingle：页面业务方法。
+
+     * 题目管理页切换题库：重置分页并重新加载题目列表。
+
      */
     handleRepoChangeSingle(repo) {
       console.log("单选题库变化:", repo);
     },
     /**
-     * updateRow：页面业务方法。
+
+     * 表格「编辑」操作：打开对话框或跳转编辑页并回填当前行数据（题库/题目/公告等多页复用）。
+
      */
     updateRow(row) {
       localStorage.setItem("quId", row.id);
@@ -209,14 +213,22 @@ export default {
     },
 
     /**
-     * handleFileChange：页面业务方法。
+
+
+     * 本地上传 on-change：接收 el-upload 的 file 对象写入表单字段，或累加到待上传列表供「保存」时 multipart 提交。
+
+
      */
     handleFileChange(file, fileList) {
       this.fileList = fileList;
     },
 
     /**
-     * handleRemove：页面业务方法。
+
+
+     * 移除文件后清空 v-model 与 fileList。
+
+
      */
     handleRemove(file, fileList) {
       if (fileList.length === 0) {
@@ -252,7 +264,11 @@ export default {
     },
 
     /**
-     * searchQu：页面业务方法。
+
+
+     * 题目列表关键字搜索并刷新分页。
+
+
      */
     searchQu() {
       this.pageNum = 1; // 搜索时重置页码
@@ -266,14 +282,22 @@ export default {
     },
 
     /**
-     * screenInfo：页面业务方法。
+
+
+     * 根据表格列配置的 prop 与格式化器，生成导出或预览用的展示文案映射。
+
+
      */
     screenInfo(row, index, done) {
       this.$router.push({ name: "questions-add", query: { zhi: row } });
     },
 
     /**
-     * handleSizeChange：页面业务方法。
+
+
+     * Element Table 分页：同步修改 pageSize，重置或保持当前页并重新拉取列表数据。
+
+
      */
     handleSizeChange(val) {
       this.pageSize = val;
@@ -288,7 +312,11 @@ export default {
     },
 
     /**
-     * handleCurrentChange：页面业务方法。
+
+
+     * Element Table 分页：同步当前页码 pageNum，触发列表接口刷新表格数据。
+
+
      */
     handleCurrentChange(val) {
       this.pageNum = val;
@@ -300,7 +328,9 @@ export default {
         this.selValue);
     },
     /**
-     * scoreFun：页面业务方法。
+
+     * 选题赋分：批量写入选中题目的分值字段并校验数值范围。
+
      */
     scoreFun(){
       this.questionList.radioCount = 0;
@@ -351,7 +381,9 @@ export default {
       this.$emit("selected-change", data);
     },
     /**
-     * handleSelectionChange：页面业务方法。
+
+     * 表格多选变更：更新本地选中 id 列表，供批量赋分或批量操作使用。
+
      */
     handleSelectionChange(val) {
       // 合并新旧选中项，去重
@@ -428,7 +460,9 @@ export default {
 
     // 清空所有选中
     /**
-     * clearSelection：页面业务方法。
+
+     * 清空 el-table 勾选状态并同步清空组件内已选题目/记录缓存。
+
      */
     clearSelection() {
       this.selectedRows = []; // 清空内部存储

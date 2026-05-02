@@ -113,7 +113,9 @@ export default {
   methods: {
     // 点击图片按钮
     /**
-     * handleImageClick：页面业务方法。
+
+     * 富文本工具栏图片：触发隐藏 file input 选择图片上传。
+
      */
     handleImageClick() {
       const input = document.querySelector("#quillEditorUploadInput");
@@ -123,7 +125,9 @@ export default {
 
     // 点击视频按钮
     /**
-     * handleVideoClick：页面业务方法。
+
+     * 富文本工具栏视频：插入外链或上传视频资源。
+
      */
     handleVideoClick() {
       const input = document.querySelector("#quillEditorUploadInput");
@@ -133,7 +137,9 @@ export default {
 
     // 上传前处理
     /**
-     * beforeUpload：页面业务方法。
+
+     * 上传前校验大小与 MIME，拒绝不符合规则的插入。
+
      */
     beforeUpload(file) {
       this.loading = true;
@@ -147,7 +153,9 @@ export default {
 
     // 上传成功
     /**
-     * uploadSuccess：页面业务方法。
+
+     * 图片上传成功后拿到 URL 插入 Quill 编辑器光标位置。
+
      */
     uploadSuccess(res, file) {
       this.loading = false;
@@ -174,7 +182,9 @@ export default {
 
     // 上传失败
     /**
-     * uploadError：页面业务方法。
+
+     * 上传失败提示并移除 loading 占位。
+
      */
     uploadError(err) {
       this.loading = false;
@@ -184,7 +194,9 @@ export default {
 
     // 获取编辑器实例
     /**
-     * getEditor：页面业务方法。
+
+     * 返回 Quill 实例引用供父组件调用。
+
      */
     getEditor() {
       return this.$refs.quillEditor.quill;
@@ -192,7 +204,9 @@ export default {
 
     // 设置内容
     /**
-     * setContent：页面业务方法。
+
+     * 外部设置编辑器 HTML 内容并同步内部状态。
+
      */
     setContent(content) {
       this.content = content;
@@ -200,7 +214,9 @@ export default {
 
     // 清空内容
     /**
-     * clear：页面业务方法。
+
+     * 清空编辑器内容与绑定 v-model。
+
      */
     clear() {
       this.content = "";
@@ -208,7 +224,9 @@ export default {
 
     // 失去焦点事件
     /**
-     * onEditorBlur：页面业务方法。
+
+     * Quill 失焦钩子：可做草稿保存，当前多为占位。
+
      */
     onEditorBlur(quill) {
       this.$emit("blur", quill);
@@ -216,7 +234,9 @@ export default {
 
     // 获得焦点事件
     /**
-     * onEditorFocus：页面业务方法。
+
+     * Quill 获焦：调试或禁用只读切换，当前项目部分为空实现。
+
      */
     onEditorFocus(quill) {
       this.$emit("focus", quill);
@@ -224,7 +244,9 @@ export default {
 
     // 准备富文本编辑器
     /**
-     * onEditorReady：页面业务方法。
+
+     * Quill 就绪：按 isEdit 禁用编辑器实现查看模式，或注册自定义按钮。
+
      */
     onEditorReady(quill) {
       if (this.disabled) {
@@ -235,7 +257,9 @@ export default {
 
     // 内容改变事件
     /**
-     * onEditorChange：页面业务方法。
+
+     * Quill 内容变更：同步 v-model 与 html，供表单提交。
+
      */
     onEditorChange({ quill, html, text }) {
       this.$emit("change", { quill, html, text });

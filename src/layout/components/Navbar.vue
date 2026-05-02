@@ -84,7 +84,8 @@ export default {
   },
   methods: {
     /**
-     * handleTagClose：页面业务方法。
+     * 关闭顶部路由标签：提交 menu/REMOVE_TAG；若关闭的是当前路由则跳转最后一个剩余标签并 reload；
+     * 否则仅从 vuex 移除标签不切页。
      */
     handleTagClose(item) {
       if (this.$route.path === item.path) {
@@ -100,7 +101,7 @@ export default {
       }
     },
     /**
-     * decode：页面业务方法。
+     * 从 Cookie Token 中解析 JWT payload，取出 userInfo JSON 赋给 this.user（头像、用户名等展示）。
      */
     decode() {
       const token = getToken()
@@ -108,13 +109,13 @@ export default {
       this.user = JSON.parse(user.userInfo)
     },
     /**
-     * toggleSideBar：页面业务方法。
+     * 切换左侧菜单展开/收起（vuex app/toggleSideBar）。
      */
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
     },
     /**
-     * logout：页面业务方法。
+     * 退出登录：先 dispatch 根级 logoutUser 清心跳态，再 user/logout 清 Token 与存储，最后跳转 /login。
      */
     async logout() {
       this.$store.dispatch('logoutUser')

@@ -150,14 +150,18 @@ export default {
   },
   methods: {
     /**
-     * handleRadioChange：页面业务方法。
+
+     * 讨论详情排序方式变更：重新请求回复列表接口（升序/降序）。
+
      */
     handleRadioChange(value) {
       this.getDiscussionRelyFun(this.currentDiscussionId,value)
     },
     // 收到websocket消息的方法
     /**
-     * handleMessage：页面业务方法。
+
+     * WebSocket 或轮询收到新消息时的处理：追加回复列表或刷新未读数。
+
      */
     handleMessage(res) {
       if(res.type === 'DISCUSSION' && res.data.discussionId === this.currentDiscussionId){
@@ -166,14 +170,18 @@ export default {
     },
     // 投屏模式
     /**
-     * projectionScreen：页面业务方法。
+
+     * 跳转投屏模式路由，携带 discussionId 全屏展示讨论内容。
+
      */
     projectionScreen(){
       this.$router.push({name: 'discussion-block',query: { discussionId: this.currentDiscussionId }})
     },
     //删除回复
     /**
-     * delReply：页面业务方法。
+
+     * 删除一条回复：确认后调 reply 删除接口并刷新当前楼列表。
+
      */
     delReply(id){
       replyDel(id).then(res=>{
@@ -189,7 +197,9 @@ export default {
     },
     //展示是否删除
     /**
-     * showIsDel：页面业务方法。
+
+     * 点击删除图标：将目标 id 交给父组件 delFun 或弹出二次确认后请求删除接口。
+
      */
     showIsDel(replyId){
         this.$confirm('此操作将永久删除该回复, 是否继续?', '提示', {
@@ -207,7 +217,9 @@ export default {
     },
     // 回复
     /**
-     * submitFun：页面业务方法。
+
+     * 发表回复或楼主评论：组装富文本内容与 discussionId，调用 replyAdd 后清空编辑器并刷新。
+
      */
     submitFun(){
       this.form.discussionId = this.currentDiscussionId
@@ -224,7 +236,9 @@ export default {
 
     },
     /**
-     * getDiscussionDetailsFun：页面业务方法。
+
+     * 根据路由 id 请求讨论主帖详情，填充标题与楼主信息。
+
      */
     getDiscussionDetailsFun() {
       discussionDetail(this.currentDiscussionId).then((res) => {
@@ -235,7 +249,9 @@ export default {
       });
     },
     /**
-     * getDiscussionRelyFun：页面业务方法。
+
+     * 分页或排序加载回复列表，绑定到楼层组件列表数据。
+
      */
     getDiscussionRelyFun(id,order=1){
       getDiscussionRely(id,order).then((res)=>{
@@ -247,14 +263,18 @@ export default {
     onEditorBlur(quill) {},
     // 获得焦点事件
     /**
-     * onEditorFocus：页面业务方法。
+
+     * Quill 获焦：调试或禁用只读切换，当前项目部分为空实现。
+
      */
     onEditorFocus(quill) {
       console.log("editor focus!", quill);
     },
     // 准备富文本编辑器
     /**
-     * onEditorReady：页面业务方法。
+
+     * Quill 就绪：按 isEdit 禁用编辑器实现查看模式，或注册自定义按钮。
+
      */
     onEditorReady(quill) {
       // 移除禁用编辑器的逻辑，或者根据实际情况调整 this.isEdit 的值
@@ -262,7 +282,9 @@ export default {
     },
     // 内容改变事件
     /**
-     * onEditorChange：页面业务方法。
+
+     * Quill 内容变更：同步 v-model 与 html，供表单提交。
+
      */
     onEditorChange({ quill, html, text }) {
       console.log("editor change!", quill, html, text);

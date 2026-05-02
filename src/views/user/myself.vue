@@ -137,7 +137,9 @@ export default {
   methods: {
     // 退出班级逻辑
     /**
-     * exitGrade：页面业务方法。
+
+     * 学生退出班级 exitUserGrade，成功后清空本地班级缓存。
+
      */
     exitGrade() {
       this.$confirm('退出班级, 是否继续?', '提示', {
@@ -177,7 +179,9 @@ export default {
     },
     // 获取个人系信息
     /**
-     * getInfoFun：页面业务方法。
+
+     * 个人中心拉取 user/info 展示基本信息与头像。
+
      */
     async getInfoFun() {
       const res = await getInfo()
@@ -189,14 +193,18 @@ export default {
     },
     // 修改文件逻辑
     /**
-     * handleFileChange：页面业务方法。
+
+     * 本地上传 on-change：接收 el-upload 的 file 对象写入表单字段，或累加到待上传列表供「保存」时 multipart 提交。
+
      */
     handleFileChange(file, fileList) {
       this.fileList = fileList // 收集文件信息
     },
     // 移除文件处理方法
     /**
-     * handleRemove：页面业务方法。
+
+     * 移除文件后清空 v-model 与 fileList。
+
      */
     handleRemove(file, fileList) {
       if (fileList.length === 0) {
@@ -205,7 +213,9 @@ export default {
     },
     // 上传文件逻辑
     /**
-     * importAvatar：页面业务方法。
+
+     * 上传头像 multipart user/uploadAvatar，成功后刷新头像 URL。
+
      */
     importAvatar() {
       if (this.fileList.length > 0) {
@@ -230,14 +240,18 @@ export default {
     },
     // 添加班级按钮
     /**
-     * addClassBt：页面业务方法。
+
+     * 打开加入班级输入框或对话框。
+
      */
     addClassBt() {
       this.addClassDialogVisible = true
     },
     // 添加班级逻辑
     /**
-     * addClass：页面业务方法。
+
+     * 班级场景：教师端为打开/提交「新增班级」表单（classAdd）；学生端为提交班级邀请码调用 user/grade/join，成功后刷新个人信息（见所在页面）。
+
      */
     addClass() {
       const params = { code: this.form.code }

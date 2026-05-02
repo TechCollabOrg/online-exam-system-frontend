@@ -217,7 +217,9 @@ export default {
   },
   methods: {
     /**
-     * registerFn：页面业务方法。
+
+     * 提交注册：校验两次密码一致后调用 register 接口，成功则提示并跳转登录页。
+
      */
     registerFn() {
       this.$refs.registerForm.validate(valid => {
@@ -280,14 +282,20 @@ export default {
       })
     },
     /**
-     * getVerify：页面业务方法。
+
+     * 请求图形验证码接口并刷新验证码图片地址，用于登录/注册人机校验。
+
      */
     getVerify() {
       this.$refs.captchaImg.src = `/api/auths/captcha?${Math.random()}`
     },
 
     /**
-     * showPwd：页面业务方法。
+
+
+     * 切换登录密码输入框 type 在 password/text 间切换，便于用户核对输入。
+
+
      */
     showPwd() {
       if (this.passwordType === 'password') {
@@ -300,7 +308,9 @@ export default {
       })
     },
     /**
-     * showPwd2：页面业务方法。
+
+     * 切换确认密码框显隐，与 showPwd 同理，用于注册页二次密码。
+
      */
     showPwd2() {
       if (this.checkedPasswordType === 'password') {

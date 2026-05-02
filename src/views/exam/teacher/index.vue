@@ -326,7 +326,9 @@ export default {
   },
   methods: {
     /**
-     * delExam：页面业务方法。
+
+     * 删除考试 exams 批量接口，刷新教师端考试列表。
+
      */
     delExam(row) {
       this.$confirm('此操作将永久删除该考试, 是否继续?', '提示', {
@@ -359,14 +361,18 @@ export default {
         })
     },
     /**
-     * showExam：页面业务方法。
+
+     * 查看考试详情或跳转 exam-details 路由。
+
      */
     showExam(row) {
       localStorage.setItem("exam-details-examId", row.id)
       this.$router.push({name: 'exam-details'})
     },
     /**
-     * updateExam：页面业务方法。
+
+     * 跳转考试编辑 examAdd 或打开编辑状态。
+
      */
     updateExam() {
       const data = {
@@ -404,7 +410,9 @@ export default {
     },
     // 分页查询
     /**
-     * getExamPage：页面业务方法。
+
+     * 教师端分页 exams/paging。
+
      */
     async getExamPage(pageNum, pageSize, title = null) {
       const params = { pageNum: pageNum, pageSize: pageSize, title: title }
@@ -412,20 +420,28 @@ export default {
       this.data = res.data
     },
     /**
-     * searchExam：页面业务方法。
+
+     * 考试或记录列表筛选：合并查询表单与分页参数后调用对应 paging 接口（教师考试、考试记录、班级等页复用）。
+
      */
     searchExam() {
       this.getExamPage(this.pageNum, this.pageSize, this.input)
     },
 
     /**
-     * screenInfo：页面业务方法。
+
+
+     * 根据表格列配置的 prop 与格式化器，生成导出或预览用的展示文案映射。
+
+
      */
     screenInfo(row) {
       this.$router.push({ name: 'exam-add', query: { zhi: row }})
     },
     /**
-     * handleSizeChange：页面业务方法。
+
+     * Element Table 分页：同步修改 pageSize，重置或保持当前页并重新拉取列表数据。
+
      */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
@@ -433,7 +449,9 @@ export default {
       this.getExamPage(this.pageNum, val,this.input)
     },
     /**
-     * handleCurrentChange：页面业务方法。
+
+     * Element Table 分页：同步当前页码 pageNum，触发列表接口刷新表格数据。
+
      */
     handleCurrentChange(val) {
       // 设置当前页逻辑

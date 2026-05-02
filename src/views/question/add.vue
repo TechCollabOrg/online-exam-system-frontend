@@ -212,7 +212,9 @@ export default {
   methods: {
     // 获取单题详情
     /**
-     * getQuDetail：页面业务方法。
+
+     * 编辑页加载 single 题详情，回填题型与选项的结构体。
+
      */
     async getQuDetail() {
       const res = await quDetail(this.quId)
@@ -228,7 +230,9 @@ export default {
       }
     },
     /**
-     * handleTypeChange：页面业务方法。
+
+     * 题目编辑切换题型：重置选项数组与校验规则。
+
      */
     handleTypeChange(v) {
       this.postForm.options = []
@@ -250,14 +254,20 @@ export default {
 
     // 添加子项
     /**
-     * handleAdd：页面业务方法。
+
+     * 新增一行配置：试卷组卷时插入题目占位行，或题目编辑页新增选项行（依页面模板而定）。
+
      */
     handleAdd() {
       this.postForm.options.push({ isRight: false, content: '' })
     },
 
     /**
-     * removeItem：页面业务方法。
+
+
+     * 从已选题目列表移除一项，并同步更新树勾选状态。
+
+
      */
     removeItem(index) {
       const actualIndex = this.postForm.options.findIndex((option, idx) => {
@@ -276,7 +286,11 @@ export default {
     },
 
     /**
-     * fetchData：页面业务方法。
+
+
+     * 初始化或刷新列表数据：具体请求见函数体（如题库下拉 repo/list、题目编辑加载、整卷 examQuList 等）。
+
+
      */
     fetchData(id) {
       fetchDetail(id).then((response) => {
@@ -284,7 +298,9 @@ export default {
       })
     },
     /**
-     * submitForm：页面业务方法。
+
+     * 提交表单：校验通过后调用对应新增或更新接口（考试保存、题目保存等，见函数体内 API）。
+
      */
     submitForm() {
       (JSON.stringify(this.postForm))
@@ -390,7 +406,9 @@ export default {
       })
     },
     /**
-     * onCancel：页面业务方法。
+
+     * 汇总弹窗或表单取消：关闭对话框或路由返回，不落库。
+
      */
     onCancel() {
       this.$router.push({ name: 'questions-management' })

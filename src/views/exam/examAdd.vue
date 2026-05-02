@@ -388,7 +388,9 @@ export default {
   methods: {
     // 点击tab
     /**
-     * handleClick：页面业务方法。
+
+     * 表格/卡片行点击：根据行数据跳转详情、打开编辑弹窗、触发导出或路由 push（各页 @click 传参不同）。
+
      */
     handleClick(tab, event) {
       this.$refs.questionSelector.clearSelection();
@@ -408,7 +410,9 @@ export default {
     },
     // 子组件选择的ids
     /**
-     * handleSelectedChange：页面业务方法。
+
+     * 考试出卷：左侧题库树勾选变更时，更新已选题目集合用于右侧已选列表。
+
      */
     handleSelectedChange(selectedIds) {
       var ids = [];
@@ -431,7 +435,9 @@ export default {
       // 或者执行其他需要的操作
     },
     /**
-     * handleSave：页面业务方法。
+
+     * 抽题保存：将当前勾选题目写入考试表单（含分值），更新试卷题目缓存。
+
      */
     handleSave() {
       if (this.repoList[0].addQuType === "1") {
@@ -549,7 +555,11 @@ export default {
     },
 
     /**
-     * handleCheckChange：页面业务方法。
+
+
+     * 树节点勾选：维护全选/半选状态与叶子节点题目 id 集合。
+
+
      */
     handleCheckChange() {
       const that = this;
@@ -563,20 +573,28 @@ export default {
 
     // 添加子项
     /**
-     * handleAdd：页面业务方法。
+
+     * 新增一行配置：试卷组卷时插入题目占位行，或题目编辑页新增选项行（依页面模板而定）。
+
      */
     handleAdd() {
       this.repoList.push();
     },
 
     /**
-     * removeItem：页面业务方法。
+
+
+     * 从已选题目列表移除一项，并同步更新树勾选状态。
+
+
      */
     removeItem(index) {
       this.repoList.splice(index, 1);
     },
     /**
-     * formatDateToISOString：页面业务方法。
+
+     * 将 DatePicker 本地时间格式化为后端需要的 ISO 字符串（含时区处理）。
+
      */
     formatDateToISOString(date) {
       if (!(date instanceof Date)) {
@@ -597,7 +615,11 @@ export default {
     },
 
     /**
-     * submitForm：页面业务方法。
+
+
+     * 提交表单：校验通过后调用对应新增或更新接口（考试保存、题目保存等，见函数体内 API）。
+
+
      */
     submitForm() {
       console.log("postForm", this.postForm);
@@ -656,21 +678,29 @@ export default {
     },
 
     /**
-     * filterNode：页面业务方法。
+
+
+     * el-tree 过滤：根据关键字显示/隐藏节点，用于题库树搜索。
+
+
      */
     filterNode(value, data) {
       if (!value) return true;
       return data.deptName.indexOf(value) != -1;
     },
     /**
-     * onCertificateChange：页面业务方法。
+
+     * 证书下拉变更：写入表单 certificateId，用于及格后发证配置。
+
      */
     onCertificateChange() {
       // 方法实现...
     },
     onClassChange() {},
     /**
-     * repoChange：页面业务方法。
+
+     * 选题库变更：重新加载该题库下的题目树或分页。
+
      */
     repoChange(e, row) {
       // 赋值ID

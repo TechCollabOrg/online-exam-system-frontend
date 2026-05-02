@@ -9,9 +9,10 @@
 import request from '@/utils/request'
 
 /**
- * 创建用户（管理员/教师接口封装名与班级接口混用历史命名）。
- * @param {object} data 用户表单
- * @returns {Promise}
+ * POST `/api/user` — 创建用户（后端按角色限制：教师只能创建学生，管理员可创建教师与学生）。
+ * 默认密码由服务端写入；请求体对应 UserForm 校验分组。
+ * @param {object} data 用户表单字段（用户名、真实姓名、角色等）
+ * @returns {Promise<{ code:number, data:string, msg:string }>} 业务包装结果，成功时 data 多为提示文案
  */
 export function classAdd(data) {
   return request({
@@ -22,9 +23,10 @@ export function classAdd(data) {
 }
 
 /**
- * 用户登录。
- * @param {object} data 账号密码等
- * @returns {Promise}
+ * POST `/api/auths/login` — 账号登录；服务端校验密码与验证码（若开启）后签发 JWT。
+ * 前端通常在 store 中解析 Token 写入 Cookie 与角色缓存。
+ * @param {object} data 含用户名、密码及可选验证码字段
+ * @returns {Promise} data 为 JWT 字符串（业务码成功时）
  */
 export function login(data) {
   return request({
@@ -35,7 +37,7 @@ export function login(data) {
 }
 
 /**
- * 校验图形验证码。
+ * POST `/api/auths/verifyCode/{code}` — 单独校验图形验证码是否与 Session 中一致（验证码关闭时后端可能直接返回成功）。
  * @param {string} code 用户输入的验证码
  * @returns {Promise}
  */
@@ -47,7 +49,7 @@ export function verifyCode(code) {
 }
 
 /**
- * 获取当前登录用户信息与权限。
+ * GET `/api/user/info` — 返回当前 Token 对应用户的展示信息（姓名、头像、角色等），需已登录。
  * @returns {Promise}
  */
 export function getInfo() {
@@ -59,7 +61,7 @@ export function getInfo() {
 }
 
 /**
- * 退出登录。
+ * DELETE `/api/auths/logout` — 注销会话并清除服务端 Session 中与登录态相关的数据。
  * @returns {Promise}
  */
 export function logout() {
@@ -70,9 +72,9 @@ export function logout() {
 }
 
 /**
- * 分页查询用户列表。
- * @param {object} params 分页与筛选
- * @returns {Promise}
+ * GET `/api/user/paging` — 教师/管理员分页查询用户，可按班级 id、真实姓名筛选。
+ * @param {object} params pageNum、pageSize、gradeId、realName 等
+ * @returns {Promise} data 为 MyBatis-Plus IPage 结构（records + total）
  */
 export function userPaging(params) {
   return request({
@@ -83,8 +85,8 @@ export function userPaging(params) {
 }
 
 /**
- * 批量删除用户。
- * @param {string} ids 用户 id，逗号分隔
+ * DELETE `/api/user/{ids}` — 批量删除用户，ids 为逗号分隔的主键字符串。
+ * @param {string} ids 用户 id 列表
  * @returns {Promise}
  */
 export function userDel(ids) {
@@ -95,8 +97,8 @@ export function userDel(ids) {
 }
 
 /**
- * Excel 批量导入用户。
- * @param {FormData} data 含文件的表单
+ * POST `/api/user/import` — Excel 批量导入用户（multipart），服务端解析表格并批量插入。
+ * @param {FormData} data 含 file 字段及后端约定的其它表单项
  * @returns {Promise}
  */
 export function userImport(data) {
@@ -111,8 +113,8 @@ export function userImport(data) {
 }
 
 /**
- * 修改密码。
- * @param {object} data 旧密码与新密码
+ * PUT `/api/user` — 当前用户修改登录密码（旧密码 + 新密码），走 UpdatePassword 校验分组。
+ * @param {object} data UserForm 密码相关字段
  * @returns {Promise}
  */
 export function changePassword(data) {
@@ -124,8 +126,8 @@ export function changePassword(data) {
 }
 
 /**
- * 学生加入班级。
- * @param {object} params 如班级邀请码
+ * PUT `/api/user/grade/join` — 学生通过班级邀请码加入班级（query 传 code）。
+ * @param {object} params 至少包含班级码 code
  * @returns {Promise}
  */
 export function userAddClass(params) {
@@ -137,7 +139,7 @@ export function userAddClass(params) {
 }
 
 /**
- * 学生注册。
+ * POST `/api/auths/register` — 自助注册学生账号，校验用户名唯一性与表单规则。
  * @param {object} data 注册表单
  * @returns {Promise}
  */
@@ -150,8 +152,8 @@ export function register(data) {
 }
 
 /**
- * 心跳/在线时长上报。
- * @param {object} data 时长或会话信息
+ * POST `/api/auths/track-presence` — 上报在线心跳，用于统计学生登录时长（配合仪表盘 stat/daily）。
+ * @param {object} data 可含 userId 等（具体以后端约定为准）
  * @returns {Promise}
  */
 export function trackPresence(data) {
@@ -163,9 +165,9 @@ export function trackPresence(data) {
 }
 
 /**
- * 上传用户头像。
- * @param {FormData|object} data 文件数据
- * @returns {Promise}
+ * PUT `/api/user/uploadAvatar` — multipart 上传头像文件，返回可访问的 OSS/静态 URL。
+ * @param {FormData|object} data 含 file 部分字段 `file`
+ * @returns {Promise} data 多为头像 URL 字符串
  */
 export function uploadAvatar(data) {
   return request({
@@ -176,7 +178,7 @@ export function uploadAvatar(data) {
 }
 
 /**
- * 学生退出当前所在班级。
+ * PUT `/api/grades/user/exit` — 当前登录学生退出所属班级关联。
  * @returns {Promise}
  */
 export function exitUserGrade() {

@@ -85,7 +85,9 @@ export default {
   },
   methods: {
     /**
-     * searchFun：页面业务方法。
+
+     * 阅卷列表筛选考试或学生字段。
+
      */
     searchFun() {
       this.getAnswerUserPage(
@@ -95,7 +97,9 @@ export default {
       )
     },
     /**
-     * getAnswerUserPage：页面业务方法。
+
+     * 某位学生答卷分页 answers/exam/stu。
+
      */
     getAnswerUserPage(pageNum, pageSize, examId, realName) {
       const params = { pageNum: pageNum, pageSize: pageSize, examId: examId, 'realName': this.realName }
@@ -104,7 +108,9 @@ export default {
       })
     },
     /**
-     * screenInfo：页面业务方法。
+
+     * 根据表格列配置的 prop 与格式化器，生成导出或预览用的展示文案映射。
+
      */
     screenInfo(row) {
       sessionStorage.setItem('answer_info', JSON.stringify(row))

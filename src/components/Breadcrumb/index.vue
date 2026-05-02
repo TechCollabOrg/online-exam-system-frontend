@@ -36,7 +36,8 @@ export default {
   },
   methods: {
     /**
-     * getBreadcrumb：页面业务方法。
+     * 根据当前路由 matched 记录生成面包屑列表：仅保留含 meta.title 的路由；
+     * 若首页不是 Dashboard 则在首部拼接 Dashboard；最后过滤掉 meta.breadcrumb===false 的项。
      */
     getBreadcrumb() {
       // only show routes with meta.title
@@ -50,7 +51,7 @@ export default {
       this.levelList = matched.filter(item => item.meta && item.meta.title && item.meta.breadcrumb  != false)
     },
     /**
-     * isDashboard：页面业务方法。
+     * 判断给定路由是否为仪表盘（不区分大小写比较 route.name 与「Dashboard」）。
      */
     isDashboard(route) {
       const name = route && route.name
@@ -60,7 +61,7 @@ export default {
       return name.trim().toLocaleLowerCase() === 'Dashboard'.toLocaleLowerCase()
     },
     /**
-     * pathCompile：页面业务方法。
+     * 将路由模板 path 与当前 $route.params 编译成实际路径（path-to-regexp compile）。
      */
     pathCompile(path) {
       // To solve this problem https://github.com/PanJiaChen/vue-element-admin/issues/561
@@ -69,7 +70,7 @@ export default {
       return toPath(params)
     },
     /**
-     * handleLink：页面业务方法。
+     * 面包屑项点击跳转：若配置了 redirect 则 push redirect；否则 push 经 pathCompile 解析后的 path。
      */
     handleLink(item) {
       const { redirect, path } = item

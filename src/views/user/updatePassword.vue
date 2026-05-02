@@ -45,13 +45,17 @@ export default {
   },
   methods: {
     /**
-     * cancelFun：页面业务方法。
+
+     * 修改密码页取消：路由返回上一页或关闭抽屉。
+
      */
     cancelFun() {
       this.$router.push({ path: 'index' })
     },
     /**
-     * updatePassword：页面业务方法。
+
+     * 提交修改密码表单 changePassword，成功提示并退出重新登录视业务而定。
+
      */
     updatePassword() {
       const data = { originPassword: this.updatePasswordForm.originPassword,

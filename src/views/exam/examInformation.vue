@@ -100,14 +100,18 @@ export default {
   methods: {
     // 分页查询
     /**
-     * getExamDetils：页面业务方法。
+
+     * 调用考试详情接口 exams/detail（方法名拼写为 Detils）：渲染考前说明与考试时间规则。
+
      */
     async getExamDetils(examId) {
       const res = await getExamDetail(examId)
       this.data = res.data
     },
     /**
-     * startExam：页面业务方法。
+
+     * 调用试卷题目 ID 列表接口 examQuList，填充 paperData 答题卡数据结构。
+
      */
     startExam() {
       examStart(this.receivedRow).then((res) => {

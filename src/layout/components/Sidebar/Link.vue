@@ -27,7 +27,7 @@ export default {
   },
   methods: {
     /**
-     * linkProps：页面业务方法。
+     * 根据是否外链返回 <a> 的 href/target/rel 或 <router-link> 的 to；外链新窗口打开并带 noopener。
      */
     linkProps(to) {
       if (this.isExternal) {

@@ -140,7 +140,9 @@ export default {
   methods: {
     //弹出提示框
     /**
-     * handleDel：页面业务方法。
+
+     * 点击删除讨论主题：弹出确认框后调用删除接口并刷新分页。
+
      */
     handleDel(id){
         this.$confirm('此操作将永久删除该讨论, 是否继续?', '提示', {
@@ -158,7 +160,9 @@ export default {
     },
     //删除讨论
     /**
-     * delDiscussion：页面业务方法。
+
+     * 请求后端删除讨论帖接口，成功则关闭弹窗并刷新列表。
+
      */
     delDiscussion(id){
       discussionDel(id).then(res=>{
@@ -178,7 +182,9 @@ export default {
     },
     //提交表单
     /**
-     * handleConfirm：页面业务方法。
+
+     * 弹窗确定：执行 onConfirm 回调传入表单数据，由父级调用保存接口；关闭对话框并按页面约定重置表单。
+
      */
     handleConfirm(){
       discussionAdd(this.discussionForm).then(res=>{
@@ -201,14 +207,18 @@ export default {
       })
     },
     /**
-     * showRow：页面业务方法。
+
+     * 查看详情：以只读模式打开对话框/抽屉并回填当前行数据。
+
      */
     showRow(row) {
       // this.$router.push({name: 'discussion-detail',query: { row: row }})
       this.$router.push({name: 'discussion-detail',query:{discussionId: row.id}})
     },
     /**
-     * searchDiscussion：页面业务方法。
+
+     * 合并搜索关键词与分页参数，重新请求讨论分页列表。
+
      */
     searchDiscussion() {
       this.getDiscussionPage(
@@ -220,7 +230,9 @@ export default {
     },
     // 分页查询
     /**
-     * getDiscussionPage：页面业务方法。
+
+     * 调用 discussion 分页 API，绑定表格 rows 与 total。
+
      */
     async getDiscussionPage(pageNum, pageSize, title = null, gradeId = null) {
       const params = {
@@ -241,7 +253,9 @@ export default {
       }
     },
     /**
-     * handleSizeChange：页面业务方法。
+
+     * Element Table 分页：同步修改 pageSize，重置或保持当前页并重新拉取列表数据。
+
      */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
@@ -250,7 +264,9 @@ export default {
       this.searchForm.gradeId);
     },
     /**
-     * handleCurrentChange：页面业务方法。
+
+     * Element Table 分页：同步当前页码 pageNum，触发列表接口刷新表格数据。
+
      */
     handleCurrentChange(val) {
       // 设置当前页逻辑

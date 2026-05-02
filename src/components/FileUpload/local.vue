@@ -76,7 +76,11 @@ export default {
   methods: {
 
     /**
-     * fillValue：页面业务方法。
+
+
+     * 根据 v-model 初始化 fileList 预览（本地上传组件）：有 URL 时构造单文件列表。
+
+
      */
     fillValue() {
       this.fileList = []
@@ -88,14 +92,18 @@ export default {
 
     // 文件超出个数限制时的钩子
     /**
-     * handleExceed：页面业务方法。
+
+     * 超出 el-upload limit 时提示每次最多上传个数。
+
      */
     handleExceed() {
       this.$message.warning(`每次只能上传 ${this.limit} 个文件`)
     },
     // 删除文件之前的钩子
     /**
-     * beforeRemove：页面业务方法。
+
+     * 删除前弹出确认框，防止误删已传文件。
+
      */
     beforeRemove() {
       return this.$confirm(`确定移除文件吗？`)
@@ -103,7 +111,9 @@ export default {
 
     // 文件列表移除文件时的钩子
     /**
-     * handleRemove：页面业务方法。
+
+     * 移除文件后清空 v-model 与 fileList。
+
      */
     handleRemove() {
       this.$emit('input', '')
@@ -112,7 +122,9 @@ export default {
 
     // 文件上传成功时的钩子
     /**
-     * handleSuccess：页面业务方法。
+
+     * 上传成功后根据业务码提示并将返回的图片 URL emit 给父组件。
+
      */
     handleSuccess(response) {
       if (response.code === 1) {

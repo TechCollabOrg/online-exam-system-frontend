@@ -139,7 +139,9 @@ export default {
   methods: {
     // 获取所有数据
     /**
-     * fetchAllData：页面业务方法。
+
+     * 管理员/教师仪表盘并发请求多路统计接口，聚合班级数、考试数等卡片数据。
+
      */
     async fetchAllData() {
       this.loading = true
@@ -188,7 +190,9 @@ export default {
 
     // 处理错误
     /**
-     * handleError：页面业务方法。
+
+     * 统一捕获仪表盘请求异常，Message 提示并避免空白页面。
+
      */
     handleError(error) {
       this.loading = false
@@ -199,7 +203,9 @@ export default {
 
     // 处理窗口大小变化
     /**
-     * handleResize：页面业务方法。
+
+     * 监听 window resize，触发图表与布局重新计算。
+
      */
     handleResize() {
       if (this.classChartInstance) {
@@ -212,7 +218,9 @@ export default {
 
     // 初始化图表
     /**
-     * initCharts：页面业务方法。
+
+     * 基于 echarts 初始化或 setOption 绑定 DOM，渲染登录时长或统计图。
+
      */
     initCharts() {
       this.$nextTick(() => {
@@ -228,7 +236,9 @@ export default {
 
     // 处理班级人数分布数据
     /**
-     * processChartData：页面业务方法。
+
+     * 将原始接口数据转换为 echarts xAxis/series 所需结构（班级维度）。
+
      */
     processChartData(data) {
       if (data.length === 0) {
@@ -250,7 +260,9 @@ export default {
 
     // 处理班级试卷分布数据
     /**
-     * processChartData2：页面业务方法。
+
+     * 第二套图表数据处理：通常用于考试场次或不同度量字段。
+
      */
     processChartData2(data) {
       // 新增逻辑：检查数据是否为空
@@ -274,7 +286,9 @@ export default {
 
     // 更新班级人数分布图表
     /**
-     * updateClassChart：页面业务方法。
+
+     * 根据处理后的数据 setOption 更新班级相关图表实例。
+
      */
     updateClassChart() {
       if (!this.classChartInstance) return
@@ -341,7 +355,9 @@ export default {
 
     // 更新班级试卷分布图表
     /**
-     * updateExamChart：页面业务方法。
+
+     * 根据处理后的数据 setOption 更新考试相关图表实例。
+
      */
     updateExamChart() {
       if (!this.examChartInstance) return

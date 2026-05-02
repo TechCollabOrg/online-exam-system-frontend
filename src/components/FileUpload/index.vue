@@ -57,7 +57,7 @@ export default {
   methods: {
 
     /**
-     * fillValue：页面业务方法。
+     * 将父组件 v-model（value）同步到内部 fileUrl，驱动子组件 FileUploadLocal 展示已选文件地址。
      */
     fillValue() {
       this.fileUrl = this.value

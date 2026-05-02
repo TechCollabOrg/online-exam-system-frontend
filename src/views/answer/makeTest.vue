@@ -153,7 +153,9 @@ export default {
   methods: {
     // 点击答题卡题号, 右侧题目滑动
     /**
-     * handleTag：页面业务方法。
+
+     * 关闭面包屑标签或返回列表路由。
+
      */
     handleTag(index) {
       // 高亮选中的题目index标签
@@ -164,7 +166,9 @@ export default {
     },
     // 获取用户作答信息
     /**
-     * getUserAnswerDetail：页面业务方法。
+
+     * 加载答卷详情 answerDetail 用于打分页面。
+
      */
     async getUserAnswerDetail() {
       const params = { userId: this.info.userId, examId: this.info.examId }
@@ -173,7 +177,9 @@ export default {
       this.waitQuList = res.data
     },
     /**
-     * subCorrect：页面业务方法。
+
+     * 提交主观题批改分数 correct 接口。
+
      */
     subCorrect() {
       const list = []

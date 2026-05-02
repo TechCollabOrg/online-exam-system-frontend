@@ -111,7 +111,9 @@ export default {
   methods: {
     // 分页查询
     /**
-     * getExamGradePage：页面业务方法。
+
+     * 学生端分页获取班级可见考试列表 exams/grade。
+
      */
     async getExamGradePage(pageNum, pageSize, searchTitle = null) {
       const params = { pageNum: pageNum, pageSize: pageSize, title: searchTitle, isASC: this.isASC }
@@ -121,7 +123,9 @@ export default {
 
     // 切换排序方式
     /**
-     * toggleSort：页面业务方法。
+
+     * 切换列表排序字段或升降序，重新请求考试记录分页。
+
      */
     toggleSort() {
       this.getExamGradePage(this.pageNum, this.pageSize, this.searchTitle)
@@ -129,7 +133,9 @@ export default {
 
     // 考试状态判断
     /**
-     * getExamStatus：页面业务方法。
+
+     * 根据考试时间与服务端状态映射「未开始/进行中/已结束」标签文案或样式。
+
      */
     getExamStatus(row) {
       const now = new Date().getTime()
@@ -157,13 +163,17 @@ export default {
       }
     },
     /**
-     * searchExamStu：页面业务方法。
+
+     * 学生端考试列表搜索过滤。
+
      */
     searchExamStu() {
       this.getExamGradePage(this.pageNum, this.pageSize, this.searchTitle)
     },
     /**
-     * handleSizeChange：页面业务方法。
+
+     * Element Table 分页：同步修改 pageSize，重置或保持当前页并重新拉取列表数据。
+
      */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
@@ -171,7 +181,9 @@ export default {
       this.getExamGradePage(this.pageNum, val,this.searchTitle)
     },
     /**
-     * handleCurrentChange：页面业务方法。
+
+     * Element Table 分页：同步当前页码 pageNum，触发列表接口刷新表格数据。
+
      */
     handleCurrentChange(val) {
       // 设置当前页逻辑
@@ -179,13 +191,19 @@ export default {
       this.getExamGradePage(val, this.pageSize,this.searchTitle)
     },
     /**
-     * handleClick：页面业务方法。
+
+     * 表格/卡片行点击：根据行数据跳转详情、打开编辑弹窗、触发导出或路由 push（各页 @click 传参不同）。
+
      */
     handleClick(row) {
     },
 
     /**
-     * screenInfo：页面业务方法。
+
+
+     * 根据表格列配置的 prop 与格式化器，生成导出或预览用的展示文案映射。
+
+
      */
     screenInfo(row) {
       const status = this.getExamStatus(row)

@@ -102,7 +102,9 @@ export default {
   methods: {
     // 编辑公告按钮
     /**
-     * updateRow：页面业务方法。
+
+     * 表格「编辑」操作：打开对话框或跳转编辑页并回填当前行数据（题库/题目/公告等多页复用）。
+
      */
     updateRow(row) {
       this.editVisible = true
@@ -110,7 +112,9 @@ export default {
     },
     // 查看公告按钮
     /**
-     * showRow：页面业务方法。
+
+     * 查看详情：以只读模式打开对话框/抽屉并回填当前行数据。
+
      */
     showRow(row) {
       this.showVisible = true
@@ -118,7 +122,9 @@ export default {
     },
     // 分页查询
     /**
-     * getNoticePage：页面业务方法。
+
+     * 分页拉取公告 notices/paging。
+
      */
     async getNoticePage(pageNum, pageSize, title = null) {
       const params = { pageNum: pageNum, pageSize: pageSize, title: title }
@@ -127,7 +133,9 @@ export default {
     },
     // 新增公告
     /**
-     * addNotice：页面业务方法。
+
+     * 打开发布公告对话框（noticeDialog），editType 区分新增。
+
      */
     addNotice(noticeForm) {
       // 建立公告数据
@@ -151,7 +159,9 @@ export default {
     },
     // 更新公告方法
     /**
-     * updateNotice：页面业务方法。
+
+     * 编辑公告：回填 noticeForm 并打开对话框。
+
      */
     updateNotice(noticeForm) {
       const data = { title: noticeForm.title, content: noticeForm.content, gradeIds: noticeForm.gradeIds.join(','), isPublic: noticeForm.isPublic ? 1 : 0 }
@@ -173,14 +183,18 @@ export default {
     },
     // 搜索公告
     /**
-     * searchNotice：页面业务方法。
+
+     * 按标题或状态筛选公告列表。
+
      */
     searchNotice() {
       this.getNoticePage(this.pageNum, this.pageSize, this.searchTitle)
     },
     // 删除公告
     /**
-     * delNotice：页面业务方法。
+
+     * 删除公告 noticeDel。
+
      */
     delNotice(id) {
       this.$confirm('此操作将永久删除该公告, 是否继续?', '提示', {
@@ -217,7 +231,11 @@ export default {
     },
 
     /**
-     * handleSizeChange：页面业务方法。
+
+
+     * Element Table 分页：同步修改 pageSize，重置或保持当前页并重新拉取列表数据。
+
+
      */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
@@ -225,7 +243,9 @@ export default {
       this.getNoticePage(this.pageNum, val,this.searchTitle)
     },
     /**
-     * handleCurrentChange：页面业务方法。
+
+     * Element Table 分页：同步当前页码 pageNum，触发列表接口刷新表格数据。
+
      */
     handleCurrentChange(val) {
       // 设置当前页逻辑

@@ -254,21 +254,27 @@ export default {
   },
   methods: {
     /**
-     * handleRepoChangeSingle：页面业务方法。
+
+     * 题目管理页切换题库：重置分页并重新加载题目列表。
+
      */
     handleRepoChangeSingle(repo) {
       ('单选题库变化:', repo)
       // 这里可以进一步处理repo对象，比如更新UI或发送网络请求等
     },
     /**
-     * updateRow：页面业务方法。
+
+     * 表格「编辑」操作：打开对话框或跳转编辑页并回填当前行数据（题库/题目/公告等多页复用）。
+
      */
     updateRow(row) {
       localStorage.setItem('quId', row.id)
       this.$router.push({ name: 'questions-add' })
     },
     /**
-     * importQu：页面业务方法。
+
+     * 题目管理页导入 Excel：调用 questions/import 将试题批量写入当前题库。
+
      */
     importQu() {
       if (this.fileList && this.fileList.length > 0 && this.selectedRepoSingle  != '') {
@@ -304,14 +310,18 @@ export default {
       }
     },
     /**
-     * handleFileChange：页面业务方法。
+
+     * 本地上传 on-change：接收 el-upload 的 file 对象写入表单字段，或累加到待上传列表供「保存」时 multipart 提交。
+
      */
     handleFileChange(file, fileList) {
       this.fileList = fileList // 收集文件信息
     },
     // 移除文件处理方法
     /**
-     * handleRemove：页面业务方法。
+
+     * 移除文件后清空 v-model 与 fileList。
+
      */
     handleRemove(file, fileList) {
       if (fileList.length === 0) {
@@ -320,7 +330,9 @@ export default {
     },
     // 分页查询
     /**
-     * getQuPage：页面业务方法。
+
+     * 分页查询题目列表 questions/paging，支持题库与题干筛选。
+
      */
     async getQuPage(pageNum, pageSize, content = null, repoId = null, type = null) {
       const params = {
@@ -335,7 +347,9 @@ export default {
     },
     // 编辑题库
     /**
-     * updateQu：页面业务方法。
+
+     * 跳转题目编辑页或打开编辑框并携带题目 id。
+
      */
     updateQu() {
       quUpdate(this.form.id, { title: this.form.title })
@@ -369,7 +383,9 @@ export default {
     },
     // 删除试题
     /**
-     * delQu：页面业务方法。
+
+     * 批量删除选中题目 quDel(ids)。
+
      */
     delQu(row) {
       this.$confirm('此操作将永久删除该试题, 是否继续?', '提示', {
@@ -410,7 +426,9 @@ export default {
         })
     },
     /**
-     * searchQu：页面业务方法。
+
+     * 题目列表关键字搜索并刷新分页。
+
      */
     searchQu() {
       this.getQuPage(
@@ -423,14 +441,22 @@ export default {
     },
 
     /**
-     * screenInfo：页面业务方法。
+
+
+     * 根据表格列配置的 prop 与格式化器，生成导出或预览用的展示文案映射。
+
+
      */
     screenInfo(row, index, done) {
       this.$router.push({ name: 'questions-add', query: { zhi: row }})
     },
 
     /**
-     * handleSizeChange：页面业务方法。
+
+
+     * Element Table 分页：同步修改 pageSize，重置或保持当前页并重新拉取列表数据。
+
+
      */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
@@ -440,7 +466,9 @@ export default {
         this.selValue)
     },
     /**
-     * handleCurrentChange：页面业务方法。
+
+     * Element Table 分页：同步当前页码 pageNum，触发列表接口刷新表格数据。
+
      */
     handleCurrentChange(val) {
       // 设置当前页逻辑
@@ -451,7 +479,9 @@ export default {
     },
     // 下载模板
     /**
-     * startDownload：页面业务方法。
+
+     * 触发后端导出接口（多为 blob 下载 Excel），处理文件名与浏览器保存。
+
      */
     async startDownload() {
       const a = document.createElement('a')

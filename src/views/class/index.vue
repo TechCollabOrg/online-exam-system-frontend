@@ -172,7 +172,9 @@ export default {
   },
   methods: {
     /**
-     * joinClass：页面业务方法。
+
+     * 学生输入班级码调用加入班级接口，成功刷新个人班级信息。
+
      */
     joinClass() {
       const params = { code: this.teacharForm.classCode }
@@ -193,7 +195,9 @@ export default {
       })
     },
     /**
-     * exitClass：页面业务方法。
+
+     * 学生退出班级：确认后调用 grades/user/exit 或类似接口并刷新页面状态。
+
      */
     exitClass(row) {
       const classId = row['id']
@@ -214,7 +218,9 @@ export default {
     },
     // 分页查询
     /**
-     * getClassPage：页面业务方法。
+
+     * 分页查询班级列表，支持名称筛选，绑定教师端班级管理表格。
+
      */
     async getClassPage(pageNum, pageSize, title = null) {
       const params = { pageNum: pageNum, pageSize: pageSize, gradeName: title }
@@ -222,7 +228,9 @@ export default {
       this.data = res.data
     },
     /**
-     * addClass：页面业务方法。
+
+     * 班级场景：教师端为打开/提交「新增班级」表单（classAdd）；学生端为提交班级邀请码调用 user/grade/join，成功后刷新个人信息（见所在页面）。
+
      */
     addClass() {
       const data = { gradeName: this.addForm.gradeName }
@@ -244,7 +252,9 @@ export default {
       })
     },
     /**
-     * delClass：页面业务方法。
+
+     * 批量或单行删除班级：确认后调用 classDel 接口并刷新分页。
+
      */
     delClass(row) {
       this.$confirm('此操作将永久删除该班级, 是否继续?', '提示', {
@@ -277,7 +287,9 @@ export default {
         })
     },
     /**
-     * updateClass：页面业务方法。
+
+     * 编辑班级信息：打开对话框回填行数据或进入编辑路由。
+
      */
     updateClass() {
       classUpdate(this.form.id, { gradeName: this.form.gradeName })
@@ -304,26 +316,34 @@ export default {
         })
     },
     /**
-     * updateRow：页面业务方法。
+
+     * 表格「编辑」操作：打开对话框或跳转编辑页并回填当前行数据（题库/题目/公告等多页复用）。
+
      */
     updateRow(row) {
       this.dialogFormVisible = true
       this.form = row
     },
     /**
-     * searchExam：页面业务方法。
+
+     * 考试或记录列表筛选：合并查询表单与分页参数后调用对应 paging 接口（教师考试、考试记录、班级等页复用）。
+
      */
     searchExam() {
       this.getClassPage(this.pageNum, this.pageSize, this.formInline.searchTitle)
     },
     /**
-     * handleClick：页面业务方法。
+
+     * 表格/卡片行点击：根据行数据跳转详情、打开编辑弹窗、触发导出或路由 push（各页 @click 传参不同）。
+
      */
     handleClick(row) {
       (row)
     },
     /**
-     * handleSizeChange：页面业务方法。
+
+     * Element Table 分页：同步修改 pageSize，重置或保持当前页并重新拉取列表数据。
+
      */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
@@ -331,7 +351,9 @@ export default {
       this.getClassPage(this.pageNum, val,this.formInline.searchTitle)
     },
     /**
-     * handleCurrentChange：页面业务方法。
+
+     * Element Table 分页：同步当前页码 pageNum，触发列表接口刷新表格数据。
+
      */
     handleCurrentChange(val) {
       // 设置当前页逻辑

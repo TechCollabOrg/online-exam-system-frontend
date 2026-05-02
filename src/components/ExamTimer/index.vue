@@ -41,7 +41,7 @@ export default {
   },
   methods: {
     /**
-     * startCountdown：页面业务方法。
+     * 启动每秒定时器：将剩余秒数格式化为「分:秒」展示；每秒递减，归零以下时清除定时器并向父组件 emit timeout。
      */
     startCountdown() {
       // 使用setInterval替换setTimeout

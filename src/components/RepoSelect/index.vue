@@ -63,7 +63,7 @@ export default {
   methods: {
 
     /**
-     * fetchData：页面业务方法。
+     * 加载题库简要列表：调用 repo/list（fetchPaging），参数预留远程关键字 q；结果写入 dataList。
      */
     fetchData(q) {
       // , title: q, excludes: this.excludes
@@ -72,7 +72,7 @@ export default {
       })
     },
     /**
-     * handlerChange：页面业务方法。
+     * 选择题库：在 dataList 中按 id 查找整条 repo 记录 emit change，同时 emit input 更新 v-model。
      */
     handlerChange(e) {
       const obj = this.dataList.find((item) => {

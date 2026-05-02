@@ -138,13 +138,17 @@ export default {
   },
   methods: {
     /**
-     * searchExam：页面业务方法。
+
+     * 考试或记录列表筛选：合并查询表单与分页参数后调用对应 paging 接口（教师考试、考试记录、班级等页复用）。
+
      */
     searchExam() {
       this.getCerPage(this.pageNum, this.pageSize, this.formInline.searchTitle)
     },
     /**
-     * handleSizeChange：页面业务方法。
+
+     * Element Table 分页：同步修改 pageSize，重置或保持当前页并重新拉取列表数据。
+
      */
     handleSizeChange(val) {
       // 设置每页多少条逻辑
@@ -152,7 +156,9 @@ export default {
       this.getCerPage(this.pageNum, val)
     },
     /**
-     * handleCurrentChange：页面业务方法。
+
+     * Element Table 分页：同步当前页码 pageNum，触发列表接口刷新表格数据。
+
      */
     handleCurrentChange(val) {
       // 设置当前页逻辑
@@ -161,7 +167,9 @@ export default {
     },
     // 分页查询
     /**
-     * getCerPage：页面业务方法。
+
+     * 我的证书分页 certificateMy。
+
      */
     async getCerPage(pageNum, pageSize, examName) {
       const params = { pageNum: pageNum, pageSize: pageSize, examName: examName }
@@ -169,13 +177,17 @@ export default {
       this.data = res.data
     },
     /**
-     * handleClose：页面业务方法。
+
+     * 关闭当前对话框，并重置可见状态（部分页面顺带清空表单或停止计时）。
+
      */
     handleClose() {
       this.dialogVisible = false
     },
     /**
-     * preview：页面业务方法。
+
+     * 证书预览：打开 pdfDom 或新窗口展示模板渲染结果。
+
      */
     preview(row) {
       this.currentdata = row
@@ -194,7 +206,9 @@ export default {
       })
     },
     /**
-     * getChapter：页面业务方法。
+
+     * 生成或获取证书章节内容用于预览组件。
+
      */
     getChapter() {
       this.getChapter = this.getChapter.bind(this)

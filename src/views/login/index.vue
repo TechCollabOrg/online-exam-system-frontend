@@ -173,7 +173,9 @@ export default {
   },
   methods: {
     /**
-     * getVerify：页面业务方法。
+
+     * 请求图形验证码接口并刷新验证码图片地址，用于登录/注册人机校验。
+
      */
     getVerify() {
       this.$refs.captchaImg.src = `/api/auths/captcha?${Math.random()}`
@@ -181,7 +183,11 @@ export default {
     },
 
     /**
-     * showPwd：页面业务方法。
+
+
+     * 切换登录密码输入框 type 在 password/text 间切换，便于用户核对输入。
+
+
      */
     showPwd() {
       if (this.passwordType === 'password') {
@@ -194,7 +200,9 @@ export default {
       })
     },
     /**
-     * handleLogin：页面业务方法。
+
+     * 提交登录表单：调用 store user/login 写入 Token 与角色，按角色跳转主页或处理失败提示。
+
      */
     handleLogin() {
       verifyCode(this.loginForm.code).then((res) => {

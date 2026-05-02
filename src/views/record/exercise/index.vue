@@ -149,14 +149,18 @@ export default {
   },
   methods: {
     /**
-     * searchExam：页面业务方法。
+
+     * 考试或记录列表筛选：合并查询表单与分页参数后调用对应 paging 接口（教师考试、考试记录、班级等页复用）。
+
      */
     searchExam() {
       this.getExerciseRecordPaging(this.pageNum, this.pageSize, this.searchTitle)
     },
     // 分页查询
     /**
-     * getExerciseRecordPaging：页面业务方法。
+
+     * 调用 records/exercise/paging 填充练习记录表。
+
      */
     async getExerciseRecordPaging(pageNum, pageSize, repoName) {
       const params = { pageNum: pageNum, pageSize: pageSize, repoName: repoName }
@@ -164,27 +168,35 @@ export default {
       this.data = res.data
     },
     /**
-     * onSubmit：页面业务方法。
+
+     * 查询表单提交：同步筛选条件到 query 对象并请求第一页数据。
+
      */
     onSubmit() {
       //  ("submit!");
     },
     /**
-     * handleSizeChange：页面业务方法。
+
+     * Element Table 分页：同步修改 pageSize，重置或保持当前页并重新拉取列表数据。
+
      */
     handleSizeChange(val) {
       this.pageSize = val
       this.getExerciseRecordPaging(this.pageNum, this.pageSize, this.searchTitle)
     },
     /**
-     * handleCurrentChange：页面业务方法。
+
+     * Element Table 分页：同步当前页码 pageNum，触发列表接口刷新表格数据。
+
      */
     handleCurrentChange(val) {
       this.pageNum = val
       this.getExerciseRecordPaging(this.pageNum, this.pageSize, this.searchTitle)
     },
     /**
-     * handleClose：页面业务方法。
+
+     * 关闭当前对话框，并重置可见状态（部分页面顺带清空表单或停止计时）。
+
      */
     handleClose(done) {
       this.$confirm('确认关闭？')

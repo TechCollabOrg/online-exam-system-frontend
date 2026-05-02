@@ -34,13 +34,17 @@ export default {
   },
   methods: {
     /**
-     * selectQuestion：页面业务方法。
+
+     * 答题卡点击：向父组件 emit 切换题目事件并更新当前题高亮样式。
+
      */
     selectQuestion(item) {
       this.$emit('select-question', item)
     },
     /**
-     * getCardItemClass：页面业务方法。
+
+     * 根据题目是否已答、是否为当前题返回答题卡格子的 class 名称。
+
      */
     getCardItemClass(item) {
       // 当前题目
