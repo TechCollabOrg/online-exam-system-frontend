@@ -38,7 +38,7 @@ export function discussionpageStudent(params) {
     params
   })
 }
-export function getDiscussionRely(id,orderBy) {
+export function getDiscussionRely(id, orderBy) {
   return request({
     url: `reply/query/${orderBy}/${id}`,
     method: 'get'

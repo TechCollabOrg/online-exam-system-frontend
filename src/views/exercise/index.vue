@@ -103,9 +103,9 @@ export default {
     },
     // 分页查询
     async getExercisePage(pageNum, pageSize, title = null, categoryId = null) {
-      const params = { 
-        pageNum: pageNum, 
-        pageSize: pageSize, 
+      const params = {
+        pageNum: pageNum,
+        pageSize: pageSize,
         title: title,
         categoryId: categoryId
       }

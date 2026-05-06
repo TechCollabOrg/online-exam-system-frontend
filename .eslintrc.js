@@ -9,6 +9,7 @@ module.exports = {
     node: true,
     es6: true
   },
+  plugins: ['unused-imports'],
   extends: ['plugin:vue/recommended', 'eslint:recommended'],
 
   // add your custom rules here
@@ -142,10 +143,15 @@ module.exports = {
     }],
     'no-unreachable': 2,
     'no-unsafe-finally': 2,
-    'no-unused-vars': [2, {
-      'vars': 'all',
-      'args': 'none'
+    // 未使用的 import：可被 eslint --fix 一键删除
+    // 未使用的变量：与原先 no-unused-vars 一致（不检查函数参数，避免 .catch(err) 等大量噪音）
+    'unused-imports/no-unused-imports': 2,
+    'unused-imports/no-unused-vars': [2, {
+      vars: 'all',
+      varsIgnorePattern: '^_',
+      args: 'none'
     }],
+    'no-unused-vars': 'off',
     'no-useless-call': 2,
     'no-useless-computed-key': 2,
     'no-useless-constructor': 2,

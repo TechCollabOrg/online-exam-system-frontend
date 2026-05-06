@@ -73,7 +73,7 @@
             </div>
 
             <div
-              v-if="paperData.multiList  != undefined && paperData.multiList.length > 0"
+              v-if="paperData.multiList != undefined && paperData.multiList.length > 0"
             >
               <p class="card-title">多选题</p>
               <el-row :gutter="24" class="card-line">
@@ -87,7 +87,7 @@
             </div>
 
             <div
-              v-if="paperData.judgeList  != undefined && paperData.judgeList.length > 0"
+              v-if="paperData.judgeList != undefined && paperData.judgeList.length > 0"
             >
               <p class="card-title">判断题</p>
               <el-row :gutter="24" class="card-line">
@@ -99,7 +99,7 @@
                 >{{ index + 1 }}</el-tag>
               </el-row>
             </div>
-            <div v-if="paperData.saqList  != undefined && paperData.saqList.length > 0">
+            <div v-if="paperData.saqList != undefined && paperData.saqList.length > 0">
               <p class="card-title">简答题</p>
               <el-row :gutter="24" class="card-line">
                 <el-tag
@@ -119,19 +119,22 @@
       <el-col :span="19" :xs="24">
         <el-card class="qu-content content-h">
           <p v-if="quDetail.content">
-            <span :class="['question-type', {
-              'single-choice': quDetail.quType === 1,
-              'multiple-choice': quDetail.quType === 2,
-              'judgment': quDetail.quType === 3,
-              'short-answer': quDetail.quType === 4
-            }]">{{ shouQuType(quDetail.quType) }}</span>
+            <span
+              :class="['question-type', {
+                'single-choice': quDetail.quType === 1,
+                'multiple-choice': quDetail.quType === 2,
+                'judgment': quDetail.quType === 3,
+                'short-answer': quDetail.quType === 4
+              }]"
+            >{{ shouQuType(quDetail.quType) }}</span>
             {{ number == 1 ? curTypeIndex + 1 : currentQuIndex + 1 }}.{{ quDetail.content }}
           </p>
           <p v-if="quDetail.image != null && quDetail.image != ''">
-            <el-image 
-            :src="quDetail.image" 
-            style="max-width: 100px;max-height:100%" 
-            :preview-src="[quDetail.image]" />
+            <el-image
+              :src="quDetail.image"
+              style="max-width: 100px;max-height:100%"
+              :preview-src="[quDetail.image]"
+            />
           </p>
           <div v-if="quDetail.quType == 1 || quDetail.quType == 3">
             <el-radio-group v-model="radioValue" :disabled="isAnswered">
@@ -145,7 +148,7 @@
                 <span :class="getOptionClass(item)">
                   {{ numberToLetter(item.sort + 1) }}.{{ item.content }}
                 </span>
-                <div v-if="item.image && item.image  != ''" style="clear: both">
+                <div v-if="item.image && item.image != ''" style="clear: both">
                   <el-image :src="item.image" style="max-width: 100px" />
                 </div>
               </el-radio>
@@ -163,7 +166,7 @@
                 <span :class="getOptionClass(item)">
                   {{ numberToLetter(item.sort + 1) }}.{{ item.content }}
                 </span>
-                <div v-if="item.image && item.image  != ''" style="clear: both">
+                <div v-if="item.image && item.image != ''" style="clear: both">
                   <el-image :src="item.image" style="max-width: 100px" />
                 </div>
               </el-checkbox>
@@ -482,7 +485,6 @@ export default {
       this.statisticsDialogVisible = false
     },
     async test() {
-    
       const res = await getQuestion(null, this.repoId)
       this.quList = res.data
 
@@ -779,7 +781,7 @@ export default {
         this.currentQuIndex--
         this.showButton()
         this.getCurrentQuDetial()
-        
+
         // 检查上一题是否已作答
         const previousQuestion = this.quList[this.currentQuIndex]
         if (previousQuestion && previousQuestion.exercised) {

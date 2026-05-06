@@ -2,8 +2,8 @@
   <div class="subPageMain" style="background: none">
     <div class="noticeDetail_detail">
       <div class="noticeDetail_head">
-      <div>{{ data.title==""||data.title==null?"暂无标题":data.title }}</div>
-      <div v-if="currentRole === 'teacher'"><el-button type="primary" @click="projectionScreen" >投屏模式</el-button></div>
+        <div>{{ data.title==""||data.title==null?"暂无标题":data.title }}</div>
+        <div v-if="currentRole === 'teacher'"><el-button type="primary" @click="projectionScreen">投屏模式</el-button></div>
       </div>
       <div class="noticeDetail_main">
         <div v-if="data.content!=null&&data.content!=''" v-html="data.content" />
@@ -11,31 +11,31 @@
       </div>
     </div>
     <div class="radio-class">
-    <div style="margin-bottom: 10px;">全部回答</div>
-    <div>
-      <el-radio-group v-model="radio" @change="handleRadioChange">
-        <el-radio label="1">按提交时间升序显示</el-radio>
-        <el-radio label="2">按提交时间降序显示</el-radio>
-        <el-radio label="3">按点赞数量升序显示</el-radio>
-        <el-radio label="4">按点赞数量降序显示</el-radio>
-      </el-radio-group>
+      <div style="margin-bottom: 10px;">全部回答</div>
+      <div>
+        <el-radio-group v-model="radio" @change="handleRadioChange">
+          <el-radio label="1">按提交时间升序显示</el-radio>
+          <el-radio label="2">按提交时间降序显示</el-radio>
+          <el-radio label="3">按点赞数量升序显示</el-radio>
+          <el-radio label="4">按点赞数量降序显示</el-radio>
+        </el-radio-group>
+      </div>
     </div>
-    </div>
-    <div v-for="item in relyData">
-    <Discussion :discussionData="item" :delFun="showIsDel" :discussionId="data.id" :onConfirm="getDiscussionDetailsFun" style="margin: 10px 0;"></Discussion>
+    <div v-for="item in relyData" :key="item.id">
+      <Discussion :discussion-data="item" :del-fun="showIsDel" :discussion-id="data.id" :on-confirm="getDiscussionDetailsFun" style="margin: 10px 0;" />
     </div>
 
-    <div class="edit_main" >
+    <div class="edit_main">
       <div class="replyEdit" style="margin-bottom: 50px;">
         <quill-editor
           ref="myQuillEditor"
           v-model="form.content"
           :options="editorOption"
           class="my-quill-editor"
+          style="height: 120px;"
           @blur="onEditorBlur($event)"
           @focus="onEditorFocus($event)"
           @ready="onEditorReady($event)"
-          style="height: 120px;"
         />
       </div>
       <div class="replyEditBtnGroup">
@@ -44,7 +44,6 @@
         </div>
       </div>
     </div>
-
 
     <!-- <div class="editContainer">
       <div class="edit_headTitle">
@@ -63,64 +62,62 @@
         </div>
       </div> -->
 
-
-
     <!-- </div> -->
   </div>
 </template>
 <script>
-import { quillEditor } from "vue-quill-editor";
-import "quill/dist/quill.core.css";
-import "quill/dist/quill.snow.css";
-import "quill/dist/quill.bubble.css";
-import Discussion from "@/components/discussion";
-import { getDiscussionRely,discussionDetail } from "@/api/discussion";
-import {getUserId,getDiscussionId,setDiscussionId} from '@/utils/auth'
-import { getTokenInfo, getRole } from '@/utils/jwtUtils'
+import { quillEditor } from 'vue-quill-editor'
+import 'quill/dist/quill.core.css'
+import 'quill/dist/quill.snow.css'
+import 'quill/dist/quill.bubble.css'
+import Discussion from '@/components/discussion'
+import { getDiscussionRely, discussionDetail } from '@/api/discussion'
+import { getDiscussionId, setDiscussionId } from '@/utils/auth'
+import { getRole } from '@/utils/jwtUtils'
 import { EventBus } from '@/utils/websocket'
-import { replyAdd,replyDel } from '@/api/reply'
+import { replyAdd, replyDel } from '@/api/reply'
 export default {
   components: {
     Discussion,
-    quillEditor,
+    quillEditor
   },
   data() {
     return {
-      currentRole:null,
-      currentDiscussionId:null,
+      currentRole: null,
+      currentDiscussionId: null,
       radio: '1',
-      relyData:{},
+      relyData: {},
       // row: {},
       data: {},
       score: null,
       form: {
-        discussionId:null,
-        content: "",
+        discussionId: null,
+        content: ''
       },
       visible: this.value,
       // 富文本编辑器配置
       editorOption: {
         modules: {
           toolbar: [
-            ["bold", "italic", "underline", "strike"], // 加粗 斜体 下划线 删除线
-            ["blockquote", "code-block"], // 引用  代码块
+            ['bold', 'italic', 'underline', 'strike'], // 加粗 斜体 下划线 删除线
+            ['blockquote', 'code-block'], // 引用  代码块
             // [{ header: 1 }, { header: 2 }], // 1、2 级标题
-            [{ list: "ordered" }, { list: "bullet" }], // 有序、无序列表
+            [{ list: 'ordered' }, { list: 'bullet' }], // 有序、无序列表
             // [{ script: 'sub' }, { script: 'super' }], // 上标/下标
-            [{ indent: "-1" }, { indent: "+1" }], // 缩进
+            [{ indent: '-1' }, { indent: '+1' }], // 缩进
             // [{ direction: 'rtl' }], // 文本方向
             // [{ size: ['12', '14', '16', '18', '20', '22', '24', '28', '32', '36'] }], // 字体大小
             // [{ header: [1, 2, 3, 4, 5, 6] }], // 标题
             [{ color: [] }, { background: [] }], // 字体颜色、字体背景颜色
             // [{ font: ['songti'] }], // 字体种类
             // [{ align: [] }], // 对齐方式
-            ["clean"], // 清除文本格式
+            ['clean'] // 清除文本格式
             // ['image', 'video'] // 链接、图片、视频
-          ],
+          ]
         },
-        placeholder: "请输入正文",
-      },
-    };
+        placeholder: '请输入正文'
+      }
+    }
   },
   created() {
     // this.row = this.$route.query.row;
@@ -128,17 +125,17 @@ export default {
     // 获取角色判断是否是教师和管理员
     const role = getRole()
     if (role === 3 || role === 2) {
-      this.currentRole = "teacher"
+      this.currentRole = 'teacher'
     }
     console.log(this.currentRole)
-    if(this.currentDiscussionId){
-      //获取到讨论id，将它放进浏览器本地存储中
+    if (this.currentDiscussionId) {
+      // 获取到讨论id，将它放进浏览器本地存储中
       setDiscussionId(this.currentDiscussionId)
-    }else{
-      //路由中拿不到，就从浏览器本地存储中拿去上次的讨论id
+    } else {
+      // 路由中拿不到，就从浏览器本地存储中拿去上次的讨论id
       this.currentDiscussionId = getDiscussionId()
     }
-    this.getDiscussionDetailsFun();
+    this.getDiscussionDetailsFun()
 
     // 监听websocke收到消息发送来的事件
     EventBus.$on('websocket-message', this.handleMessage)
@@ -146,97 +143,94 @@ export default {
   destroyed() {
     // 组件卸载时取消监听
     EventBus.$off('websocket-message', this.handleMessage)
-
   },
   methods: {
     handleRadioChange(value) {
-      this.getDiscussionRelyFun(this.currentDiscussionId,value)
+      this.getDiscussionRelyFun(this.currentDiscussionId, value)
     },
     // 收到websocket消息的方法
     handleMessage(res) {
-      if(res.type === 'DISCUSSION' && res.data.discussionId === this.currentDiscussionId){
-        this.getDiscussionRelyFun(this.currentDiscussionId,2)
+      if (res.type === 'DISCUSSION' && res.data.discussionId === this.currentDiscussionId) {
+        this.getDiscussionRelyFun(this.currentDiscussionId, 2)
       }
     },
     // 投屏模式
-    projectionScreen(){
-      this.$router.push({name: 'discussion-block',query: { discussionId: this.currentDiscussionId }})
+    projectionScreen() {
+      this.$router.push({ name: 'discussion-block', query: { discussionId: this.currentDiscussionId }})
     },
-    //删除回复
-    delReply(id){
-      replyDel(id).then(res=>{
-        if(res.code){
-          this.$message({type:'success',message:res.msg})
+    // 删除回复
+    delReply(id) {
+      replyDel(id).then(res => {
+        if (res.code) {
+          this.$message({ type: 'success', message: res.msg })
           // this.onConfirm()
-            //发送websocket请求
-            this.$sendMessage({type:'DISCUSSION',data:{discussionId:this.currentDiscussionId}})
-        }else{
-          this.$message({type:'error',message:res.msg})
+          // 发送websocket请求
+          this.$sendMessage({ type: 'DISCUSSION', data: { discussionId: this.currentDiscussionId }})
+        } else {
+          this.$message({ type: 'error', message: res.msg })
         }
       })
     },
-    //展示是否删除
-    showIsDel(replyId){
-        this.$confirm('此操作将永久删除该回复, 是否继续?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-         this.delReply(replyId)
-        }).catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消删除'
-          });
-        });
+    // 展示是否删除
+    showIsDel(replyId) {
+      this.$confirm('此操作将永久删除该回复, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.delReply(replyId)
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
     },
     // 回复
-    submitFun(){
+    submitFun() {
       this.form.discussionId = this.currentDiscussionId
-      replyAdd(this.form).then(res=>{
-        if(res){
-          this.$message({type:"success",message:res.msg})
-          //发发送websocket请求
-          this.$sendMessage({type:'DISCUSSION',data:{discussionId:this.currentDiscussionId}})
+      replyAdd(this.form).then(res => {
+        if (res) {
+          this.$message({ type: 'success', message: res.msg })
+          // 发发送websocket请求
+          this.$sendMessage({ type: 'DISCUSSION', data: { discussionId: this.currentDiscussionId }})
           this.form.content = ''
-        }else{
-          this.$message({type:"error",message:res.msg})
+        } else {
+          this.$message({ type: 'error', message: res.msg })
         }
       })
-
     },
     getDiscussionDetailsFun() {
       discussionDetail(this.currentDiscussionId).then((res) => {
-        this.form.content = res.data.answer;
-        this.data = res.data;
-        console.log(res.data);
-        this.getDiscussionRelyFun(this.currentDiscussionId,1)
-      });
+        this.form.content = res.data.answer
+        this.data = res.data
+        console.log(res.data)
+        this.getDiscussionRelyFun(this.currentDiscussionId, 1)
+      })
     },
-    getDiscussionRelyFun(id,order=1){
-      getDiscussionRely(id,order).then((res)=>{
+    getDiscussionRelyFun(id, order = 1) {
+      getDiscussionRely(id, order).then((res) => {
         this.relyData = res.data
-
-      });
+      })
     },
     // 失去焦点事件
     onEditorBlur(quill) {},
     // 获得焦点事件
     onEditorFocus(quill) {
-      console.log("editor focus!", quill);
+      console.log('editor focus!', quill)
     },
     // 准备富文本编辑器
     onEditorReady(quill) {
       // 移除禁用编辑器的逻辑，或者根据实际情况调整 this.isEdit 的值
-      console.log("editor ready!", quill);
+      console.log('editor ready!', quill)
     },
     // 内容改变事件
     onEditorChange({ quill, html, text }) {
-      console.log("editor change!", quill, html, text);
-      this.form.content = html;
-    },
-  },
-};
+      console.log('editor change!', quill, html, text)
+      this.form.content = html
+    }
+  }
+}
 </script>
 <style lang="scss" scoped>
 .radio-class{

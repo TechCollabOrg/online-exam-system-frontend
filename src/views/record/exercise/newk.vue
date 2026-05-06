@@ -3,7 +3,7 @@
     <el-container>
       <el-main class="right">
         <el-col>
-          <el-card class="qu_list" v-loading="loading">
+          <el-card v-loading="loading" class="qu_list">
             <div>
               <template v-for="(index,indexx) in data">
                 <!-- eslint-disable-next-line vue/require-v-for-key -->
@@ -17,12 +17,14 @@
                       <div>
                         <!-- <div class="qu_num">{{ index }}</div> -->
                         <!-- 【 单选题 】 -->
-                        <div class="qu_content">{{indexx+1}}、{{ index.title }}</div>
+                        <div class="qu_content">{{ indexx+1 }}、{{ index.title }}</div>
                       </div>
                       <div v-if="index.image != null && index.image != ''">
-                        <el-image :src="index.image" 
-                        :preview-src="[index.image]" 
-                        style="height: 100px;" />
+                        <el-image
+                          :src="index.image"
+                          :preview-src="[index.image]"
+                          style="height: 100px;"
+                        />
                       </div>
                       <!-- 选项 -->
                       <el-radio-group class="qu_choose_group">
@@ -43,9 +45,11 @@
                               {{ numberToLetter(indexs) }}、{{ item.content }}
                             </div>
                             <div v-if="item.image != null && item.image != ''">
-                              <el-image :src="item.image"
-                              :preview-src="[item.image]" 
-                               class="qu_choose_tag_img" />
+                              <el-image
+                                :src="item.image"
+                                :preview-src="[item.image]"
+                                class="qu_choose_tag_img"
+                              />
                             </div>
                           </div>
                         </el-radio>

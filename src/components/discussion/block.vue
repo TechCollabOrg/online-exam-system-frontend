@@ -1,56 +1,58 @@
 <template>
- <div class="box">
-  
+  <div class="box">
+
     <div class="topicDetail_replyItem">
-    <div class="topicDetail_info">
-      <p>
-        <img class="topicDetail_avatar" :src="reply.avatar" />
-        <span class="author">{{ reply.realName }}</span>
-        <span class="department"></span>
-      </p>
-      <div class="topic_interactive">
+      <div class="topicDetail_info">
+        <p>
+          <img class="topicDetail_avatar" :src="reply.avatar">
+          <span class="author">{{ reply.realName }}</span>
+          <span class="department" />
+        </p>
+        <div class="topic_interactive">
         <!-- el-icon-thumb -->
         <!-- <div class="like" :style="isLike==0:background=">点赞<i class="el-icon-thumb"></i></i><span></span></div> -->
-        
-      </div>
-    </div>
-    <div class="replyContent" v-html="reply.content"></div>
-    <div class="topicReply_right">
-      
-      <div class="otherInfo">
-        <span class="customedTime" bbsid="866df1b04e0e18910f00ab182cf82963">{{
-          reply.createTime
-        }}</span>
-      </div>
-    </div>
-    
-  </div >
-  <div class="like-block">
-        <div class="like" 
-          :class="{ 'bg-green-500': reply.isLike === 1, 'bg-gray-300': reply.isLike === 0 }" 
-          @click="toggleLike(reply.id)"
-        >
-          <span class="text-white p-2">
-            <i class="el-icon-thumb">点赞 {{ reply.count }}</i>
-          </span>
+
         </div>
+      </div>
+      <div class="replyContent" v-html="reply.content" />
+      <div class="topicReply_right">
+
+        <div class="otherInfo">
+          <span class="customedTime" bbsid="866df1b04e0e18910f00ab182cf82963">{{
+            reply.createTime
+          }}</span>
+        </div>
+      </div>
+
+    </div>
+    <div class="like-block">
+      <div
+        class="like"
+        :class="{ 'bg-green-500': reply.isLike === 1, 'bg-gray-300': reply.isLike === 0 }"
+        @click="toggleLike(reply.id)"
+      >
+        <span class="text-white p-2">
+          <i class="el-icon-thumb">点赞 {{ reply.count }}</i>
+        </span>
+      </div>
     </div>
 
-</div>
+  </div>
 </template>
 <script>
-import {doLike} from '@/api/like'
-import {getDiscussionId} from '@/utils/auth'
+import { doLike } from '@/api/like'
+import { getDiscussionId } from '@/utils/auth'
 
 export default {
-  name: "block",
+  name: 'Block',
   props: {
     discussionId: {
       type: Number,
+      default: null
     },
     onConfirm: {
       type: Function,
-      default: () => {},
+      default: () => {}
     },
     reply: {
       type: Object,
@@ -60,46 +62,45 @@ export default {
           userId: 164,
           parentId: -1,
           avatar:
-            "https://online-exam-system-backend.oss-cn-beijing.aliyuncs.com/da93c2a6-6879-46c3-b38f-a99956f70d22.jpg",
-          content: "2223213",
-          realName: "学生测试账号",
+            'https://online-exam-system-backend.oss-cn-beijing.aliyuncs.com/da93c2a6-6879-46c3-b38f-a99956f70d22.jpg',
+          content: '2223213',
+          realName: '学生测试账号',
           count: 0,
           isLike: 0,
-          createTime: "2025-04-04 22:13:05",
-          childReplies: null,
-        };
-      },
-    },
-  },
-  data(){
-    return{
-      currentDiscussionId:null
+          createTime: '2025-04-04 22:13:05',
+          childReplies: null
+        }
+      }
     }
   },
-  created(){
+  data() {
+    return {
+      currentDiscussionId: null
+    }
+  },
+  created() {
     this.currentDiscussionId = this.$route.query.discussionId
-    if(!this.currentDiscussionId){
-        this.currentDiscussionId = getDiscussionId()
+    if (!this.currentDiscussionId) {
+      this.currentDiscussionId = getDiscussionId()
     }
   },
-  methods:{
-    async toggleLike(id){
+  methods: {
+    async toggleLike(id) {
       const data = {
-        discussionId:this.currentDiscussionId,
-        replyId:id
+        discussionId: this.currentDiscussionId,
+        replyId: id
       }
-      
-      const res =  await doLike(data)
-      if(res.code){
+
+      const res = await doLike(data)
+      if (res.code) {
         this.onConfirm()
-        this.$message({type:'success',message:res.msg})
-      }else{
-        this.$message({type:'error',message:res.msg})
+        this.$message({ type: 'success', message: res.msg })
+      } else {
+        this.$message({ type: 'error', message: res.msg })
       }
-      
     }
   }
-};
+}
 </script>
 <style scoped>
 .box {

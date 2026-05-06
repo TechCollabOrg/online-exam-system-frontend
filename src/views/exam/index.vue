@@ -72,10 +72,11 @@
           <!-- 题干 -->
           <p v-if="quData.content">{{ quData.sort + 1 }}.{{ quData.content }}</p>
           <p v-if="quData.image">
-            <el-image :src="quData.image"
-            :preview-src="[quData.image]" 
-            style="max-width: 200px;max-height:100%" 
-           />
+            <el-image
+              :src="quData.image"
+              :preview-src="[quData.image]"
+              style="max-width: 200px;max-height:100%"
+            />
           </p>
 
           <!-- 单选和判断题选项区域 -->
@@ -88,9 +89,11 @@
               >
                 {{ numberToLetter(item.sort) }}.{{ item.content }}
                 <div v-if="item.image" style="clear: both">
-                  <el-image :src="item.image"
-                  :preview-src="[item.image]" 
-                  style="max-width: 200px" />
+                  <el-image
+                    :src="item.image"
+                    :preview-src="[item.image]"
+                    style="max-width: 200px"
+                  />
                 </div>
               </el-radio>
             </el-radio-group>
@@ -106,9 +109,11 @@
               >
                 {{ numberToLetter(item.sort) }}.{{ item.content }}
                 <div v-if="item.image" style="clear: both">
-                  <el-image :src="item.image" 
-                  :preview-src="[item.image]" 
-                  style="max-width: 200px" />
+                  <el-image
+                    :src="item.image"
+                    :preview-src="[item.image]"
+                    style="max-width: 200px"
+                  />
                 </div>
               </el-checkbox>
             </el-checkbox-group>
@@ -420,7 +425,7 @@ export default {
             type: 'error',
             message: (isAutomatic ? '自动' : '') + '交卷失败，请联系管理员！'
           })
-          console.error((isAutomatic ? '自动' : '') + '交卷失败:', error);
+          console.error((isAutomatic ? '自动' : '') + '交卷失败:', error)
         })
       }
 
@@ -470,7 +475,7 @@ export default {
       // 准备答案数据
       let answerContent = ''
       if (currentQuType === 4) {
-        ('简答题');
+        ('简答题')
         // 简答题答案
         answerContent = this.saqTextarea.trim() // 去除首尾空格
       } else {
@@ -502,17 +507,17 @@ export default {
         console.log(`Question ${questionId}: No change or no answer, skipping API call.`)
         // 如果用户清空了答案 (从有答案变为空)
         if (!hasAnswer && lastSavedAnswer !== undefined) {
-           console.log(`Question ${questionId}: Answer cleared by user.`)
-           this.updateQuestionStatus(questionId, 0) // 更新UI为未作答
-           delete this.submittedAnswers[questionId] // 从已提交记录中移除
-           sessionStorage.removeItem('exam_' + questionId) // 清理sessionStorage标记
+          console.log(`Question ${questionId}: Answer cleared by user.`)
+          this.updateQuestionStatus(questionId, 0) // 更新UI为未作答
+          delete this.submittedAnswers[questionId] // 从已提交记录中移除
+          sessionStorage.removeItem('exam_' + questionId) // 清理sessionStorage标记
         }
         // 无论是否需要API调用，如果不是强制回调，都需要加载下一题
         if (!callback) {
-           this.fetchQuData(item) // 加载目标题目数据
+          this.fetchQuData(item) // 加载目标题目数据
         } else {
-           // 如果是强制回调（预览），直接执行回调
-           callback()
+          // 如果是强制回调（预览），直接执行回调
+          callback()
         }
         return // 结束 handSave
       }
@@ -525,8 +530,8 @@ export default {
         answer: answerContent
       }
 
-       // 对多选题答案进行排序 (如果需要)
-       if (currentQuType === 2 && hasAnswer) {
+      // 对多选题答案进行排序 (如果需要)
+      if (currentQuType === 2 && hasAnswer) {
         const sortedAnswers = answerContent.split(',')
           .map(id => parseInt(id))
           .sort((a, b) => {
@@ -540,10 +545,10 @@ export default {
       }
       // 添加 loading 状态提示用户正在保存
       const saveLoading = Loading.service({
-          target: this.$el.querySelector('.qu-content'), // 只覆盖题目区域
-          text: '正在保存答案...',
-          background: 'rgba(255, 255, 255, 0.7)'
-      });
+        target: this.$el.querySelector('.qu-content'), // 只覆盖题目区域
+        text: '正在保存答案...',
+        background: 'rgba(255, 255, 255, 0.7)'
+      })
       fillAnswer(params).then((res) => {
         saveLoading.close() // 关闭 loading
         if (res.code) { // 保存成功
@@ -566,7 +571,6 @@ export default {
           }
           // 保存成功后，加载下一个题目
           this.fetchQuData(item)
-
         } else { // 保存失败 (API 返回 code 为 false)
           console.error(`Question ${questionId}: Save failed (API response error):`, res.msg)
           this.$message({
@@ -625,16 +629,16 @@ export default {
         const answers = []
         if (currentQuType === 2) {
           answers.push(...this.multiValue)
-        }else if (currentQuType === 1 || currentQuType === 3) {
+        } else if (currentQuType === 1 || currentQuType === 3) {
           if (this.radioValue !== '' && this.radioValue !== null && this.radioValue !== undefined) {
             answers.push(this.radioValue)
           }
         }
         // 显式处理空数组情况，避免join出空字符串
         if (answers.length > 0) {
-             answerContent = answers.join(',')
+          answerContent = answers.join(',')
         } else {
-             answerContent = '' // 确保空答案是空字符串
+          answerContent = '' // 确保空答案是空字符串
         }
       }
 
@@ -653,11 +657,11 @@ export default {
       const shouldCallApi = hasAnswer && (lastSavedAnswer === undefined || answerContent !== lastSavedAnswer)
 
       if (!shouldCallApi) {
-         this.$message({
-            message: '答案未更改，无需重复提交。',
-            type: 'info'
-         })
-         return
+        this.$message({
+          message: '答案未更改，无需重复提交。',
+          type: 'info'
+        })
+        return
       }
 
       const params = {
@@ -667,21 +671,21 @@ export default {
       }
 
       if (currentQuType === 2 && hasAnswer) {
-         const sortedAnswers = answerContent.split(',')
-           .map(id => parseInt(id))
-           .sort((a, b) => {
-             const itemA = this.quData.answerList.find(opt => opt.id === a)
-             const itemB = this.quData.answerList.find(opt => opt.id === b)
-             return (itemA?.sort ?? 0) - (itemB?.sort ?? 0)
-           })
-           .join(',')
-         params.answer = sortedAnswers
+        const sortedAnswers = answerContent.split(',')
+          .map(id => parseInt(id))
+          .sort((a, b) => {
+            const itemA = this.quData.answerList.find(opt => opt.id === a)
+            const itemB = this.quData.answerList.find(opt => opt.id === b)
+            return (itemA?.sort ?? 0) - (itemB?.sort ?? 0)
+          })
+          .join(',')
+        params.answer = sortedAnswers
       }
 
-      const saveLoading = Loading.service({ /* ... loading config ... */ });
+      const saveLoading = Loading.service({ /* ... loading config ... */ })
 
       fillAnswer(params).then((res) => {
-        saveLoading.close();
+        saveLoading.close()
         if (res.code) {
           this.submittedAnswers[questionId] = answerContent
           sessionStorage.setItem('exam_' + questionId, '1')
@@ -698,7 +702,7 @@ export default {
           })
         }
       }).catch((error) => {
-        saveLoading.close();
+        saveLoading.close()
         console.error(`Question ${questionId}: Submit last answer failed:`, error)
         this.$message({
           message: '最后一题答案提交时发生网络错误！',
@@ -706,7 +710,6 @@ export default {
         })
       })
     },
-
 
     // 试卷详情
     fetchQuData(item) {
@@ -732,15 +735,15 @@ export default {
         // 根据新加载的题目数据，恢复用户已选的答案 (如果之前保存过)
         // 注意：quDetail API 返回的数据结构中似乎包含了用户的答案信息 (checkout 字段 和 content for SAQ)
         if (response.data.quType === 4) {
-           // 后端返回的 answerList[0].content 应该是用户之前填写的简答题内容
-           this.saqTextarea = response.data.answerList?.[0]?.content || '' // 安全访问
+          // 后端返回的 answerList[0].content 应该是用户之前填写的简答题内容
+          this.saqTextarea = response.data.answerList?.[0]?.content || '' // 安全访问
         } else if (response.data.quType === 1 || response.data.quType === 3) {
-           // 遍历选项，找到 checkout 为 true 的作为 radioValue
-           const checkedOption = response.data.answerList?.find(opt => opt.checkout)
-           this.radioValue = checkedOption ? checkedOption.id : ''
+          // 遍历选项，找到 checkout 为 true 的作为 radioValue
+          const checkedOption = response.data.answerList?.find(opt => opt.checkout)
+          this.radioValue = checkedOption ? checkedOption.id : ''
         } else if (response.data.quType === 2) {
-           // 遍历选项，收集所有 checkout 为 true 的 id 到 multiValue
-           this.multiValue = response.data.answerList?.filter(opt => opt.checkout).map(opt => opt.id) || []
+          // 遍历选项，收集所有 checkout 为 true 的 id 到 multiValue
+          this.multiValue = response.data.answerList?.filter(opt => opt.checkout).map(opt => opt.id) || []
         }
 
         // 更新已保存答案的本地副本 (如果 quDetail 返回了最新的答案)

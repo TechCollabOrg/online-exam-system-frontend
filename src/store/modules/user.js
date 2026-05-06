@@ -2,7 +2,7 @@
  * 用户登录态 Vuex 模块：Token、昵称头像、登录/注销/拉取信息；与 Cookie、WebSocket 连接联动。
  */
 import { login, logout, getInfo } from '@/api/user'
-import { getToken, setToken, removeToken,setUserId,removeUserId,setRole,removeRole,setGradeId } from '@/utils/auth'
+import { getToken, setToken, removeToken, setUserId, removeUserId, setRole, removeRole, setGradeId } from '@/utils/auth'
 
 import { resetRouter } from '@/router'
 import { parseJwt } from '@/utils/jwtUtils'
@@ -58,7 +58,6 @@ const actions = {
           } else if (roleId === 3) {
             window.localStorage.setItem('roles', 'admin')
             setRole('admin')
-
           }
           // 建立websocket连接
           connectWebSocket()

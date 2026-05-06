@@ -90,11 +90,11 @@
                           </div>
                           <div style="margin-top: 18px">
                             <span>参考答案:</span>
-                            <br/>
+                            <br>
                             <span>{{ item.refAnswer }}</span>
-                            <br/><br/>
+                            <br><br>
                             <span v-if="item.aiReason!==null">AI评分</span>
-                            <br/>
+                            <br>
                             <span v-if="item.aiReason!==null">{{ item.aiReason }}</span>
                           </div>
                         </el-card>

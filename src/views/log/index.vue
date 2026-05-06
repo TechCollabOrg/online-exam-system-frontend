@@ -45,52 +45,52 @@
 </template>
 
 <script>
-import { getLogPage } from "@/api/log";
+import { getLogPage } from '@/api/log'
 export default {
   data() {
     return {
       tableData: [
-        { behavior: "设备登录" },
-        { behavior: "设备登出" },
-        { behavior: "登录失败" },
+        { behavior: '设备登录' },
+        { behavior: '设备登出' },
+        { behavior: '登录失败' }
       ],
       pageNum: 1,
       pageSize: 10,
-      data: {},
-    };
+      data: {}
+    }
   },
   created() {
-    this.getLogPageFun();
+    this.getLogPageFun()
   },
   methods: {
     // 获取不同类型的颜色
     getBehaviorColor(behavior) {
-      if (behavior === "设备登录") {
-        return "green";
-      } else if (behavior === "设备登出") {
-        return "orange";
-      } else if (behavior === "登录失败") {
-        return "red";
+      if (behavior === '设备登录') {
+        return 'green'
+      } else if (behavior === '设备登出') {
+        return 'orange'
+      } else if (behavior === '登录失败') {
+        return 'red'
       }
-      return "black"; // 默认颜色
+      return 'black' // 默认颜色
     },
     // 分页查询
     async getLogPageFun(pageNum, pageSize, title = null) {
-      const params = { pageNum: pageNum, pageSize: pageSize };
-      const res = await getLogPage(params);
-      this.data = res.data;
+      const params = { pageNum: pageNum, pageSize: pageSize }
+      const res = await getLogPage(params)
+      this.data = res.data
     },
 
     handleSizeChange(val) {
       // 设置每页多少条逻辑
-      this.pageSize = val;
-      this.getLogPageFun(this.pageNum, val);
+      this.pageSize = val
+      this.getLogPageFun(this.pageNum, val)
     },
     handleCurrentChange(val) {
       // 设置当前页逻辑
-      this.pageNum = val;
-      this.getLogPageFun(val, this.pageSize);
-    },
-  },
-};
+      this.pageNum = val
+      this.getLogPageFun(val, this.pageSize)
+    }
+  }
+}
 </script>

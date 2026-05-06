@@ -356,8 +356,8 @@ export default {
         })
     },
     showExam(row) {
-      localStorage.setItem("exam-details-examId", row.id)
-      this.$router.push({name: 'exam-details'})
+      localStorage.setItem('exam-details-examId', row.id)
+      this.$router.push({ name: 'exam-details' })
     },
     updateExam() {
       const data = {
@@ -409,12 +409,12 @@ export default {
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val
-      this.getExamPage(this.pageNum, val,this.input)
+      this.getExamPage(this.pageNum, val, this.input)
     },
     handleCurrentChange(val) {
       // 设置当前页逻辑
       this.pageNum = val
-      this.getExamPage(val, this.pageSize,this.input)
+      this.getExamPage(val, this.pageSize, this.input)
     }
   }
 }

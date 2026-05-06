@@ -13,8 +13,8 @@
             v-model="postForm.quType"
             :disabled="quTypeDisabled"
             class="filter-item"
-            @change="handleTypeChange"
             style="width: 400px"
+            @change="handleTypeChange"
           >
             <el-option
               v-for="item in quTypes"
@@ -57,7 +57,7 @@
       </el-card>
 
       <div
-        v-if="postForm.quType  != 4"
+        v-if="postForm.quType != 4"
         class="filter-container"
         style="margin-top: 25px"
       >
@@ -195,7 +195,7 @@ export default {
   created() {
     // 添加试题初始化
     const id = this.$route.params.id
-    if (typeof id  != 'undefined') {
+    if (typeof id !== 'undefined') {
       this.quTypeDisabled = true
       this.fetchData(id)
     }
@@ -280,7 +280,7 @@ export default {
       })
 
       if (this.postForm.quType === 1) {
-        if (rightCount  != 1) {
+        if (rightCount !== 1) {
           this.$message({
             message: '单选题答案只能有一个',
             type: 'warning'
@@ -302,7 +302,7 @@ export default {
       }
 
       if (this.postForm.quType === 3) {
-        if (rightCount  != 1) {
+        if (rightCount !== 1) {
           this.$message({
             message: '判断题只能有一个正确项！',
             type: 'warning'

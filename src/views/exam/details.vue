@@ -11,8 +11,8 @@
                 <div
                   v-if="
                     index.quType === 1 ||
-                    index.quType === 2 ||
-                    index.quType === 3
+                      index.quType === 2 ||
+                      index.quType === 3
                   "
                   :class="'index' + index"
                 >
@@ -22,14 +22,15 @@
                       <div>
                         <!-- <div class="qu_num">{{ index }}</div> -->
                         <!-- 【 单选题 】 -->
-                        <div class="qu_content">{{indexx+1}}、{{ index.title }}</div>
+                        <div class="qu_content">{{ indexx+1 }}、{{ index.title }}</div>
 
-        
                       </div>
                       <div v-if="index.image != null && index.image != ''">
-                        <el-image :src="index.image"
-                        :preview-src="[index.image]" 
-                        style="height: 100px" />
+                        <el-image
+                          :src="index.image"
+                          :preview-src="[index.image]"
+                          style="height: 100px"
+                        />
                       </div>
                       <!-- 选项 -->
                       <el-radio-group class="qu_choose_group">
@@ -62,13 +63,13 @@
                             >
                               <el-image
                                 :src="item.image"
-                                :preview-src="[item.image]" 
+                                :preview-src="[item.image]"
                                 style="max-width: 200px"
                               />
                             </div>
                             <div v-if="item.image != null && item.image != ''">
                               <el-image
-                              :preview-src="[item.image]" 
+                                :preview-src="[item.image]"
                                 :src="item.image"
                                 class="qu_choose_tag_img"
                               />
@@ -80,16 +81,14 @@
                       <!-- 题目解析 -->
                       <div class="qu_analysis">
                         <el-card>
-                  
+
                           <div style="margin-top: 8px">
                             <span>正确答案：</span>
-                            <span>{{ numberToLetter(index.rightOption) }}</span
-                            ><br />
+                            <span>{{ numberToLetter(index.rightOption) }}</span><br>
                           </div>
                           <div style="margin-top: 8px">
                             <span>试题解析：</span>
-                            <span>{{ index.analyse }}</span
-                            ><br />
+                            <span>{{ index.analyse }}</span><br>
                           </div>
                         </el-card>
                       </div>
@@ -144,12 +143,11 @@
                           <div style="margin-top: 8px">
                             <span>正确答案：</span>
                             <span>{{ index.rightOption }}</span>
-                            <br />
+                            <br>
                           </div>
                           <div style="margin-top: 8px">
                             <span>试题解析：</span>
-                            <span>{{ index.analyse }}</span
-                            ><br />
+                            <span>{{ index.analyse }}</span><br>
                           </div>
                         </el-card>
                       </div>
@@ -168,83 +166,81 @@
 </template>
 
 <script>
-import { recordExamDetail } from "@/api/record";
-import {details} from "@/api/exam"
+import { details } from '@/api/exam'
 export default {
-  name: "ExamProcess",
+  name: 'ExamProcess',
   data() {
     return {
-      input: "",
+      input: '',
       quIndex: -1,
-      examId: 0,
+      examId: '',
       data: null,
       userId: null,
       index: {
-        quType: 4, // 确保这里有一个值
-      },
-      examId:"",
-    };
+        quType: 4 // 确保这里有一个值
+      }
+    }
   },
   created() {
-    console.log("this.$route.query", this.$route.query.examId);
-    this.examId = localStorage.getItem("exam-details-examId")
-    this.ExamDetail();
+    console.log('this.$route.query', this.$route.query.examId)
+    this.examId = localStorage.getItem('exam-details-examId')
+    this.ExamDetail()
   },
   methods: {
     isCheck(myOption, sort) {
-      const arr = myOption.split(",").map(Number); // 将字符串转换为数字数组
+      const arr = myOption.split(',').map(Number) // 将字符串转换为数字数组
       if (arr.includes(sort)) {
-        return true;
+        return true
       } else {
-        return false;
+        return false
       }
     },
     numberToLetter(input) {
       const numberToCharMap = {
-        0: "A",
-        1: "B",
-        2: "C",
-        3: "D",
-        4: "E",
-        5: "F",
-      };
+        0: 'A',
+        1: 'B',
+        2: 'C',
+        3: 'D',
+        4: 'E',
+        5: 'F'
+      }
 
       // 辅助函数：将单个数字（字符串或数字类型）转换为字母
       const singleNumberToLetter = (num) =>
-        numberToCharMap[parseInt(num, 10)] || "";
+        numberToCharMap[parseInt(num, 10)] || ''
 
       // 辅助函数：处理逗号分隔的数字字符串
       const commaSeparatedNumbersToLetters = (str) => {
-        const numbers = str.split(",").map((item) => parseInt(item.trim(), 10));
-        return numbers.map((number) => numberToCharMap[number] || "").join(",");
-      };
+        const numbers = str.split(',').map((item) => parseInt(item.trim(), 10))
+        return numbers.map((number) => numberToCharMap[number] || '').join(',')
+      }
 
       // 判断输入类型并调用相应函数
       if (/^\d+$/.test(input)) {
         // 单个数字（字符串形式也可以匹配）
-        return singleNumberToLetter(input);
+        return singleNumberToLetter(input)
       } else if (/^\d+(,\d+)*$/.test(input)) {
         // 包含逗号分隔的数字字符串
-        return commaSeparatedNumbersToLetters(input);
+        return commaSeparatedNumbersToLetters(input)
       } else {
-        return ""; // 输入不符合预期，返回空字符串或根据需要处理
+        return '' // 输入不符合预期，返回空字符串或根据需要处理
       }
     },
     // 分页查询
     async ExamDetail() {
-      const res = await details(this.examId);
-      this.data = res.data;
+      const res = await details(this.examId)
+      this.data = res.data
     },
     // 点击答题卡题号, 右侧题目滑动
     handleTag(index) {
       // 高亮选中的题目index标签
-      this.quIndex = index;
+      this.quIndex = index
       // 题目滑动到锚定点
-      const page = document.querySelector(".index" + index);
-      page.scrollIntoView();
-    },
-  },
-};
+      const page = document.querySelector('.index' + index)
+      page.scrollIntoView()
+    }
+  }
+}
 </script>
 
 <style scoped lang="scss">

@@ -109,9 +109,8 @@
 <script>
 import { exitUserGrade, getInfo, userAddClass, uploadAvatar } from '@/api/user'
 import { resolveMediaUrl } from '@/utils/resolveMediaUrl'
-import { trackPresence } from '@/api/user'
-import { setToken } from '@/utils/auth'
-import { getTokenInfo, getRole } from '@/utils/jwtUtils'
+import { getRole } from '@/utils/jwtUtils'
+
 export default {
   data() {
     return {
@@ -125,6 +124,11 @@ export default {
       addClassDialogVisible: false
     }
   },
+  computed: {
+    avatarDisplayUrl() {
+      return resolveMediaUrl(this.data && this.data.avatar)
+    }
+  },
   created() {
     // 获取角色判断是否是教师和管理员
     const role = getRole()
@@ -132,11 +136,6 @@ export default {
       this.isAdmin = true
     }
     this.getInfoFun()
-  },
-  computed: {
-    avatarDisplayUrl() {
-      return resolveMediaUrl(this.data && this.data.avatar)
-    }
   },
   methods: {
     openAvatarDialog() {
@@ -283,14 +282,14 @@ export default {
   border-right: 1px solid rgb(228, 232, 235);
   div {
     margin-bottom: 40px;
-    font-size: 14px Base;
+    font-size: 14px;
     span {
       display: inline-block;
       width: 115px;
     }
   }
 }
-.right{
+.right {
   padding: 60px;
 }
 </style>

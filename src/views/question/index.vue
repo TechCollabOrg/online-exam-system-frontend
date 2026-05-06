@@ -262,7 +262,7 @@ export default {
       this.$router.push({ name: 'questions-add' })
     },
     importQu() {
-      if (this.fileList && this.fileList.length > 0 && this.selectedRepoSingle  != '') {
+      if (this.fileList && this.fileList.length > 0 && this.selectedRepoSingle !== '') {
         const formData = new FormData() // 创建FormData对象
         formData.append('file', this.fileList[0].raw) // 添加文件到formData
         importQue(this.selectedRepoSingle, formData)
@@ -402,14 +402,14 @@ export default {
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val
-      this.getQuPage(this.pageNum, val,this.searchName,
+      this.getQuPage(this.pageNum, val, this.searchName,
         this.selectedRepoSingleSearch,
         this.selValue)
     },
     handleCurrentChange(val) {
       // 设置当前页逻辑
       this.pageNum = val
-      this.getQuPage(val, this.pageSize,this.searchName,
+      this.getQuPage(val, this.pageSize, this.searchName,
         this.selectedRepoSingleSearch,
         this.selValue)
     },

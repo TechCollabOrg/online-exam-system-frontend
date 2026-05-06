@@ -2,27 +2,28 @@
   <div class="topicDetail_replyItem">
     <div class="topicDetail_info">
       <p>
-        <img class="topicDetail_avatar" :src="discussionData.avatar" />
+        <img class="topicDetail_avatar" :src="discussionData.avatar">
         <span class="author">{{ discussionData.realName }}</span>
-        <span class="department"></span>
+        <span class="department" />
       </p>
       <div class="topic_interactive">
         <!-- el-icon-thumb -->
         <!-- <div class="like" :style="isLike==0:background=">点赞<i class="el-icon-thumb"></i></i><span></span></div> -->
         <div class="like">
           <span class="text-white p-2">
-            <i class="el-icon-delete"
-            v-if="currentUserId === discussionData.userId || currentRole === 'teacher'"
-            @click="showIsDel(discussionData.id)"
-            ></i>
-            <i class="el-icon-thumb"
+            <i
+              v-if="currentUserId === discussionData.userId || currentRole === 'teacher'"
+              class="el-icon-delete"
+              @click="showIsDel(discussionData.id)"
+            />
+            <i
+              class="el-icon-thumb"
               :class="{ 'bg-green-500': discussionData.isLike === 1, 'bg-gray-300': discussionData.isLike === 0 }"
               style="margin-left: 30px;"
               @click="toggleLike"
             >点赞 {{ discussionData.count }}</i>
           </span>
         </div>
-
 
       </div>
     </div>
@@ -32,25 +33,26 @@
           discussionData.createTime
         }}</span>
       </div>
-      <div class="replyContent" v-html="discussionData.content" > </div>
+      <div class="replyContent" v-html="discussionData.content" />
     </div>
   </div>
 </template>
 <script>
-import {doLike} from "@/api/discussion"
-import {getUserId,getRole} from '@/utils/auth'
+import { doLike } from '@/api/discussion'
+import { getUserId, getRole } from '@/utils/auth'
 export default {
   props: {
-    discussionId:{
-        type: Number
+    discussionId: {
+      type: Number,
+      default: null
     },
     onConfirm: {
       type: Function,
-      default: () => {},
+      default: () => {}
     },
     delFun: {
       type: Function,
-      default: () => {},
+      default: () => {}
     },
 
     discussionData: {
@@ -67,61 +69,37 @@ export default {
           // isLike: 0,
           // createTime: "2025-04-04 22:13:05",
           // childReplies: null,
-        };
-      },
-    },
-    watch: {
-        discussionData: {
-            handler(val) {
-                this.discussionData = val;
-
-            },
-
         }
-
-    },
-
-    data() {
-      return {
-        discussionData: {
-            id: "",
-          userId: "",
-          parentId: "",
-          avatar: "",
-          content: "",
-          realName: "",
-          count: 0,
-          isLike: 0,
-          createTime: "",
-          childReplies: null,
-        },
-        currentUserId:null,
-        currentRole:null
-      };
-    },
+      }
+    }
   },
-  created(){
+  data() {
+    return {
+      currentUserId: null,
+      currentRole: null
+    }
+  },
+  created() {
     this.currentUserId = parseInt(getUserId())
     this.currentRole = getRole()
   },
   methods: {
     toggleLike() {
-      this.discussionData.isLike = this.discussionData.isLike === 0 ? 1 : 0;
+      this.discussionData.isLike = this.discussionData.isLike === 0 ? 1 : 0
       const data = {
-        "discussionId": this.discussionId,
-	      "replyId":  this.discussionData.id
+        'discussionId': this.discussionId,
+        'replyId': this.discussionData.id
       }
-      doLike(data).then((res)=>{
-        this.onConfirm();
+      doLike(data).then((res) => {
+        this.onConfirm()
       })
     },
-    showIsDel(id){
+    showIsDel(id) {
       console.log(111111)
-      this.delFun(id);
-
-    },
+      this.delFun(id)
+    }
   }
-};
+}
 </script>
 <style scoped>
 

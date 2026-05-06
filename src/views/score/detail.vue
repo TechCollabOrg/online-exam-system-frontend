@@ -36,7 +36,7 @@
       <el-table-column prop="count" label="切屏次数" align="center" />
       <el-table-column prop="userTime" label="用户用时" align="center" />
       <el-table-column prop="limitTime" label="提交时间" align="center" />
-      
+
       <el-table-column fixed="right" label="操作" align="center">
         <template slot-scope="{ row }">
           <el-button
@@ -44,8 +44,7 @@
             size="small"
             style="font-size: 14px"
             @click="updateRow(row)"
-            >查看详情</el-button
-          >
+          >查看详情</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -132,11 +131,11 @@ export default {
   },
   methods: {
     updateRow(row) {
-        row.type= 1;
-        console.log(row)
-        localStorage.setItem('record_exam_examId', row.examId)
-        this.$router.push({ name: 'exam-record-detail', query: { data: row }})
-      },
+      row.type = 1
+      console.log(row)
+      localStorage.setItem('record_exam_examId', row.examId)
+      this.$router.push({ name: 'exam-record-detail', query: { data: row }})
+    },
     // 分页查询
     async getScorePage() {
       const params = {

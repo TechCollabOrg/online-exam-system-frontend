@@ -10,8 +10,6 @@ import Vue from 'vue'
 let socket
 // 与后端 WebsocketHandler 路径一致；打包为 Electron 时必须在 .env.electron 中配置完整 ws:// 或 wss:// 地址
 const baseSocketUrl = process.env.VUE_APP_WS_URL || 'ws://127.0.0.1:8080/websocket'
-// eslint-disable-next-line no-unused-vars
-let isConnected = false
 let reconnectTimer
 const reconnectInterval = 5000 // 重连间隔时间，单位：毫秒
 // websocket收到消息回调
@@ -39,7 +37,6 @@ const connectWebSocket = () => {
 
   socket.onopen = () => {
     console.log('WebSocket 连接成功')
-    isConnected = true
     // 连接成功，清除定时任务
     clearInterval(reconnectTimer)
   }
@@ -61,7 +58,6 @@ const connectWebSocket = () => {
 
   socket.onclose = () => {
     console.log('WebSocket 连接关闭')
-    isConnected = false
     // 非主动断开连接，或未达到最大连接次数，尝试重新连接
     if (!isManuallyClosed && reconnectCount < maxReconnectCount) {
       console.log('尝试重连...')

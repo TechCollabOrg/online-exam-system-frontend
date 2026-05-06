@@ -52,8 +52,8 @@ export default {
         // 时
         const min = parseInt(this.leftSeconds / 60)
         const sec = parseInt(this.leftSeconds % 60)
-        this.min = min > 9? min : '0' + min
-        this.sec = sec > 9? sec : '0' + sec
+        this.min = min > 9 ? min : '0' + min
+        this.sec = sec > 9 ? sec : '0' + sec
         this.leftSeconds -= 1
       }, 1000)
     }

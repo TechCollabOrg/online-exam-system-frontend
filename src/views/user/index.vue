@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <!-- 筛选栏 -->
-    <el-form :inline="true" v-model="searchForm" class="demo-form-inline">
+    <el-form v-model="searchForm" :inline="true" class="demo-form-inline">
       <el-form-item label="真实姓名">
         <el-input v-model="searchForm.searchRealName" placeholder="输入姓名" />
       </el-form-item>
@@ -14,12 +14,18 @@
         <el-button type="primary" @click="fileDialogVisible = true">导入</el-button>
       </el-form-item>
     </el-form>
-    <el-table :data="data.records" border fit highlight-current-row :header-cell-style="{
-      background: '#f2f3f4',
-      color: '#555',
-      'font-weight': 'bold',
-      'line-height': '32px',
-    }">
+    <el-table
+      :data="data.records"
+      border
+      fit
+      highlight-current-row
+      :header-cell-style="{
+        background: '#f2f3f4',
+        color: '#555',
+        'font-weight': 'bold',
+        'line-height': '32px',
+      }"
+    >
       <el-table-column align="center" type="selection" width="55" />
       <el-table-column label="序号" align="center" width="80px">
         <template slot-scope="scope">
@@ -28,21 +34,31 @@
       </el-table-column>
       <el-table-column prop="userName" label="用户名" align="center" />
       <el-table-column prop="realName" label="真实姓名" align="center" />
-      <el-table-column prop="roleId" label="角色名称" align="center" >
-      <template slot-scope="{ row }">
-        <span v-if="row.roleId == 1">学生</span>
-        <span v-if="row.roleId == 2">教师</span>
-        <span v-if="row.roleId == 3">管理员</span>
-      </template>
+      <el-table-column prop="roleId" label="角色名称" align="center">
+        <template slot-scope="{ row }">
+          <span v-if="row.roleId == 1">学生</span>
+          <span v-if="row.roleId == 2">教师</span>
+          <span v-if="row.roleId == 3">管理员</span>
+        </template>
       </el-table-column>
       <el-table-column prop="gradeName" label="班级" align="center" />
       <el-table-column prop="createTime" label="注册时间" align="center" />
       <el-table-column align="center" label="操作">
         <template slot-scope="{ row }">
-          <el-button v-if="role == 'teacher'" type="text" size="small" style="color: red; font-size: 14px"
-            @click="removeUserClass(row)">移除班级</el-button>
-          <el-button v-if="role == 'admin'" type="text" size="small" style="color: red; font-size: 14px"
-            @click="delUser(row)">删除</el-button>
+          <el-button
+            v-if="role == 'teacher'"
+            type="text"
+            size="small"
+            style="color: red; font-size: 14px"
+            @click="removeUserClass(row)"
+          >移除班级</el-button>
+          <el-button
+            v-if="role == 'admin'"
+            type="text"
+            size="small"
+            style="color: red; font-size: 14px"
+            @click="delUser(row)"
+          >删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -50,34 +66,33 @@
     <!-- 新增弹窗 -->
     <el-dialog title="新增用户" :visible.sync="addUserDiologVisible">
       <el-form :model="addForm">
-      <el-row>
-        <el-col :span="11">
-          <el-form-item label="用户名" :label-width="formLabelWidth">
-            <el-input v-model="addForm.userName" autocomplete="off" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="11">
-          <el-form-item label="真实姓名" :label-width="formLabelWidth">
-            <el-input v-model="addForm.realName" autocomplete="off" />
-          </el-form-item>
-        </el-col>
-      </el-row>
-      <el-row>
-        <el-col :span="11">
-          <el-form-item label="身份选择" :label-width="formLabelWidth" v-if="role == 'admin'" >
-            <el-select v-model="addForm.roleId" placeholder="请选择身份">
-              <el-option label="学生" value="1" />
-              <el-option label="教师" value="2" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="11">
-          <el-form-item label="班级选择" :label-width="formLabelWidth" v-if="role == 'teacher' || (role == 'admin' && addForm.roleId == '1')" >
-            <ClassSelect v-model="addForm.gradeId" :is-multiple="false" />
-          </el-form-item>
-        </el-col>
-      </el-row>
-    </el-row>
+        <el-row>
+          <el-col :span="11">
+            <el-form-item label="用户名" :label-width="formLabelWidth">
+              <el-input v-model="addForm.userName" autocomplete="off" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="11">
+            <el-form-item label="真实姓名" :label-width="formLabelWidth">
+              <el-input v-model="addForm.realName" autocomplete="off" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="11">
+            <el-form-item v-if="role == 'admin'" label="身份选择" :label-width="formLabelWidth">
+              <el-select v-model="addForm.roleId" placeholder="请选择身份">
+                <el-option label="学生" value="1" />
+                <el-option label="教师" value="2" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="11">
+            <el-form-item v-if="role == 'teacher' || (role == 'admin' && addForm.roleId == '1')" label="班级选择" :label-width="formLabelWidth">
+              <ClassSelect v-model="addForm.gradeId" :is-multiple="false" />
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="addUserDiologVisible = false">取 消</el-button>
@@ -85,10 +100,25 @@
       </div>
     </el-dialog>
     <!-- 文件上传 -->
-    <el-dialog width="400px" :show-close="false" :close-on-click-modal="false" title="上传文件"
-      :visible.sync="fileDialogVisible">
-      <el-upload class="upload-demo" drag action="xxxxxx" multiple :limit="1" accept=".xlsx, .xls" :auto-upload="false"
-        :on-remove="handleRemove" :on-change="handleFileChange" :file-list="fileList">
+    <el-dialog
+      width="400px"
+      :show-close="false"
+      :close-on-click-modal="false"
+      title="上传文件"
+      :visible.sync="fileDialogVisible"
+    >
+      <el-upload
+        class="upload-demo"
+        drag
+        action="xxxxxx"
+        multiple
+        :limit="1"
+        accept=".xlsx, .xls"
+        :auto-upload="false"
+        :on-remove="handleRemove"
+        :on-change="handleFileChange"
+        :file-list="fileList"
+      >
         <i class="el-icon-upload" />
         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
         <div slot="tip" class="el-upload__tip">只能上传xls/xlsx文件，且不超过500kb,大小为12kb</div>
@@ -103,9 +133,15 @@
 
     <!-- 分页 -->
     <div class="pagination-container">
-      <el-pagination :current-page="data.current" :page-sizes="[10, 20, 30, 40]" :page-size="data.size"
-        layout="total, sizes, prev, pager, next, jumper" :total="data.total" @size-change="handleSizeChange"
-        @current-change="handleCurrentChange" />
+      <el-pagination
+        :current-page="data.current"
+        :page-sizes="[10, 20, 30, 40]"
+        :page-size="data.size"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="data.total"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
     </div>
   </div>
 </template>
@@ -176,14 +212,14 @@ export default {
     // 设置每页多少条逻辑
     handleSizeChange(val) {
       this.pageSize = val
-      this.getUserPage(this.pageNum, val,this.searchForm.searchRealName,
-      this.searchForm.searchClass)
+      this.getUserPage(this.pageNum, val, this.searchForm.searchRealName,
+        this.searchForm.searchClass)
     },
     // 设置当前页逻辑
     handleCurrentChange(val) {
       this.pageNum = val
-      this.getUserPage(val, this.pageSize,this.searchForm.searchRealName,
-      this.searchForm.searchClass)
+      this.getUserPage(val, this.pageSize, this.searchForm.searchRealName,
+        this.searchForm.searchClass)
     },
     // 添加用户逻辑
     addUser() {

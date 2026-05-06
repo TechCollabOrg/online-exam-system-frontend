@@ -52,7 +52,7 @@
         <template slot-scope="{ row }">
           <el-tag :type="row.isExercise === 1 ? 'success' : 'danger'" :effect="row.isExercise === 0 ? 'dark' : 'light'">
             {{ row.isExercise === 1 ? '已开启' : '未开启' }}
-            <i v-if="row.isExercise === 0" style="margin-left: 2px;"></i>
+            <i v-if="row.isExercise === 0" style="margin-left: 2px;" />
           </el-tag>
         </template>
       </el-table-column>
@@ -65,22 +65,22 @@
     </el-table>
 
     <!-- <div class="pagination-container"> -->
-      <el-pagination
-        :current-page="data.current"
-        :page-sizes="[10, 20, 30, 40]"
-        :page-size="data.size"
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="data.total"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
+    <el-pagination
+      :current-page="data.current"
+      :page-sizes="[10, 20, 30, 40]"
+      :page-size="data.size"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="data.total"
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+    />
     <!-- </div> -->
 
     <!-- 新增题库 -->
     <el-dialog title="新增题库" :visible.sync="addRepoDialogVisible" width="500px">
       <el-form :model="addRepoForm" label-width="100px">
         <el-form-item label="题库名称">
-          <el-input v-model="addRepoForm.title" placeholder="请输入题库名称"></el-input>
+          <el-input v-model="addRepoForm.title" placeholder="请输入题库名称" />
         </el-form-item>
         <el-form-item label="题库分类">
           <el-select v-model="addRepoForm.categoryId" placeholder="请选择分类">
@@ -93,7 +93,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="是否开启刷题">
-          <el-switch v-model="addRepoForm.isExercise"></el-switch>
+          <el-switch v-model="addRepoForm.isExercise" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -106,7 +106,7 @@
     <el-dialog title="编辑题库" :visible.sync="dialogFormVisible" width="500px">
       <el-form :model="form" label-width="100px">
         <el-form-item label="题库名称">
-          <el-input v-model="form.title" placeholder="请输入题库名称"></el-input>
+          <el-input v-model="form.title" placeholder="请输入题库名称" />
         </el-form-item>
         <el-form-item label="题库分类">
           <el-select v-model="form.categoryId" placeholder="请选择分类">
@@ -119,7 +119,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="是否开启刷题">
-          <el-switch v-model="form.isExercise" :active-value="1" :inactive-value="0"></el-switch>
+          <el-switch v-model="form.isExercise" :active-value="1" :inactive-value="0" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">

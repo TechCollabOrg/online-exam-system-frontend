@@ -68,7 +68,7 @@ export default {
     },
     updateData(val) {
       this.repoForm.repoTitle = val.title
-      this.repoForm.isExercise = val.isExercise === 1;
+      this.repoForm.isExercise = val.isExercise === 1
     },
     visible(val) {
       this.$emit('input', val)
