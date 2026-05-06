@@ -1,5 +1,11 @@
+/**
+ * 前端路由表：侧边栏菜单、各角色可见页面均在此声明（meta.roles）。
+ * 阅读顺序：constantRoutes（登录/404/主页）→ 各业务 path → 与 src/store/modules/menu 联动生成侧边栏。
+ * 需求文档：学生 STU-* 对应「试卷中心、考试记录、错题本」等；教师 TEA-* 对应题库/阅卷等路由。
+ */
 import Vue from 'vue'
 import Router from 'vue-router'
+import { getToken } from '@/utils/auth'
 
 Vue.use(Router)
 
@@ -7,28 +13,20 @@ Vue.use(Router)
 import Layout from '@/layout'
 
 /**
- * Note: sub-menu only appear when route children.length >= 1
- * Detail see: https://panjiachen.github.io/vue-element-admin-site/guide/essentials/router-and-nav.html
- *
- * hidden: true                   if set true, item will not show in the sidebar(default is false)
- * alwaysShow: true               if set true, will always show the root menu
- *                                if not set alwaysShow, when item has more than one children route,
- *                                it will becomes nested mode, otherwise not show the root menu
- * redirect: noRedirect           if set noRedirect will no redirect in the breadcrumb
- * name:'router-name'             the name is used by <keep-alive> (must set!!!)
- * meta : {
-    roles: ['admin','editor']    control the page roles (you can set multiple roles)
-    title: 'title'               the name show in sidebar and breadcrumb (recommend set)
-    icon: 'svg-name'/'el-icon-x' the icon show in the sidebar
-    breadcrumb: false            if set false, the item will hidden in breadcrumb(default is true)
-    activeMenu: '/example/list'  if set path, the sidebar will highlight the path you set
-  }
+ * 路由 meta 常用字段说明（子菜单需 children.length >= 1 才在侧边栏展开，详见 vue-element-admin 文档）：
+ * - hidden: true — 不在侧边栏显示（如登录页、404）
+ * - alwaysShow: true — 始终显示根菜单；不设置时多子路由会成嵌套模式
+ * - redirect: 'noRedirect' — 面包屑中该级不自动跳转
+ * - name — 须唯一；与 Vue 的 keep-alive 缓存页面相关
+ * - meta.roles — 允许访问的角色数组，如 ['admin','teacher']
+ * - meta.title — 侧边栏与面包屑标题
+ * - meta.icon — 侧边栏图标
+ * - meta.breadcrumb: false — 在面包屑中隐藏该项
+ * - meta.activeMenu — 指定高亮的侧边栏路径
  */
 
 /**
- * constantRoutes
- * a base page that does not have permission requirements
- * all roles can be accessed
+ * 固定路由：不依赖动态权限的基础页面，所有角色在未登录拦截前均可访问其中匿名页（登录/注册/404）。
  */
 export const constantRoutes = [
   {
@@ -52,7 +50,8 @@ export const constantRoutes = [
     path: '/',
     component: Layout,
     meta: { requireAuth: true },
-    redirect: '/index', // 添加重定向规则
+    // 未登录访问根路径时直接进入登录页；已登录则进主页（避免 dev 打开站点先进 Layout 再被守卫踢回）
+    redirect: () => (getToken() ? '/index' : '/login'),
     children: [{
       path: 'index',
       name: 'Dashboard',
@@ -110,8 +109,8 @@ export const constantRoutes = [
       path: 'discussion-management',
       name: 'discussion-management',
       component: () => import('@/views/discuss/index.vue'),
-      meta: { title: '讨论管理', visible: true, roles: ['teacher', 'student'], icon: 'el-icon-chat-dot-square' },
-  }],
+      meta: { title: '讨论管理', visible: true, roles: ['teacher', 'student'], icon: 'el-icon-chat-dot-square' }
+    }]
   },
   {
     path: '/discussion-detail',
@@ -121,50 +120,46 @@ export const constantRoutes = [
       hidden: true,
       name: 'discussion-detail',
       component: () => import('@/views/discuss/detail.vue'),
-      meta: { title: '讨论详情', visible: true, roles:['teacher', 'student'], icon: 'el-icon-takeaway-box' },
-  }],
-},
-{
-  path: '/exam-details',
-  component: Layout,
-  children: [{
-    path: 'exam-details',
-    hidden: true,
-    name: 'exam-details',
-    component: () => import('@/views/exam/details.vue'),
-    meta: { title: '考试详情', visible: true, roles:['teacher', 'admin'], icon: 'el-icon-takeaway-box' },
-}],
-},
-{
-  path: "/discussion-block",
-  component: Layout,
-  children: [
-    {
-      path: "/discussion-block",
-      name: "discussion-block",
+      meta: { title: '讨论详情', visible: true, roles: ['teacher', 'student'], icon: 'el-icon-takeaway-box' }
+    }]
+  },
+  {
+    path: '/exam-details',
+    component: Layout,
+    children: [{
+      path: 'exam-details',
       hidden: true,
-      component: () =>
-        import("@/views/discuss/block.vue"),
+      name: 'exam-details',
+      component: () => import('@/views/exam/details.vue'),
+      meta: { title: '考试详情', visible: true, roles: ['teacher', 'admin'], icon: 'el-icon-takeaway-box' }
+    }]
+  },
+  {
+    path: '/discussion-block',
+    component: Layout,
+    children: [{
+      path: '/discussion-block',
+      name: 'discussion-block',
+      hidden: true,
+      component: () => import('@/views/discuss/block.vue'),
       meta: {
-        title: "投屏模式",
+        title: '投屏模式',
         visible: false,
-        roles: ["teacher", "admin"],
-      },
-    },
-  ],
-},
-{
-  path: '/prepare-exam',
-  component: Layout,
-  children: [{
+        roles: ['teacher', 'admin']
+      }
+    }]
+  },
+  {
     path: '/prepare-exam',
-    name: 'prepare-exam',
-    hidden: true,
-
-    component: () => import('@/views/exam/examInformation.vue'),
-    meta: { title: '准备考试', visible: true, roles: ['teacher', 'admin', 'student'], icon: 'dashboard' }
-  }]
-},
+    component: Layout,
+    children: [{
+      path: '/prepare-exam',
+      name: 'prepare-exam',
+      hidden: true,
+      component: () => import('@/views/exam/examInformation.vue'),
+      meta: { title: '准备考试', visible: true, roles: ['teacher', 'admin', 'student'], icon: 'dashboard' }
+    }]
+  },
   {
     path: '/text-center',
     component: Layout,
@@ -348,7 +343,7 @@ export const constantRoutes = [
       name: 'score-analysis',
       component: () => import('@/views/score/index'),
       // , 'admin'
-      meta: { title: '成绩分析', visible: true, roles: ['teacher'], icon: 'el-icon-pie-chart' }
+      meta: { title: '成绩分析', visible: true, roles: ['teacher', 'admin'], icon: 'el-icon-pie-chart' }
     }]
   },
   {
@@ -370,7 +365,7 @@ export const constantRoutes = [
       name: 'marking-management',
       component: () => import('@/views/answer/index'),
       // , 'admin'
-      meta: { title: '阅卷管理', visible: true, roles: ['teacher'], icon: 'el-icon-files' }
+      meta: { title: '阅卷管理', visible: true, roles: ['teacher', 'admin'], icon: 'el-icon-files' }
     }]
   },
   {
@@ -407,21 +402,19 @@ export const constantRoutes = [
     }]
   },
   {
-    path: "/login-log",
+    path: '/login-log',
     component: Layout,
-    children: [
-      {
-        path: "/login-log",
-        name: "login-log",
-        component: () => import("@/views/log/index"),
-        meta: {
-          title: "登录日志",
-          visible: false,
-          roles: ["teacher", "admin", "student"],
-          icon: "el-icon-receiving",
-        },
-      },
-    ],
+    children: [{
+      path: '/login-log',
+      name: 'login-log',
+      component: () => import('@/views/log/index'),
+      meta: {
+        title: '登录日志',
+        visible: false,
+        roles: ['teacher', 'admin', 'student'],
+        icon: 'el-icon-receiving'
+      }
+    }]
   },
 
   { path: '*', redirect: '/404', hidden: true }

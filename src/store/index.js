@@ -7,6 +7,7 @@ import settings from './modules/settings'
 import user from './modules/user'
 import menu from './modules/menu'
 import { trackPresence } from '@/api/user'
+import { getUserId } from '@/utils/auth'
 Vue.use(Vuex)
 
 const store = new Vuex.Store({
@@ -18,7 +19,10 @@ const store = new Vuex.Store({
     setUserLoggedIn(state, value) {
       state.isUserLoggedIn = value
       if (value && !state.heartbeatIntervalId) {
-        this.dispatch('sendHeartbeat')
+        // 登录成功后立刻发心跳会与「登录响应 Set-Cookie / 同一会话」竞态，Redis token 与 Session 未对齐时后端报「请先登录」；延迟首包。
+        setTimeout(() => {
+          this.dispatch('sendHeartbeat')
+        }, 400)
         state.heartbeatIntervalId = setInterval(() => {
           // 这里可以触发发送心跳的action
           this.dispatch('sendHeartbeat')
@@ -32,9 +36,8 @@ const store = new Vuex.Store({
 
   actions: {
     sendHeartbeat({ commit, state }) {
-      // alert('发送心跳请求');
-      // 发送心跳请求到后端
-      trackPresence({ userId: state.userId }).then(response => {
+      // 发送心跳请求到后端（userId 仅供审计；后端以学生 JWT 为准）
+      trackPresence({ userId: getUserId() }).then(response => {
       })
         .catch(error => {
           console.error('心跳发送失败:', error)

@@ -1,18 +1,15 @@
-/*
- * @Author: 魏进 3413105907@qq.com
- * @Date: 2025-03-26 13:48:29
- * @LastEditors: 魏进 3413105907@qq.com
- * @LastEditTime: 2025-03-29 10:35:02
- * @FilePath: \online-recruitment-system-frontend\src\utils\websocket.js
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+/**
+ * WebSocket 客户端封装：连接后端监考/公告推送，带断线重连与学生端通知弹窗。
+ * URL 来自环境变量 VUE_APP_WS_URL；Electron 打包后须配置完整 ws:// 或 wss:// 地址。
  */
-import { getUserId,getGradeId,getRole } from './auth'
+import { getUserId, getGradeId, getRole } from './auth'
 import { Notification } from 'element-ui'
 import Vue from 'vue'
 
 // 定义 WebSocket 实例
 let socket
-const baseSocketUrl = 'ws://localhost:8080/websocket'
+// 与后端 WebsocketHandler 路径一致；打包为 Electron 时必须在 .env.electron 中配置完整 ws:// 或 wss:// 地址
+const baseSocketUrl = process.env.VUE_APP_WS_URL || 'ws://127.0.0.1:8080/websocket'
 // eslint-disable-next-line no-unused-vars
 let isConnected = false
 let reconnectTimer
@@ -32,6 +29,9 @@ const EventBus = new Vue()
 const connectWebSocket = () => {
   if (!getUserId()) {
     console.error('用户 ID 未设置，无法连接 WebSocket')
+    return
+  }
+  if (socket && (socket.readyState === WebSocket.CONNECTING || socket.readyState === WebSocket.OPEN)) {
     return
   }
   const socketUrl = `${baseSocketUrl}?userId=${getUserId()}`

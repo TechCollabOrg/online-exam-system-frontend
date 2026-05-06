@@ -83,6 +83,10 @@ export default {
         // element.children[0].meta.visible = isVisible
       }
     })
+    // 登录后 JWT 内头像往往未更新；进入布局后拉一次资料，供顶栏头像等使用
+    if (this.$store.getters.token) {
+      this.$store.dispatch('user/getInfo').catch(() => {})
+    }
   },
   methods: {
     handleClickOutside() {

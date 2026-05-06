@@ -23,10 +23,23 @@ export function login(data) {
     data
   })
 }
-export function verifyCode(code) {
+/** 拉取图形验证码（JSON，与校验共用 axios 会话，避免 img 与接口 Session 不一致） */
+export function fetchCaptchaJson() {
   return request({
-    url: 'auths/verifyCode/' + code,
-    method: 'post'
+    url: 'auths/captcha/json',
+    method: 'get'
+  })
+}
+
+/** 校验图形验证码：须携带与 {@link fetchCaptchaJson} 一致的 captchaId */
+export function verifyCode(data) {
+  return request({
+    url: 'auths/verifyCode',
+    method: 'post',
+    data: {
+      code: data.code,
+      captchaId: data.captchaId
+    }
   })
 }
 

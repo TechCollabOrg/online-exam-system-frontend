@@ -1,6 +1,11 @@
 .DS_Store
 node_modules/
 dist/
+
+# 本地环境（可能含内网地址或密钥，勿提交）
+.env.local
+.env.*.local
+.env.electron
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

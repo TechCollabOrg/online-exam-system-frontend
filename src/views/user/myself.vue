@@ -23,7 +23,7 @@
           type="text"
           size="mini"
           style="float: right; padding: 3px 0; margin-right: 15px"
-          @click="fileDialogVisible = true"
+          @click="openAvatarDialog"
         >编辑头像</el-button>
       </div>
       <div class="card-body">
@@ -43,18 +43,16 @@
         </div>
         <el-dialog
           width="400px"
-          :show-close="false"
-          :close-on-click-modal="false"
           title="上传头像"
           :visible.sync="fileDialogVisible"
+          append-to-body
         >
           <el-upload
             class="upload-demo"
             drag
-            action="xxxxxx"
-            multiple
+            action="#"
             :limit="1"
-            accept="png, jpg, jpeg, bmp"
+            accept=".png,.jpg,.jpeg,.bmp,image/png,image/jpeg,image/bmp"
             :auto-upload="false"
             :on-remove="handleRemove"
             :on-change="handleFileChange"
@@ -99,7 +97,7 @@
               height: 150px;
               border-radius: 200px;
             "
-            :src="data.avatar"
+            :src="avatarDisplayUrl"
             alt=""
           >
         </div>
@@ -110,13 +108,14 @@
 
 <script>
 import { exitUserGrade, getInfo, userAddClass, uploadAvatar } from '@/api/user'
+import { resolveMediaUrl } from '@/utils/resolveMediaUrl'
 import { trackPresence } from '@/api/user'
 import { setToken } from '@/utils/auth'
 import { getTokenInfo, getRole } from '@/utils/jwtUtils'
 export default {
   data() {
     return {
-      fileDigetRolealogVisible: false,
+      fileDialogVisible: false,
       fileList: [],
       data: {},
       form: {
@@ -134,7 +133,16 @@ export default {
     }
     this.getInfoFun()
   },
+  computed: {
+    avatarDisplayUrl() {
+      return resolveMediaUrl(this.data && this.data.avatar)
+    }
+  },
   methods: {
+    openAvatarDialog() {
+      this.fileList = []
+      this.fileDialogVisible = true
+    },
     // 退出班级逻辑
     exitGrade() {
       this.$confirm('退出班级, 是否继续?', '提示', {
@@ -187,31 +195,30 @@ export default {
     },
     // 移除文件处理方法
     handleRemove(file, fileList) {
-      if (fileList.length === 0) {
-        this.hasFiles = false
-      }
+      this.fileList = fileList
     },
     // 上传文件逻辑
     importAvatar() {
-      if (this.fileList.length > 0) {
-        const formData = new FormData() // 创建FormData对象
-        formData.append('file', this.fileList[0].raw) // 添加文件到formData
-        uploadAvatar(formData)
-          .then((res) => {
-            if (res.code) {
-              this.getInfoFun()
-              this.$message.success('文件上传成功！')
-              this.fileDialogVisible = false // 关闭对话框
-              // 可以在这里处理成功后的逻辑，如刷新数据等
-            }
-          })
-          .catch((error) => {
-            console.error('文件上传失败：', error)
-            this.$message.error('文件上传失败！')
-          })
-      } else {
-        this.$message.warning('请选择文件后再上传！')
+      if (this.fileList.length === 0 || !this.fileList[0].raw) {
+        this.$message.warning('请选择文件后再上传')
+        return
       }
+      const formData = new FormData()
+      formData.append('file', this.fileList[0].raw)
+      uploadAvatar(formData)
+        .then((res) => {
+          if (res.code === 1) {
+            const url = res.data
+            this.$store.commit('user/SET_AVATAR', url || '')
+            this.getInfoFun()
+            this.$message.success(res.msg || '头像上传成功')
+            this.fileDialogVisible = false
+            this.fileList = []
+          }
+        })
+        .catch(() => {
+          this.$message.error('头像上传失败，请稍后重试')
+        })
     },
     // 添加班级按钮
     addClassBt() {

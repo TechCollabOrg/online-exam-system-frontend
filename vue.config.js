@@ -1,3 +1,9 @@
+/**
+ * Vue CLI 构建与开发服务器配置。
+ * - devServer.proxy：开发时将前端的 /api 代理到后端 application-dev.yml 中的端口（默认 8080），避免浏览器跨域。
+ * - publicPath: './：生产包可被 Electron file:// 打开（资源相对路径）。
+ * 需求文档 7.2：教师/管理员使用浏览器访问本前端；学生端桌面见 npm run electron:dist。
+ */
 // 'use strict'
 const path = require('path')
 const defaultSettings = require('./src/settings.js')
@@ -6,26 +12,18 @@ function resolve(dir) {
   return path.join(__dirname, dir)
 }
 
-const name = process.env.VUE_APP_TITLE || defaultSettings.title || '校园在线考试系统' // page title
+const name = process.env.VUE_APP_TITLE || defaultSettings.title || '校园在线考试系统' // 注入到 index.html 的标题
 
-// If your port is set to 80,
-// use administrator privileges to execute the command line.
-// For example, Mac: sudo npm run
-// You can change the port by the following methods:
-// port = 9528 npm run dev OR npm run dev --port = 9528
-const port = process.env.port || process.env.npm_config_port || 9527 // dev port
+// 开发服务端口；若改为 80 在部分系统需管理员权限。也可启动时指定：set port=9528 && npm run dev
+const port = process.env.port || process.env.npm_config_port || 9527
 
-// All configuration item explanations can be find in https://cli.vuejs.org/config/
+// 完整配置项说明见 https://cli.vuejs.org/config/
 module.exports = {
 
   /**
-   * You will need to set publicPath if you plan to deploy your site under a sub path,
-   * for example GitHub Pages. If you plan to deploy your site to https://foo.github.io/bar/,
-   * then publicPath should be set to "/bar/".
-   * In most cases please use '/' !!!
-   * Detail: https://cli.vuejs.org/config/#publicpath
+   * 静态资源公共路径：部署在子路径（如 GitHub Pages 的 /bar/）时改为 '/bar/'。
+   * Electron 使用 file:// 打开本地包，此处用相对路径 './'。
    */
-
   publicPath: './',
   outputDir: 'dist',
   assetsDir: 'static',
@@ -34,7 +32,8 @@ module.exports = {
   devServer: {
     // disableHostCheck: true,
     port: port,
-    open: true,
+    // 开发启动默认打开登录页（无令牌或会话已失效时会停在此；已勾选记住我且仍有效会先被守卫送进首页）
+    open: `http://127.0.0.1:${port}/#/login`,
     overlay: {
       warnings: false,
       errors: true
@@ -52,8 +51,7 @@ module.exports = {
     // before: require('./mock/mock-server.js')
   },
   configureWebpack: {
-    // provide the app's title in webpack's name field, so that
-    // it can be accessed in index.html to inject the correct title.
+    // 将应用标题写入 webpack name，供 index.html 等引用
     name: name,
     resolve: {
       alias: {
@@ -62,21 +60,19 @@ module.exports = {
     }
   },
   chainWebpack(config) {
-    // it can improve the speed of the first screen, it is recommended to turn on preload
+    // 预加载关键资源，加速首屏（排除 sourcemap、热更新与 runtime 片段）
     config.plugin('preload').tap(() => [
       {
         rel: 'preload',
-        // to ignore runtime.js
-        // https://github.com/vuejs/vue-cli/blob/dev/packages/@vue/cli-service/lib/config/app.js#L171
         fileBlacklist: [/\.map$/, /hot-update\.js$/, /runtime\..*\.js$/],
         include: 'initial'
       }
     ])
 
-    // when there are many pages, it will cause too many meaningless requests
+    // 路由较多时关闭 prefetch，减少无意义预请求
     config.plugins.delete('prefetch')
 
-    // set svg-sprite-loader
+    // 将 src/icons 下 svg 打成雪碧图，供 svg-icon 组件按 symbolId 引用
     config.module.rule('svg').exclude.add(resolve('src/icons')).end()
     config.module
       .rule('icons')
@@ -96,7 +92,7 @@ module.exports = {
         .after('html')
         .use('script-ext-html-webpack-plugin', [
           {
-            // `runtime` must same as runtimeChunk name. default is `runtime`
+            // 与 optimization.runtimeChunk 名称一致，内联 runtime 减小请求数
             inline: /runtime\..*\.js$/
           }
         ])
@@ -108,23 +104,23 @@ module.exports = {
             name: 'chunk-libs',
             test: /[\\/]node_modules[\\/]/,
             priority: 10,
-            chunks: 'initial' // only package third parties that are initially dependent
+            chunks: 'initial' // 入口依赖的第三方库
           },
           elementUI: {
-            name: 'chunk-elementUI', // split elementUI into a single package
-            priority: 20, // the weight needs to be larger than libs and app or it will be packaged into libs or app
-            test: /[\\/]node_modules[\\/]_?element-ui(.*)/ // in order to adapt to cnpm
+            name: 'chunk-elementUI', // Element UI 单独分包
+            priority: 20, // 需大于 libs，否则会被打进 libs
+            test: /[\\/]node_modules[\\/]_?element-ui(.*)/ // 兼容 cnpm 目录
           },
           commons: {
             name: 'chunk-commons',
-            test: resolve('src/components'), // can customize your rules
-            minChunks: 3, //  minimum common number
+            test: resolve('src/components'),
+            minChunks: 3, // 至少被 3 处引用才抽出公共组件
             priority: 5,
             reuseExistingChunk: true
           }
         }
       })
-      // https:// webpack.js.org/configuration/optimization/#optimizationruntimechunk
+      // 抽取 runtime chunk，见 webpack optimization.runtimeChunk 文档
       config.optimization.runtimeChunk('single')
     })
   }

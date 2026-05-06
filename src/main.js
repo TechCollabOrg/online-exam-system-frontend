@@ -1,13 +1,15 @@
-/*
- * @Author: 暮安 14122148+muanananan@user.noreply.gitee.com
- * @Date: 2024-03-04 10:34:47
- * @LastEditors: 暮安 14122148+muanananan@user.noreply.gitee.com
- * @LastEditTime: 2024-04-25 15:06:09
- * @FilePath: \vue-admin-template\src\main.js
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+/**
+ * 前端入口：挂载 Vue 根实例、全局插件与「路由前置守卫」。
+ *
+ * 读懂本文件的顺序建议：
+ * 1）先看下方「白名单 + token」的 router.beforeEach —— 对应需求 STU-01 登录态与未登录跳转。
+ * 2）再看 WebSocket 连接守卫 —— 对应教师端 TEA-08 / 公告推送等实时能力（具体 URL 在 .env 的 VUE_APP_WS_URL）。
+ * 3）最后看 new Vue({...}) —— 将 router、store 注入整应用；页面模块在 src/views，接口在 src/api。
+ *
+ * 学生桌面 .exe：由 Electron 加载本应用构建产物，见项目根目录 README 与 electron/main.js。
  */
 import Vue from 'vue'
-import 'normalize.css/normalize.css' // A modern alternative to CSS resets
+import 'normalize.css/normalize.css' // 基础 CSS 重置，减少各浏览器默认样式差异
 import htmlToPdf from '@/utils/htmlToPdf'
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
@@ -42,13 +44,23 @@ if (process.env.NODE_ENV === 'development') {
 Vue.prototype.$echarts = echarts
 const whiteList = ['/login', '/register']
 
-// 判断是否有token，如果有token，则允许访问，否则跳转到登录页面
+// 判断是否有 token（记住我→Cookie / file 下 localStorage；否则 sessionStorage），无则进登录页
 router.beforeEach((to, from, next) => {
-  // 获取token，这里以从localStorage获取为例
-  const token = getToken('Authorization')
+  const token = getToken()
 
   // 检查当前访问的路由是否在白名单内
   if (whiteList.includes(to.path)) {
+    // 已登录仍访问登录/注册页时进系统首页（避免 dev 打开登录页却仍带 Cookie 的困惑）
+    if (token && to.path === '/login') {
+      const r = to.query && to.query.redirect
+      const path = typeof r === 'string' && r.startsWith('/') ? r : '/index'
+      next({ path, replace: true })
+      return
+    }
+    if (token && to.path === '/register') {
+      next({ path: '/index', replace: true })
+      return
+    }
     // 如果在白名单内，不需要token，直接允许访问
     next()
   } else {
@@ -76,12 +88,8 @@ router.beforeEach((to, from, next) => {
 axios.defaults.withCredentials = true
 
 /**
- * If you don't want to use mock-server
- * you want to use MockJs for mock api
- * you can execute: mockXHR()
- *
- * Currently MockJs will be used in the production environment,
- * please remove it before going online ! ! !
+ * 可选：接入 mock 假数据时取消下面注释并配置 mock 目录。
+ * 上线前请勿在生产环境启用 Mock，以免拦截真实接口。
  */
 // if (process.env.NODE_ENV === 'production') {
 //   const { mockXHR } = require('../mock')
@@ -89,11 +97,10 @@ axios.defaults.withCredentials = true
 // }
 Vue.use(htmlToPdf)
 // 富文本
-Vue.use(VueQuillEditor /* { default global options } */)
-// set ElementUI lang to EN
+Vue.use(VueQuillEditor /* 可按需传入全局选项 */)
+// Element UI 使用中文语言包 locale
 Vue.use(ElementUI, { locale })
-// 如果想要中文版 element-ui，按如下方式声明
-// Vue.use(ElementUI)
+// 若改回英文组件文案，可改为 Vue.use(ElementUI)
 
 Vue.config.productionTip = false
 

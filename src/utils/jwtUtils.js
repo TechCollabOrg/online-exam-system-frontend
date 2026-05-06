@@ -31,15 +31,31 @@ function decodeBase64Url(input) {
 //     return JSON.parse(user.userInfo)
 //   }
 
-export function getTokenInfo() {
-  const token = getToken()
+/**
+ * 解析当前 JWT 载荷中的 userInfo。
+ * @param {string} [tokenOverride] 若传入则优先使用（登录成功后 Vuex 已写入，而 Electron file:// 下 Cookie 可能尚未可读）
+ */
+export function getTokenInfo(tokenOverride) {
+  const token =
+    typeof tokenOverride === 'string' && tokenOverride.length > 0
+      ? tokenOverride
+      : getToken()
+  if (!token || typeof token !== 'string') {
+    throw new Error('登录令牌缺失，请重新登录')
+  }
   const decodedToken = jwtDecode(token)
-  return JSON.parse(decodedToken.userInfo) // 假设userInfo是直接在payload中的
+  return JSON.parse(decodedToken.userInfo)
 }
 
-export function getRole() {
-  const token = getToken()
+export function getRole(tokenOverride) {
+  const token =
+    typeof tokenOverride === 'string' && tokenOverride.length > 0
+      ? tokenOverride
+      : getToken()
+  if (!token || typeof token !== 'string') {
+    throw new Error('登录令牌缺失，请重新登录')
+  }
   const decodedToken = jwtDecode(token)
-  return JSON.parse(decodedToken.userInfo)['roleId'] // 假设userInfo是直接在payload中的
+  return JSON.parse(decodedToken.userInfo)['roleId']
 }
 

@@ -88,30 +88,42 @@
         </span>
       </el-form-item>
 
-      <div style="display: flex">
-        <el-form-item prop="code">
+      <div class="captcha-row">
+        <el-form-item prop="code" class="captcha-form-item">
           <span class="svg-container">
             <svg-icon icon-class="code" />
           </span>
           <el-input
             ref="code"
             v-model="registerForm.code"
-            style="width: 300px"
+            class="captcha-input"
             placeholder="验证码"
             name="code"
             type="text"
             tabindex="5"
             auto-complete="off"
+            spellcheck="false"
+            autocorrect="off"
+            autocapitalize="off"
             @keyup.enter.native="registerFn"
           />
         </el-form-item>
-        <img
-          ref="captchaImg"
-          src="/api/auths/captcha"
-          style="margin-left: 20px; height: 47px"
-          alt=""
+        <div
+          class="captcha-panel"
+          title="点击刷新验证码"
+          role="button"
           @click="getVerify"
         >
+          <img
+            v-show="captchaDataUrl"
+            ref="captchaImg"
+            :src="captchaDataUrl"
+            class="captcha-img"
+            alt=""
+          >
+          <span v-show="!captchaDataUrl && captchaLoading" class="captcha-panel-text">加载中…</span>
+          <span v-show="!captchaDataUrl && !captchaLoading" class="captcha-panel-text">点击加载</span>
+        </div>
       </div>
       <div
         style="
@@ -131,7 +143,7 @@
         @click="registerFn"
       >注册</el-button>
     </el-form>
-        <!-- 添加备案信息 -->
+    <!-- 添加备案信息 -->
     <div v-if="icpNumber" class="icp-info">
       <a :href="icpLink" target="_blank">{{ icpNumber }}</a>
     </div>
@@ -140,7 +152,7 @@
 
 <script>
 import { validUsername } from '@/utils/validate'
-import { verifyCode, register } from '@/api/user'
+import { verifyCode, register, fetchCaptchaJson } from '@/api/user'
 import { Message } from 'element-ui'
 import { Encrypt } from '@/utils/Secret'
 export default {
@@ -168,7 +180,7 @@ export default {
       }
     }
     const validateCheckedPassword = (rule, value, callback) => {
-      if (value  != this.registerForm.password) {
+      if (value !== this.registerForm.password) {
         callback(new Error('两次输入密码不一致'))
       } else {
         callback()
@@ -201,7 +213,10 @@ export default {
       loading: false,
       passwordType: 'password',
       checkedPasswordType: 'password',
-      redirect: undefined
+      redirect: undefined,
+      captchaId: '',
+      captchaDataUrl: '',
+      captchaLoading: false
     }
   },
   watch: {
@@ -213,19 +228,20 @@ export default {
     }
   },
   created() {
-    // this.getEmail()
+    this.getVerify()
   },
   methods: {
     registerFn() {
       this.$refs.registerForm.validate(valid => {
         if (valid) {
-          verifyCode(this.registerForm.code).then((res) => {
-            if (res.code) {
+          verifyCode({ code: this.registerForm.code, captchaId: this.captchaId }).then((res) => {
+            if (res.code === 1) {
               const registerData = {
                 userName: this.registerForm.userName,
                 realName: this.registerForm.realName,
                 password: Encrypt(this.registerForm.password),
-                checkedPassword: Encrypt(this.registerForm.checkedPassword)
+                checkedPassword: Encrypt(this.registerForm.checkedPassword),
+                captchaId: this.captchaId
               }
               register(registerData).then((res2) => {
                 if (res2.code) {
@@ -277,7 +293,25 @@ export default {
       })
     },
     getVerify() {
-      this.$refs.captchaImg.src = `/api/auths/captcha?${Math.random()}`
+      this.captchaLoading = true
+      this.captchaDataUrl = ''
+      fetchCaptchaJson()
+        .then((res) => {
+          if (res.code === 1 && res.data && res.data.imageBase64) {
+            this.captchaId = res.data.captchaId
+            this.captchaDataUrl = 'data:image/png;base64,' + res.data.imageBase64
+          } else {
+            this.captchaId = ''
+            this.captchaDataUrl = ''
+          }
+        })
+        .catch(() => {
+          this.captchaId = ''
+          this.captchaDataUrl = ''
+        })
+        .finally(() => {
+          this.captchaLoading = false
+        })
     },
 
     showPwd() {
@@ -403,6 +437,55 @@ $light_gray: #eee;
     cursor: pointer;
     user-select: none;
   }
+
+  .captcha-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+  }
+
+  .captcha-form-item {
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .captcha-input {
+    width: 300px;
+    max-width: 100%;
+  }
+
+  .captcha-panel {
+    width: 148px;
+    height: 48px;
+    flex-shrink: 0;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    box-sizing: border-box;
+  }
+
+  .captcha-img {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .captcha-panel-text {
+    font-size: 12px;
+    color: $dark_gray;
+    padding: 0 8px;
+    text-align: center;
+    line-height: 1.3;
+  }
+
   .but {
     width: 220px;
     height: 39px;
@@ -423,12 +506,12 @@ $light_gray: #eee;
     bottom: 20px;
     width: 100%;
     text-align: center;
-    
+
     a {
       color: $dark_gray;
       font-size: 12px;
       text-decoration: none;
-      
+
       &:hover {
         color: $light_gray;
         text-decoration: underline;

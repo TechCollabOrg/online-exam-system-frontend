@@ -12,7 +12,10 @@
       <div class="right-menu">
         <el-dropdown class="avatar-container" trigger="click">
           <div class="avatar-wrapper">
-            <img :src="user.avatar" class="user-avatar">
+            <img v-if="navbarAvatar" :src="navbarAvatar" class="user-avatar" alt="">
+            <div v-else class="user-avatar user-avatar--placeholder">
+              <i class="el-icon-user-solid" />
+            </div>
             <i class="el-icon-caret-bottom" />
           </div>
           <el-dropdown-menu slot="dropdown" class="user-dropdown">
@@ -65,6 +68,7 @@ import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
 import { getToken } from '@/utils/auth'
 import { parseJwt } from '@/utils/jwtUtils'
+import { resolveMediaUrl } from '@/utils/resolveMediaUrl'
 export default {
   components: {
     Breadcrumb,
@@ -77,7 +81,12 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['sidebar', 'avatar', 'tags'])
+    ...mapGetters(['sidebar', 'avatar', 'tags']),
+    navbarAvatar() {
+      const raw = (this.avatar || (this.user && this.user.avatar) || '').trim()
+      const resolved = resolveMediaUrl(raw)
+      return (resolved || raw).trim()
+    }
   },
   created() {
     this.decode()
@@ -200,6 +209,15 @@ export default {
           width: 40px;
           height: 40px;
           border-radius: 10px;
+        }
+
+        .user-avatar--placeholder {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #e8e8e8;
+          color: #909399;
+          font-size: 22px;
         }
 
         .el-icon-caret-bottom {

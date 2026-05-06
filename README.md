@@ -55,6 +55,12 @@
    npm run dev
    ```
 
+4. **学生端 Windows `.exe`（Electron）**（与需求文档「学生使用桌面客户端」对齐）
+
+   - 修改 `.env.electron` 中的后端地址后执行：`npm run electron:dist`，产物在 `release/` 目录。
+   - 本地联调窗口：`npm run electron:dev`。
+   - 更完整的说明见上级目录 **`README.md`**（启动顺序、读代码顺序、需求差距说明）。
+
 #### 开发环境
 
 

@@ -1,8 +1,10 @@
 import CryptoJS from 'crypto-js'
 
-// 默认的 KEY 与 iv 如果没有给
-const KEY = CryptoJS.enc.Utf8.parse('63eeac68cf074c8c')
-const IV = CryptoJS.enc.Utf8.parse('63eeac68cf074c8c')
+// 与后端 online-exam.crypto.* / 环境变量 EXAM_AES_* 保持一致（须各为 16 字符）；通过 .env* 中 VUE_APP_CRYPTO_* 注入
+const DEFAULT_AES = 'changeme16byte!!'
+const KEY = CryptoJS.enc.Utf8.parse(process.env.VUE_APP_CRYPTO_KEY || DEFAULT_AES)
+const IV = CryptoJS.enc.Utf8.parse(process.env.VUE_APP_CRYPTO_IV || DEFAULT_AES)
+
 /**
  * AES加密 ：字符串 key iv  返回base64
  */
@@ -21,6 +23,7 @@ export function Encrypt(word, keyStr, ivStr) {
   })
   return CryptoJS.enc.Base64.stringify(encrypted.ciphertext)
 }
+
 /**
  * AES 解密 ：字符串 key iv  返回base64
  *
