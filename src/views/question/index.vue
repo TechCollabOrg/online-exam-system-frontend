@@ -285,10 +285,8 @@ export default {
             }
           })
           .catch((error) => {
-            console.error('文件上传失败：', error)
-            this.$message.error('文件上传失败！')
-            // 只清空文件列表
-            this.fileList = []
+            // 全局 request 拦截器已对 code!=1 弹过明细；此处避免再刷一条「上传失败」
+            console.error('导入试题请求失败：', error)
           })
       } else {
         this.$message.warning('请选择文件后再上传！')
