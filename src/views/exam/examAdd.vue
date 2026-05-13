@@ -15,9 +15,20 @@
         </div>
 
         <div>
-          <!-- <el-button class="filter-item" size="small" type="primary" icon="el-icon-plus" @click="handleAdd">
-          添加题库
-        </el-button> -->
+          <el-button class="filter-item" size="small" type="primary" icon="el-icon-plus" @click="handleAdd">
+            添加题库
+          </el-button>
+          <div style="margin-top: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+            <span style="font-size: 13px; color: #606266">统一题型分值：</span>
+            <span>单选</span>
+            <el-input-number v-model="randomScoreConfig.radioScore" :min="0" :controls="false" style="width: 80px" />
+            <span>多选</span>
+            <el-input-number v-model="randomScoreConfig.multiScore" :min="0" :controls="false" style="width: 80px" />
+            <span>判断</span>
+            <el-input-number v-model="randomScoreConfig.judgeScore" :min="0" :controls="false" style="width: 80px" />
+            <span>简答</span>
+            <el-input-number v-model="randomScoreConfig.saqScore" :min="0" :controls="false" style="width: 80px" />
+          </div>
 
           <el-table
             :data="repoList"
@@ -30,7 +41,7 @@
                 <repo-select
                   v-model="scope.row.repoId"
                   :multi="false"
-                  :excludes="excludes"
+                  :excludes="excludes.filter((id) => String(id) !== String(scope.row.repoId))"
                   @change="repoChange($event, scope.row)"
                 />
               </template>
@@ -40,24 +51,13 @@
                 <el-input-number
                   v-model="scope.row.radioCount"
                   :min="0"
-                  :max="scope.row.totalRadio"
+                  v-bind="repoTypeMaxBind(scope.row, 'totalRadio')"
                   :controls="false"
                   style="width: 80px"
                 />
-                <template v-if="scope.row.totalRadio != undefined">
-                  / {{ scope.row.totalRadio }}
+                <template v-if="repoTypeMax(scope.row, 'totalRadio') != null">
+                  / {{ repoTypeMax(scope.row, 'totalRadio') }}
                 </template>
-              </template>
-            </el-table-column>
-
-            <el-table-column label="单选分数" align="center">
-              <template v-slot="scope">
-                <el-input-number
-                  v-model="scope.row.radioScore"
-                  :min="0"
-                  :controls="false"
-                  style="width: 80px"
-                />
               </template>
             </el-table-column>
 
@@ -66,24 +66,13 @@
                 <el-input-number
                   v-model="scope.row.multiCount"
                   :min="0"
-                  :max="scope.row.totalMulti"
+                  v-bind="repoTypeMaxBind(scope.row, 'totalMulti')"
                   :controls="false"
                   style="width: 80px"
                 />
-                <template v-if="scope.row.totalMulti != undefined">
-                  / {{ scope.row.totalMulti }}
+                <template v-if="repoTypeMax(scope.row, 'totalMulti') != null">
+                  / {{ repoTypeMax(scope.row, 'totalMulti') }}
                 </template>
-              </template>
-            </el-table-column>
-
-            <el-table-column label="多选分数" align="center">
-              <template v-slot="scope">
-                <el-input-number
-                  v-model="scope.row.multiScore"
-                  :min="0"
-                  :controls="false"
-                  style="width: 80px"
-                />
               </template>
             </el-table-column>
 
@@ -92,61 +81,42 @@
                 <el-input-number
                   v-model="scope.row.judgeCount"
                   :min="0"
-                  :max="scope.row.totalJudge"
+                  v-bind="repoTypeMaxBind(scope.row, 'totalJudge')"
                   :controls="false"
                   style="width: 80px"
                 />
-                <template v-if="scope.row.totalJudge != undefined">
-                  / {{ scope.row.totalJudge }}
+                <template v-if="repoTypeMax(scope.row, 'totalJudge') != null">
+                  / {{ repoTypeMax(scope.row, 'totalJudge') }}
                 </template>
               </template>
             </el-table-column>
 
-            <el-table-column label="判断题分数" align="center">
-              <template v-slot="scope">
-                <el-input-number
-                  v-model="scope.row.judgeScore"
-                  :min="0"
-                  :controls="false"
-                  style="width: 80px"
-                />
-              </template>
-            </el-table-column>
             <el-table-column label="简答题数量" align="center">
               <template v-slot="scope">
                 <el-input-number
                   v-model="scope.row.saqCount"
                   :min="0"
-                  :max="scope.row.totalSaq"
+                  v-bind="repoTypeMaxBind(scope.row, 'totalSaq')"
                   :controls="false"
                   style="width: 80px"
                 />
-                <template v-if="scope.row.totalSaq != undefined">
-                  / {{ scope.row.totalSaq }}
+                <template v-if="repoTypeMax(scope.row, 'totalSaq') != null">
+                  / {{ repoTypeMax(scope.row, 'totalSaq') }}
                 </template>
               </template>
             </el-table-column>
 
-            <el-table-column label="简答题分数" align="center">
+            <el-table-column label="删除" align="center" width="80px">
               <template v-slot="scope">
-                <el-input-number
-                  v-model="scope.row.saqScore"
-                  :min="0"
-                  :controls="false"
-                  style="width: 80px"
+                <el-button
+                  type="danger"
+                  icon="el-icon-delete"
+                  circle
+                  :disabled="repoList.length <= 1"
+                  @click="removeItem(scope.$index)"
                 />
               </template>
             </el-table-column>
-            <!-- <el-table-column label="删除" align="center" width="80px">
-            <template v-slot="scope">
-              <el-button
-                type="danger"
-                icon="el-icon-delete"
-                circle
-                @click="removeItem(scope.$index)"
-              />
-            </template>
-          </el-table-column> -->
           </el-table>
         </div>
         <!-- </el-card> -->
@@ -171,7 +141,7 @@
         </el-form-item> -->
 
         <el-form-item label="总分数" prop="totalScore">
-          <el-input-number :value="postForm.totalScore" disabled />
+          <el-input-number v-model="postForm.totalScore" disabled />
         </el-form-item>
 
         <el-form-item label="及格分" prop="passedScore">
@@ -279,6 +249,7 @@ export default {
           queIds: '',
           id: '',
           rowId: 0,
+          repoId: null,
           radioCount: 0,
           radioScore: 0,
           multiCount: 0,
@@ -286,11 +257,21 @@ export default {
           judgeCount: 0,
           judgeScore: 0,
           saqCount: 0,
-          saqScore: 0
+          saqScore: 0,
+          totalRadio: null,
+          totalMulti: null,
+          totalJudge: null,
+          totalSaq: null
         }
       ],
       // 已选择的题库
       excludes: [],
+      randomScoreConfig: {
+        radioScore: 0,
+        multiScore: 0,
+        judgeScore: 0,
+        saqScore: 0
+      },
       postForm: {
         start: [],
         // 总分数
@@ -344,55 +325,133 @@ export default {
     //   },
     // },
 
-    // 题库变换
+    // 题库变换（同步总分、已选题库；题量/分值用 Number 归一，避免 el-input-number 为字符串时加不出分）
     repoList: {
+      immediate: true,
       handler(val) {
-        let totalScore = 0
         this.excludes = []
-        for (let i = 0; i < val.length; i++) {
-          const item = val[i]
-          if (item.radioCount > 0 && item.radioScore > 0) {
-            totalScore += item.radioCount * item.radioScore
+        const list = Array.isArray(val) ? val : []
+        const totalScore = this.calcTotalScore(list)
+        for (let i = 0; i < list.length; i++) {
+          const item = list[i]
+          if (item.repoId !== null && item.repoId !== undefined && String(item.repoId).trim() !== '') {
+            this.excludes.push(item.repoId)
           }
-
-          if (item.multiCount > 0 && item.multiScore > 0) {
-            totalScore += item.multiCount * item.multiScore
-          }
-
-          if (item.judgeCount > 0 && item.judgeScore > 0) {
-            totalScore += item.judgeCount * item.judgeScore
-          }
-          if (item.saqCount > 0 && item.saqScore > 0) {
-            totalScore += item.saqCount * item.saqScore
-          }
-          this.excludes.push(item.id)
         }
 
-        // 赋值
         this.postForm.totalScore = totalScore
-        this.postForm.repoList = val
+        this.postForm.repoList = list
         this.$forceUpdate()
+      },
+      deep: true
+    },
+    randomScoreConfig: {
+      handler() {
+        if (this.activeName === 'second') {
+          this.postForm.totalScore = this.calcTotalScore(this.repoList)
+        }
       },
       deep: true
     }
   },
   methods: {
+    calcTotalScore(list) {
+      let totalScore = 0
+      for (let i = 0; i < list.length; i++) {
+        const item = list[i]
+        const rc = Number(item.radioCount)
+        const mc = Number(item.multiCount)
+        const jc = Number(item.judgeCount)
+        const sc = Number(item.saqCount)
+        const rs = this.activeName === 'second' ? Number(this.randomScoreConfig.radioScore) : Number(item.radioScore)
+        const ms = this.activeName === 'second' ? Number(this.randomScoreConfig.multiScore) : Number(item.multiScore)
+        const js = this.activeName === 'second' ? Number(this.randomScoreConfig.judgeScore) : Number(item.judgeScore)
+        const ss = this.activeName === 'second' ? Number(this.randomScoreConfig.saqScore) : Number(item.saqScore)
+
+        if (rc > 0 && rs > 0) totalScore += rc * rs
+        if (mc > 0 && ms > 0) totalScore += mc * ms
+        if (jc > 0 && js > 0) totalScore += jc * js
+        if (sc > 0 && ss > 0) totalScore += sc * ss
+      }
+      return totalScore
+    },
     // 点击tab
     handleClick(tab, event) {
       this.$refs.questionSelector.clearSelection()
-      // console.log(event)
-      this.repoList[0].addQuType = tab.index
-      this.repoList[0].queIds = ''
-      this.repoList[0].id = ''
-      this.repoList[0].rowId = 0
-      this.repoList[0].radioCount = 0
-      this.repoList[0].radioScore = 0
-      this.repoList[0].multiCount = 0
-      this.repoList[0].judgeCount = 0
-      this.repoList[0].judgeScore = 0
-      this.repoList[0].saqCount = 0
-      this.repoList[0].saqScore = 0
+      this.repoList = [this.createRepoRow(String(tab.index))]
       console.log(tab, event)
+    },
+    /** 服务端可能返回 radioNum / radioCount 等，统一成各题型可用题量上限（无则 null，不限制输入也不误 clamp 成 0） */
+    readRepoTypeTotals(repo) {
+      if (!repo || typeof repo !== 'object') {
+        return { totalRadio: null, totalMulti: null, totalJudge: null, totalSaq: null }
+      }
+      const pick = (...keys) => {
+        for (const k of keys) {
+          if (repo[k] === null || repo[k] === undefined || repo[k] === '') continue
+          const n = Number(repo[k])
+          if (Number.isFinite(n) && n >= 0) return n
+        }
+        return null
+      }
+      return {
+        totalRadio: pick('radioNum', 'radioCount', 'totalRadio', 'singleNum', 'singleCount'),
+        totalMulti: pick('multiNum', 'multiCount', 'totalMulti'),
+        totalJudge: pick('judgeNum', 'judgeCount', 'totalJudge'),
+        totalSaq: pick('saqNum', 'saqCount', 'totalSaq', 'shortNum', 'subjectiveNum')
+      }
+    },
+    repoTypeMax(row, key) {
+      const v = row[key]
+      if (v === null || v === undefined || v === '') return null
+      const n = Number(v)
+      return Number.isFinite(n) && n >= 0 ? n : null
+    },
+    repoTypeMaxBind(row, key) {
+      const m = this.repoTypeMax(row, key)
+      return m != null ? { max: m } : {}
+    },
+    clampCountsToTotals(row) {
+      const clamp = (countKey, totalKey) => {
+        const cap = this.repoTypeMax(row, totalKey)
+        if (cap == null) return
+        const c = Number(row[countKey])
+        if (!Number.isFinite(c)) return
+        row[countKey] = Math.min(Math.max(0, c), cap)
+      }
+      clamp('radioCount', 'totalRadio')
+      clamp('multiCount', 'totalMulti')
+      clamp('judgeCount', 'totalJudge')
+      clamp('saqCount', 'totalSaq')
+    },
+    createRepoRow(addQuType = '0') {
+      return {
+        addQuType,
+        queIds: '',
+        id: '',
+        rowId: 0,
+        repoId: null,
+        radioCount: 0,
+        radioScore: 0,
+        multiCount: 0,
+        multiScore: 0,
+        judgeCount: 0,
+        judgeScore: 0,
+        saqCount: 0,
+        saqScore: 0,
+        totalRadio: null,
+        totalMulti: null,
+        totalJudge: null,
+        totalSaq: null
+      }
+    },
+    isRepoIdEmpty(value) {
+      return value === null || value === undefined || String(value).trim() === ''
+    },
+    normalizeRepoId(value) {
+      if (value === null || value === undefined || String(value).trim() === '') return null
+      const num = Number(value)
+      return Number.isInteger(num) && num > 0 ? num : null
     },
     // 子组件选择的ids
     handleSelectedChange(selectedIds) {
@@ -402,6 +461,7 @@ export default {
       })
 
       this.repoList[0].queIds = ids.join(',')
+      this.repoList[0].addQuType = '0'
       this.repoList[0].radioCount = selectedIds.questionList.radioCount
       this.repoList[0].radioScore = selectedIds.questionList.radioScore
       this.repoList[0].multiCount = selectedIds.questionList.multiCount
@@ -441,9 +501,44 @@ export default {
             return
           }
 
-          for (let i = 0; i < this.postForm.repoList.length; i++) {
-            const repo = this.postForm.repoList[i]
-            if (!repo.repoId) {
+          const isRandomMode = this.activeName === 'second'
+          const validateRepoList = isRandomMode
+            ? this.postForm.repoList
+            : this.postForm.repoList.slice(0, 1)
+
+          if (isRandomMode && validateRepoList.length === 0) {
+            this.$notify({
+              title: '提示信息',
+              message: '请至少添加一个题库！',
+              type: 'warning',
+              duration: 2000
+            })
+            return
+          }
+
+          if (isRandomMode) {
+            const totalRadioCount = validateRepoList.reduce((sum, item) => sum + Number(item.radioCount || 0), 0)
+            const totalMultiCount = validateRepoList.reduce((sum, item) => sum + Number(item.multiCount || 0), 0)
+            const totalJudgeCount = validateRepoList.reduce((sum, item) => sum + Number(item.judgeCount || 0), 0)
+            const totalSaqCount = validateRepoList.reduce((sum, item) => sum + Number(item.saqCount || 0), 0)
+
+            if ((totalRadioCount > 0 && Number(this.randomScoreConfig.radioScore) <= 0) ||
+              (totalMultiCount > 0 && Number(this.randomScoreConfig.multiScore) <= 0) ||
+              (totalJudgeCount > 0 && Number(this.randomScoreConfig.judgeScore) <= 0) ||
+              (totalSaqCount > 0 && Number(this.randomScoreConfig.saqScore) <= 0)) {
+              this.$notify({
+                title: '提示信息',
+                message: '随机抽题模式下，请设置统一题型分值（有题量的题型分值必须大于 0）！',
+                type: 'warning',
+                duration: 2500
+              })
+              return
+            }
+          }
+
+          for (let i = 0; i < validateRepoList.length; i++) {
+            const repo = validateRepoList[i]
+            if (isRandomMode && this.isRepoIdEmpty(repo.repoId)) {
               this.$notify({
                 title: '提示信息',
                 message: '考试题库选择不正确！',
@@ -452,11 +547,36 @@ export default {
               })
               return
             }
-
+            if (isRandomMode && this.normalizeRepoId(repo.repoId) == null) {
+              this.$notify({
+                title: '提示信息',
+                message: '题库第：[' + (i + 1) + ']项题库值异常，请重新选择题库！',
+                type: 'warning',
+                duration: 2500
+              })
+              return
+            }
             if (
+              isRandomMode &&
+              Number(repo.radioCount || 0) +
+                Number(repo.multiCount || 0) +
+                Number(repo.judgeCount || 0) +
+                Number(repo.saqCount || 0) ===
+                0
+            ) {
+              this.$notify({
+                title: '提示信息',
+                message: '题库第：[' + (i + 1) + ']项尚未配置抽题数量！',
+                type: 'warning',
+                duration: 2000
+              })
+              return
+            }
+
+            if (!isRandomMode && (
               (repo.radioCount > 0 && repo.radioScore === 0) ||
               (repo.radioCount === 0 && repo.radioScore > 0)
-            ) {
+            )) {
               this.$notify({
                 title: '提示信息',
                 message: '题库第：[' + (i + 1) + ']项存在无效的单选题配置！',
@@ -466,10 +586,10 @@ export default {
               return
             }
 
-            if (
+            if (!isRandomMode && (
               (repo.multiCount > 0 && repo.multiScore === 0) ||
               (repo.multiCount === 0 && repo.multiScore > 0)
-            ) {
+            )) {
               this.$notify({
                 title: '提示信息',
                 message: '题库第：[' + (i + 1) + ']项存在无效的多选题配置！',
@@ -479,10 +599,10 @@ export default {
               return
             }
 
-            if (
+            if (!isRandomMode && (
               (repo.judgeCount > 0 && repo.judgeScore === 0) ||
               (repo.judgeCount === 0 && repo.judgeScore > 0)
-            ) {
+            )) {
               this.$notify({
                 title: '提示信息',
                 message: '题库第：[' + (i + 1) + ']项存在无效的判断题配置！',
@@ -492,10 +612,10 @@ export default {
               return
             }
 
-            if (
+            if (!isRandomMode && (
               (repo.saqCount > 0 && repo.saqScore === 0) ||
               (repo.saqCount === 0 && repo.saqScore > 0)
-            ) {
+            )) {
               this.$notify({
                 title: '提示信息',
                 message: '题库第：[' + (i + 1) + ']项存在无效的简答题配置！',
@@ -532,7 +652,7 @@ export default {
 
     // 添加子项
     handleAdd() {
-      this.repoList.push()
+      this.repoList.push(this.createRepoRow(this.activeName === 'second' ? '1' : '0'))
     },
 
     removeItem(index) {
@@ -568,6 +688,23 @@ export default {
         cerTemp = this.postForm.certificateId.join(',')
       }
       this.postForm.repoList = this.repoList
+      const isRandomMode = this.activeName === 'second'
+      const effectiveRepoList = isRandomMode
+        ? this.postForm.repoList.filter((item) => !this.isRepoIdEmpty(item.repoId))
+        : this.postForm.repoList.slice(0, 1)
+      const normalizedRepoIds = effectiveRepoList
+        .map((item) => this.normalizeRepoId(item.repoId))
+        .filter((id) => id !== null)
+      if (isRandomMode && normalizedRepoIds.length !== effectiveRepoList.length) {
+        this.$notify({
+          title: '提示信息',
+          message: '存在非法题库参数，请重新选择题库后再保存！',
+          type: 'warning',
+          duration: 2500
+        })
+        return
+      }
+      const firstRepo = effectiveRepoList[0] || this.createRepoRow('0')
 
       const params = {
         title: this.postForm.title,
@@ -578,18 +715,36 @@ export default {
         startTime: this.formatDateToISOString(this.postForm.start[0]),
         endTime: this.formatDateToISOString(this.postForm.start[1]),
         gradeIds: this.postForm.classIds.join(','),
-        repoId: this.postForm.repoList[0].repoId,
+        repoId: isRandomMode
+          ? normalizedRepoIds.join(',')
+          : this.normalizeRepoId(firstRepo.repoId),
         certificateId: cerTemp,
-        addQuype: this.postForm.repoList[0].addQuType,
-        quIds: this.postForm.repoList[0].queIds,
-        radioCount: this.postForm.repoList[0].radioCount,
-        radioScore: this.postForm.repoList[0].radioScore,
-        multiCount: this.postForm.repoList[0].multiCount,
-        multiScore: this.postForm.repoList[0].multiScore,
-        judgeCount: this.postForm.repoList[0].judgeCount,
-        judgeScore: this.postForm.repoList[0].judgeScore,
-        saqCount: this.postForm.repoList[0].saqCount,
-        saqScore: this.postForm.repoList[0].saqScore
+        addQuype: isRandomMode ? '1' : firstRepo.addQuType,
+        quIds: isRandomMode ? '' : firstRepo.queIds,
+        radioCount: isRandomMode
+          ? effectiveRepoList.map((item) => Number(item.radioCount || 0)).join(',')
+          : firstRepo.radioCount,
+        radioScore: isRandomMode
+          ? effectiveRepoList.map(() => Number(this.randomScoreConfig.radioScore || 0)).join(',')
+          : firstRepo.radioScore,
+        multiCount: isRandomMode
+          ? effectiveRepoList.map((item) => Number(item.multiCount || 0)).join(',')
+          : firstRepo.multiCount,
+        multiScore: isRandomMode
+          ? effectiveRepoList.map(() => Number(this.randomScoreConfig.multiScore || 0)).join(',')
+          : firstRepo.multiScore,
+        judgeCount: isRandomMode
+          ? effectiveRepoList.map((item) => Number(item.judgeCount || 0)).join(',')
+          : firstRepo.judgeCount,
+        judgeScore: isRandomMode
+          ? effectiveRepoList.map(() => Number(this.randomScoreConfig.judgeScore || 0)).join(',')
+          : firstRepo.judgeScore,
+        saqCount: isRandomMode
+          ? effectiveRepoList.map((item) => Number(item.saqCount || 0)).join(',')
+          : firstRepo.saqCount,
+        saqScore: isRandomMode
+          ? effectiveRepoList.map(() => Number(this.randomScoreConfig.saqScore || 0)).join(',')
+          : firstRepo.saqScore
       }
       saveData(params).then((res) => {
         if (res.code) {
@@ -621,18 +776,38 @@ export default {
     },
     onClassChange() {},
     repoChange(e, row) {
-      // 赋值ID
-      row.id = e.id
       if (e !== null && e !== undefined) {
-        row.totalRadio = e.radioNum
-        row.totalMulti = e.multiNum
-        row.totalJudge = e.judgeNum
-        row.totalSaq = e.saqNum
+        const repoId = this.normalizeRepoId(e.id)
+        if (repoId == null) {
+          row.repoId = null
+          row.id = ''
+          this.$notify({
+            title: '提示信息',
+            message: '题库选择值无效，请重新选择！',
+            type: 'warning',
+            duration: 2000
+          })
+          return
+        }
+        row.repoId = repoId
+        row.id = repoId
+        const t = this.readRepoTypeTotals(e)
+        row.totalRadio = t.totalRadio
+        row.totalMulti = t.totalMulti
+        row.totalJudge = t.totalJudge
+        row.totalSaq = t.totalSaq
+        this.clampCountsToTotals(row)
       } else {
-        row.totalRadio = 0
-        row.totalMulti = 0
-        row.totalJudge = 0
-        row.totalSaq = 0
+        row.repoId = null
+        row.id = ''
+        row.totalRadio = null
+        row.totalMulti = null
+        row.totalJudge = null
+        row.totalSaq = null
+        row.radioCount = 0
+        row.multiCount = 0
+        row.judgeCount = 0
+        row.saqCount = 0
       }
     }
   }
