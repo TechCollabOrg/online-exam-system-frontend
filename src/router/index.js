@@ -212,6 +212,12 @@ export const constantRoutes = [
         meta: { title: '考试记录', visible: true, roles: ['student'], icon: 'table' }
       },
       {
+        path: '/exam-rank-trend',
+        name: 'exam-rank-trend',
+        component: () => import('@/views/record/exam/rankTrend.vue'),
+        meta: { title: '班级排名趋势', visible: true, roles: ['student'], icon: 'el-icon-data-line' }
+      },
+      {
         path: '/exercise-record',
         name: 'exercise-record',
         // 'admin',
