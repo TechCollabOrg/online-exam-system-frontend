@@ -1,0 +1,65 @@
+[
+  {
+    "quType": 1,
+    "content": "【单选题示例】下列哪一项是质数？",
+    "analysis": "2 是唯一的偶质数",
+    "image": "",
+    "options": [
+      { "content": "2", "isRight": 1 },
+      { "content": "4", "isRight": 0 },
+      { "content": "9", "isRight": 0 }
+    ]
+  },
+  {
+    "quType": 2,
+    "content": "【多选题示例】下列哪些属于可再生能源？（多选）",
+    "analysis": "太阳能、风能、水能均为可再生能源",
+    "options": [
+      { "content": "太阳能", "isRight": 1 },
+      { "content": "煤炭", "isRight": 0 },
+      { "content": "风能", "isRight": 1 },
+      { "content": "石油", "isRight": 0 },
+      { "content": "水能（如水电）", "isRight": 1 }
+    ]
+  },
+  {
+    "quType": 3,
+    "content": "【判断题示例】地球是太阳系中的行星。",
+    "analysis": "",
+    "options": [
+      { "content": "正确", "isRight": 1 },
+      { "content": "错误", "isRight": 0 }
+    ]
+  },
+  {
+    "quType": 4,
+    "content": "【简答题示例】请简述牛顿第一定律。",
+    "analysis": "可写判分要点提示",
+    "options": [
+      { "content": "物体在不受外力或所受合外力为零时，将保持静止或匀速直线运动状态。" }
+    ]
+  },
+  {
+    "quType": 1,
+    "content": "【材料题·小问1】根据共用材料，选择正确说法。",
+    "stemGroupCode": "demo-material-1",
+    "sharedStemContent": "【共用材料】阅读以下说明：某在线考试系统支持 Excel 与 JSON 批量导入试题，题型包括单选、多选、判断与简答。",
+    "sharedStemImage": "",
+    "options": [
+      { "content": "仅支持 Excel 导入", "isRight": 0 },
+      { "content": "支持 Excel 与 JSON 导入", "isRight": 1 }
+    ]
+  },
+  {
+    "quType": 2,
+    "content": "【材料题·小问2】根据同一材料，以下哪些题型可导入？（多选）",
+    "stemGroupCode": "demo-material-1",
+    "options": [
+      { "content": "单选题", "isRight": 1 },
+      { "content": "多选题", "isRight": 1 },
+      { "content": "判断题", "isRight": 1 },
+      { "content": "简答题", "isRight": 1 },
+      { "content": "编程实操题", "isRight": 0 }
+    ]
+  }
+]
