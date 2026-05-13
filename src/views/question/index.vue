@@ -89,6 +89,7 @@
       <el-table-column label="序号" align="center" width="80">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
+      <el-table-column prop="id" label="ID" width="76" align="center" />
       <el-table-column prop="content" label="题干" align="center" />
       <el-table-column label="题目类型" align="center">
         <template slot-scope="scope">
@@ -102,6 +103,12 @@
       <el-table-column prop="createTime" label="创建时间" align="center" />
       <el-table-column align="center" label="操作">
         <template slot-scope="{ row }">
+          <el-button
+            type="text"
+            size="small"
+            style="font-size: 14px"
+            @click="addSubQuestion(row)"
+          >材料下小问</el-button>
           <el-button
             type="text"
             size="small"
@@ -261,6 +268,11 @@ export default {
       localStorage.setItem('quId', row.id)
       this.$router.push({ name: 'questions-add' })
     },
+    /** 以当前行为共用材料父题，打开新增页录 (1)(2)… 小问（父题一般为简答材料题） */
+    addSubQuestion(row) {
+      localStorage.removeItem('quId')
+      this.$router.push({ name: 'questions-add', query: { parentQuId: row.id }})
+    },
     importQu() {
       if (this.fileList && this.fileList.length > 0 && this.selectedRepoSingle !== '') {
         const formData = new FormData() // 创建FormData对象
@@ -394,6 +406,7 @@ export default {
     },
 
     screenInfo(row, index, done) {
+      localStorage.removeItem('quId')
       this.$router.push({ name: 'questions-add', query: { zhi: row }})
     },
 
@@ -411,19 +424,39 @@ export default {
         this.selectedRepoSingleSearch,
         this.selValue)
     },
-    // 下载模板
+    /**
+     * 下载导入模板：public/template 下的文件。
+     * publicPath 为 ./ 时，写死的 ./template/... 会相对「当前路由」拼错；这里用 URL 规范解析。
+     * 再用 fetch + Blob 触发保存，避免部分浏览器对 xlsx 只预览、或忽略 download 属性。
+     */
     async startDownload() {
-      const a = document.createElement('a')
-      a.href = './template/ImportQuestionTemplate.xlsx'
-      a.download = '导入试题模板.xlsx'
-      // 障眼法藏起来a标签
-      a.style.display = 'none'
-      // 将a标签追加到文档对象中
-      document.body.appendChild(a)
-      // 模拟点击了<a>标签,会触发<a>标签的href的读取,浏览器就会自动下载了
-      a.click()
-      // 一次性的,用完就删除a标签
-      a.remove()
+      const fileName = '导入试题模板.xlsx'
+      const href = new URL('template/ImportQuestionTemplate.xlsx', window.location.href).href
+      try {
+        const res = await fetch(href, { method: 'GET', credentials: 'same-origin' })
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`)
+        }
+        const blob = await res.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = fileName
+        a.rel = 'noopener'
+        a.style.display = 'none'
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        window.URL.revokeObjectURL(url)
+        this.$message.success(
+          '已开始下载。未看到文件时，按 Ctrl+J 可打开下载记录，或在系统「下载」文件夹中查找。'
+        )
+      } catch (e) {
+        console.error('下载模板失败', e)
+        this.$message.error(
+          '模板下载失败。请确认使用 npm run dev 启动前端，且不要删掉 public/template/ImportQuestionTemplate.xlsx；部署后勿改静态资源路径。'
+        )
+      }
     }
   }
 }

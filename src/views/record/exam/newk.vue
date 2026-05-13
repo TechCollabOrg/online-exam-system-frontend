@@ -63,6 +63,11 @@
                   <el-row :gutter="24">
                     <el-col :span="20" style="text-align: left">
                       <!-- 题目: 序号、类型、题干 -->
+                      <compound-stem-block
+                        :stem-content="index.stemContent"
+                        :stem-image="index.stemImage"
+                        :parent-qu-id="index.parentQuId"
+                      />
                       <div>
                         <!-- <div class="qu_num">{{ index }}</div> -->
                         <!-- 【 单选题 】 -->
@@ -74,11 +79,14 @@
                           <el-image :src="item.image" style="max-width: 200px" />
                         </div> -->
                       </div>
-                      <div v-if="index.image != null && index.image != ''">
+                      <div v-if="parseImageUrls(index.image).length" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px">
                         <el-image
-                          :src="index.image"
-                          :preview-src="[index.image]"
-                          style="height: 100px"
+                          v-for="(img, si) in parseImageUrls(index.image)"
+                          :key="'rs-' + indexx + '-' + si"
+                          :src="img"
+                          :preview-src-list="parseImageUrls(index.image)"
+                          fit="contain"
+                          style="height: 100px; max-width: 200px"
                         />
                       </div>
                       <!-- 选项 -->
@@ -91,7 +99,7 @@
                           border
                           class="qu_choose"
                           :class="{
-                            imgC: item.image != null && item.image != '',
+                            imgC: parseImageUrls(item.image).length > 0,
                             isRight:
                               index.myOption != null &&
                               isCheck(index.myOption, item.sort) &&
@@ -107,23 +115,26 @@
                             <div class="qu_choose_tag_type">
                               {{ numberToLetter(indexs) }}、{{ item.content }}.
                             </div>
-                            <!-- 选项内容和图片 -->
                             <div
-                              v-if="item.image != null && item.image != ''"
-                              style="clear: both"
+                              v-if="parseImageUrls(item.image).length"
+                              style="clear: both; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px"
                             >
                               <el-image
-                                :src="item.image"
-                                :preview-src="[item.image]"
+                                v-for="(img, oi) in parseImageUrls(item.image)"
+                                :key="'ro-' + indexs + '-' + oi"
+                                :src="img"
+                                :preview-src-list="parseImageUrls(item.image)"
+                                fit="contain"
+                                class="qu_choose_tag_img"
                                 style="max-width: 200px"
                               />
                             </div>
-                            <div v-if="item.image != null && item.image != ''">
-                              <el-image
-                                :src="item.image"
-                                :preview-src="[item.image]"
-                                class="qu_choose_tag_img"
-                              />
+                            <div
+                              v-if="item.analysis && String(item.analysis).trim()"
+                              style="margin-top: 6px; color: #606266; font-size: 13px; width: 100%"
+                            >
+                              <span>选项解析：</span>
+                              <rich-html-content :html="item.analysis" />
                             </div>
                           </div>
                         </el-radio>
@@ -158,15 +169,29 @@
                   <el-row :gutter="24">
                     <el-col :span="20" style="text-align: left">
                       <!-- 题目: 序号、类型、题干 -->
+                      <compound-stem-block
+                        :stem-content="index.stemContent"
+                        :stem-image="index.stemImage"
+                        :parent-qu-id="index.parentQuId"
+                      />
                       <div>
                         <!-- <div class="qu_num">{{ index }}</div> -->
                         <!-- 【 单选题 】 -->
                         <div class="qu_content">{{ index.title }}</div>
                       </div>
+                      <div v-if="parseImageUrls(index.image).length" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px">
+                        <el-image
+                          v-for="(img, si) in parseImageUrls(index.image)"
+                          :key="'rsa-' + si"
+                          :src="img"
+                          :preview-src-list="parseImageUrls(index.image)"
+                          fit="contain"
+                          style="max-height: 120px; max-width: 200px"
+                        />
+                      </div>
 
                       <!-- 选项 -->
                       <el-radio-group class="qu_choose_group">
-                        <!-- ['A', 'B', 'C', 'D'] -->
                         <el-input
                           v-model="index.myOption"
                           style="margin-top: 10px"
@@ -196,7 +221,8 @@
                           </div>
                           <div style="margin-top: 8px">
                             <span>正确答案：</span>
-                            <span>{{ index.rightOption }}</span>
+                            <rich-html-content v-if="index.option && index.option[0]" :html="saqRefDisplay(index)" />
+                            <span v-else>{{ index.rightOption }}</span>
                             <br>
                           </div>
                           <div style="margin-top: 8px">
@@ -221,8 +247,15 @@
 
 <script>
 import { recordExamDetail } from '@/api/record'
+import imageUrlsMixin from '@/mixins/imageUrlsMixin'
+import RichHtmlContent from '@/components/RichHtmlContent'
+import CompoundStemBlock from '@/components/CompoundStemBlock'
+import { saqReferenceDisplayHtml } from '@/utils/saqAnswerHtml'
+
 export default {
   name: 'ExamProcess',
+  components: { RichHtmlContent, CompoundStemBlock },
+  mixins: [imageUrlsMixin],
   data() {
     return {
       input: '',
@@ -244,6 +277,9 @@ export default {
     this.ExamDetail()
   },
   methods: {
+    saqRefDisplay(row) {
+      return saqReferenceDisplayHtml(row.option && row.option[0])
+    },
     isCheck(myOption, sort) {
       const arr = myOption.split(',').map(Number) // 将字符串转换为数字数组
       if (arr.includes(sort)) {

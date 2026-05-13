@@ -96,8 +96,15 @@ service.interceptors.response.use(
           })
           break
         case 403:
+          // 403 多半来自后端鉴权/权限（token 缺失、角色不匹配、验证码接口被拦截等）
+          // 这里把关键信息打到控制台，方便定位是哪一个接口触发的
+          console.warn('[HTTP 403]', {
+            url: (error.config && (error.config.baseURL || '') + (error.config.url || '')) || '',
+            method: error.config && error.config.method,
+            backendMsg
+          })
           Message({
-            message: '没有权限访问该资源',
+            message: backendMsg || '没有权限访问该资源（403）',
             type: 'error',
             duration: 5 * 1000
           })

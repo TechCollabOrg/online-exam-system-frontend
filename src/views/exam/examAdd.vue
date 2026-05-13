@@ -222,30 +222,21 @@
             end-placeholder="结束日期"
           />
         </el-form-item> -->
+        <h3>权限配置</h3>
+        <el-card style="margin-top: 20px">
+          <div style="display: flex">
+            <div style="margin-left: 10px; width: 100%">
+              <el-form-item label="考试班级" prop="classIds">
+                <ClassSelect
+                  v-model="postForm.classIds"
+                  is-multiple
+                  @change="onClassChange"
+                />
+              </el-form-item>
+            </div>
+          </div>
+        </el-card>
       </el-form>
-    </el-card>
-
-    <h3>权限配置</h3>
-    <el-card style="margin-top: 20px">
-      <div style="display: flex">
-        <div style="margin-left: 10px">
-          <el-form
-            ref="postForm"
-            :model="postForm"
-            :rules="rules"
-            label-position="left"
-            label-width="120px"
-          >
-            <el-form-item label="考试班级" prop="classIds">
-              <ClassSelect
-                v-model="postForm.classIds"
-                is-multiple
-                @change="onClassChange"
-              />
-            </el-form-item>
-          </el-form>
-        </div>
-      </div>
     </el-card>
 
     <div style="margin-top: 20px">
@@ -425,11 +416,10 @@ export default {
       // 或者执行其他需要的操作
     },
     handleSave() {
-      if (this.repoList[0].addQuType === '1') {
+      const validateAndSubmit = () => {
         this.$refs.postForm.validate((valid) => {
-          if (!valid) {
-            return
-          }
+          if (!valid) return
+
           if (this.postForm.totalScore === 0) {
             this.$notify({
               title: '提示信息',
@@ -437,7 +427,6 @@ export default {
               type: 'warning',
               duration: 2000
             })
-
             return
           }
 
@@ -474,7 +463,6 @@ export default {
                 type: 'warning',
                 duration: 2000
               })
-
               return
             }
 
@@ -488,7 +476,6 @@ export default {
                 type: 'warning',
                 duration: 2000
               })
-
               return
             }
 
@@ -528,15 +515,9 @@ export default {
           })
         })
       }
-      if (this.repoList[0].addQuType === '0') {
-        this.$confirm('确实要提交保存吗？', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          this.submitForm()
-        })
-      }
+
+      // 两种组卷方式都走同一套校验+提交，避免“保存没反应”的隐性分支
+      validateAndSubmit()
     },
 
     handleCheckChange() {

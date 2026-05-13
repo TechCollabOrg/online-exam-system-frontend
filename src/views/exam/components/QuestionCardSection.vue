@@ -6,6 +6,7 @@
         v-for="(item, index) in questions"
         :key="index"
         :type="getCardItemClass(item)"
+        :title="item.parentQuId ? '与同组小题共用题干（材料见题目上方）' : ''"
         style="width: calc(100% / 8); text-align: center; margin: 2px;"
         @click="selectQuestion(item)"
       >

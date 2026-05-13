@@ -22,12 +22,24 @@
                     <el-row :gutter="24">
                       <el-col :span="20" style="text-align: left">
                         <!-- 题干区域 -->
+                        <compound-stem-block
+                          :stem-content="item.stemContent"
+                          :stem-image="item.stemImage"
+                          :parent-qu-id="item.parentQuId"
+                        />
                         <div>
                           <div class="qu_content">
                             <span class="qu_num">{{ index + 1 }}. </span>{{ item.title }}
                           </div>
-                          <div v-if="item.image != null && item.image != ''">
-                            <el-image :src="item.image" style="max-width: 200px;" />
+                          <div v-if="parseImageUrls(item.image).length" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px">
+                            <el-image
+                              v-for="(img, ii) in parseImageUrls(item.image)"
+                              :key="'sum-stem-' + ii"
+                              :src="img"
+                              :preview-src-list="parseImageUrls(item.image)"
+                              fit="contain"
+                              style="max-width: 200px;"
+                            />
                           </div>
                         </div>
 
@@ -41,12 +53,20 @@
                             class="qu_choose"
                             :class="{
                               'current': item.myOption != null && isCheck(item.myOption, option.sort),
-                              'imgC': option.image != null && option.image != '',
+                              'imgC': parseImageUrls(option.image).length > 0,
                             }"
                           >
                             {{ numberToLetter(optionIndex) }}、{{ option.content }}
-                            <div v-if="option.image != null && option.image != ''">
-                              <el-image :src="option.image" style="max-width: 200px" class="qu_choose_tag_img" />
+                            <div v-if="parseImageUrls(option.image).length" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px">
+                              <el-image
+                                v-for="(img, oi) in parseImageUrls(option.image)"
+                                :key="'sum-opt-' + optionIndex + '-' + oi"
+                                :src="img"
+                                :preview-src-list="parseImageUrls(option.image)"
+                                fit="contain"
+                                style="max-width: 200px"
+                                class="qu_choose_tag_img"
+                              />
                             </div>
                           </el-radio>
                         </el-radio-group>
@@ -82,9 +102,24 @@
                     <el-row :gutter="24">
                       <el-col :span="20" style="text-align: left">
                         <!-- 题干部分 -->
+                        <compound-stem-block
+                          :stem-content="item.stemContent"
+                          :stem-image="item.stemImage"
+                          :parent-qu-id="item.parentQuId"
+                        />
                         <div>
                           <div class="qu_content">
                             <span class="qu_num">{{ index + 1 }}. </span>{{ item.title }}
+                          </div>
+                          <div v-if="parseImageUrls(item.image).length" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px">
+                            <el-image
+                              v-for="(img, si) in parseImageUrls(item.image)"
+                              :key="'sum-saq-' + index + '-' + si"
+                              :src="img"
+                              :preview-src-list="parseImageUrls(item.image)"
+                              fit="contain"
+                              style="max-width: 200px"
+                            />
                           </div>
                         </div>
 
@@ -98,6 +133,13 @@
                             placeholder="请输入内容"
                             readonly
                           />
+                          <div
+                            v-if="item.option && item.option[0] && saqRefDisplay(item)"
+                            style="margin-top: 10px"
+                          >
+                            <span style="color: #606266; font-size: 13px">参考答案：</span>
+                            <rich-html-content :html="saqRefDisplay(item)" />
+                          </div>
                         </el-radio-group>
                       </el-col>
                     </el-row>
@@ -119,8 +161,15 @@
 </template>
 
 <script>
+import imageUrlsMixin from '@/mixins/imageUrlsMixin'
+import CompoundStemBlock from '@/components/CompoundStemBlock'
+import RichHtmlContent from '@/components/RichHtmlContent'
+import { saqReferenceDisplayHtml } from '@/utils/saqAnswerHtml'
+
 export default {
   name: 'ExamSummaryDialog',
+  components: { CompoundStemBlock, RichHtmlContent },
+  mixins: [imageUrlsMixin],
   props: {
     visible: {
       type: Boolean,
@@ -142,6 +191,9 @@ export default {
     }
   },
   methods: {
+    saqRefDisplay(row) {
+      return saqReferenceDisplayHtml(row.option && row.option[0])
+    },
     // 检查选项是否被选中
     isCheck(myOption, sort) {
       if (!myOption) return false

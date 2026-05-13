@@ -1,20 +1,28 @@
 <template>
-  <div style="width: 100%; height: 100%; background-color: #f0f2f5; padding: 20px 0 0">
+  <div class="exam-page-root" style="width: 100%; height: 100%; background-color: #f0f2f5; padding: 20px 0 0">
     <!-- Header区域 -->
     <el-row :gutter="24">
       <el-col :span="24">
         <el-card style="margin-bottom: 10px">
           距离考试结束还有：
           <exam-timer v-model="paperData.leftSeconds" @timeout="doHandler(true)" />
-          <el-button
-            :loading="loading"
-            style="float: right; margin-top: -10px"
-            type="primary"
-            icon="el-icon-plus"
-            @click="handHandExamPre()"
-          >
-            {{ handleText }}
-          </el-button>
+          <div style="float: right; margin-top: -10px; display: flex; align-items: center; gap: 8px">
+            <el-button
+              v-show="!isFullscreen"
+              size="small"
+              @click="enterExamFullscreenFromUser"
+            >
+              进入全屏
+            </el-button>
+            <el-button
+              :loading="loading"
+              type="primary"
+              icon="el-icon-plus"
+              @click="handHandExamPre()"
+            >
+              {{ handleText }}
+            </el-button>
+          </div>
         </el-card>
       </el-col>
 
@@ -69,13 +77,21 @@
       <!-- 单题区域 -->
       <el-col :span="19" :xs="24">
         <el-card class="qu-content content-h">
+          <compound-stem-block
+            :stem-content="quData.stemContent"
+            :stem-image="quData.stemImage"
+            :parent-qu-id="quData.parentQuId"
+          />
           <!-- 题干 -->
           <p v-if="quData.content">{{ quData.sort + 1 }}.{{ quData.content }}</p>
-          <p v-if="quData.image">
+          <p v-if="parseImageUrls(quData.image).length" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
             <el-image
-              :src="quData.image"
-              :preview-src="[quData.image]"
-              style="max-width: 200px;max-height:100%"
+              v-for="(img, qIdx) in parseImageUrls(quData.image)"
+              :key="'stem-' + qIdx"
+              :src="img"
+              :preview-src-list="parseImageUrls(quData.image)"
+              fit="contain"
+              style="max-width: 200px; max-height: 200px"
             />
           </p>
 
@@ -88,10 +104,13 @@
                 :label="item.id"
               >
                 {{ numberToLetter(item.sort) }}.{{ item.content }}
-                <div v-if="item.image" style="clear: both">
+                <div v-if="parseImageUrls(item.image).length" style="clear: both; display: flex; flex-wrap: wrap; gap: 8px">
                   <el-image
-                    :src="item.image"
-                    :preview-src="[item.image]"
+                    v-for="(img, oIdx) in parseImageUrls(item.image)"
+                    :key="'opt-' + item.id + '-' + oIdx"
+                    :src="img"
+                    :preview-src-list="parseImageUrls(item.image)"
+                    fit="contain"
                     style="max-width: 200px"
                   />
                 </div>
@@ -108,10 +127,13 @@
                 :label="item.id"
               >
                 {{ numberToLetter(item.sort) }}.{{ item.content }}
-                <div v-if="item.image" style="clear: both">
+                <div v-if="parseImageUrls(item.image).length" style="clear: both; display: flex; flex-wrap: wrap; gap: 8px">
                   <el-image
-                    :src="item.image"
-                    :preview-src="[item.image]"
+                    v-for="(img, oIdx) in parseImageUrls(item.image)"
+                    :key="'mopt-' + item.id + '-' + oIdx"
+                    :src="img"
+                    :preview-src-list="parseImageUrls(item.image)"
+                    fit="contain"
                     style="max-width: 200px"
                   />
                 </div>
@@ -182,6 +204,18 @@
     >
       {{ examMeg }}
     </el-dialog>
+
+    <!-- 全屏需在用户手势内触发；若准备页自动全屏失败或用户刷新本页，点此补全（.exe 为系统窗口全屏） -->
+    <div
+      v-show="fullscreenGateVisible"
+      class="exam-fullscreen-gate"
+      @click="enterExamFullscreenFromUser"
+    >
+      <div class="exam-fullscreen-gate__panel" @click="enterExamFullscreenFromUser">
+        <p class="exam-fullscreen-gate__title">点击进入全屏考试模式</p>
+        <p class="exam-fullscreen-gate__desc">浏览器请允许全屏；学生端 .exe 一般会自动窗口全屏。仍失败请用顶部「进入全屏」。</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -198,20 +232,30 @@ import { Loading } from 'element-ui'
 import ExamTimer from '@/components/ExamTimer'
 import QuestionCardSection from './components/QuestionCardSection'
 import ExamSummaryDialog from './components/ExamSummaryDialog'
+import CompoundStemBlock from '@/components/CompoundStemBlock'
+import {
+  enterExamDisplayMode,
+  exitExamDisplayMode,
+  isExamDisplayFullscreen
+} from '@/utils/fullscreen'
+import imageUrlsMixin from '@/mixins/imageUrlsMixin'
 
 export default {
   name: 'ExamProcess',
   components: {
     ExamTimer,
     QuestionCardSection,
-    ExamSummaryDialog
+    ExamSummaryDialog,
+    CompoundStemBlock
   },
+  mixins: [imageUrlsMixin],
   data() {
     return {
       examId: '',
       receivedRow: null,
-      // 全屏/不全屏
+      // 全屏/不全屏（网页 Fullscreen API 或 Electron 窗口全屏 / kiosk）
       isFullscreen: false,
+      fullscreenGateVisible: false,
       showPrevious: false,
       showNext: true,
       loading: false,
@@ -259,16 +303,56 @@ export default {
   },
   mounted() {
     document.addEventListener('visibilitychange', this.pageHidden)
+    document.addEventListener('fullscreenchange', this.syncExamFullscreenState)
+    document.addEventListener('webkitfullscreenchange', this.syncExamFullscreenState)
+    if (typeof window !== 'undefined' && window.electronAPI && typeof window.electronAPI.onNativeFullscreenChange === 'function') {
+      this._removeNativeFsListener = window.electronAPI.onNativeFullscreenChange(() => {
+        this.syncExamFullscreenState()
+      })
+    }
     this.$nextTick(() => {
       const body = document.querySelector('body')
       body.style.overflow = 'auto'
+      // 进入答题页后再尝试一次（学生端窗口全屏不依赖手势；浏览器拒绝则仍依赖遮罩/按钮）
+      enterExamDisplayMode()
+        .then(() => this.syncExamFullscreenState())
+        .catch(() => this.syncExamFullscreenState())
+      this.syncExamFullscreenState()
+      // 准备页已 await 全屏后跳转时，部分浏览器全屏状态稍晚才就绪，延迟再同步几次以免误显示「点击全屏」遮罩
+      setTimeout(() => this.syncExamFullscreenState(), 80)
+      setTimeout(() => this.syncExamFullscreenState(), 400)
     })
   },
   beforeDestroy() {
     document.removeEventListener('visibilitychange', this.pageHidden)
+    document.removeEventListener('fullscreenchange', this.syncExamFullscreenState)
+    document.removeEventListener('webkitfullscreenchange', this.syncExamFullscreenState)
+    if (typeof this._removeNativeFsListener === 'function') {
+      this._removeNativeFsListener()
+      this._removeNativeFsListener = null
+    }
+    exitExamDisplayMode().catch(() => {})
     clearInterval(this.countdownTime)
   },
   methods: {
+    syncExamFullscreenState() {
+      isExamDisplayFullscreen().then((fs) => {
+        this.isFullscreen = fs
+        this.fullscreenGateVisible = !fs
+      })
+    },
+
+    enterExamFullscreenFromUser() {
+      enterExamDisplayMode()
+        .then(() => this.syncExamFullscreenState())
+        .catch(() => {
+          this.$message({
+            type: 'warning',
+            message: '无法进入全屏，请检查浏览器权限或尝试按 F11；学生端 .exe 请尝试重启客户端。'
+          })
+        })
+    },
+
     // 检查问题列表是否存在
     hasQuestions(list) {
       return list && list.length > 0
@@ -333,6 +417,7 @@ export default {
             this.examMeg = res.msg
             this.tipsFlag = true
             if (res.data) {
+              exitExamDisplayMode().catch(() => {})
               this.$router.push({
                 name: 'text-center',
                 params: { id: this.paperId }
@@ -412,6 +497,7 @@ export default {
           name: this.$route.name
         })
         handExam(this.examId).then(() => {
+          exitExamDisplayMode().catch(() => {})
           this.$message({
             message: isAutomatic ? '考试时间到，试卷已自动提交！' : '试卷提交成功！',
             type: 'success'
@@ -1043,4 +1129,43 @@ page {
           display: block;
           margin: 10px;
         }
+
+.exam-fullscreen-gate {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1990;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.exam-fullscreen-gate__panel {
+  max-width: 440px;
+  margin: 16px;
+  padding: 28px 32px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  text-align: center;
+  cursor: pointer;
+}
+
+.exam-fullscreen-gate__title {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.exam-fullscreen-gate__desc {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #606266;
+}
 </style>

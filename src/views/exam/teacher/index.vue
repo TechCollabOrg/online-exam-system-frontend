@@ -357,7 +357,7 @@ export default {
     },
     showExam(row) {
       localStorage.setItem('exam-details-examId', row.id)
-      this.$router.push({ name: 'exam-details' })
+      this.$router.push({ name: 'exam-details', query: { examId: row.id }})
     },
     updateExam() {
       const data = {

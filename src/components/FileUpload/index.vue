@@ -1,6 +1,6 @@
 <template>
   <div>
-    <file-upload-local v-model="fileUrl" :accept="accept" :tips="tips" :list-type="listType" />
+    <file-upload-local v-model="fileUrl" :accept="accept" :tips="tips" :list-type="listType" :limit="limit" />
   </div>
 </template>
 
@@ -23,6 +23,10 @@ export default {
     listType: {
       type: String,
       default: 'picture'
+    },
+    limit: {
+      type: Number,
+      default: 500
     }
   },
   data() {

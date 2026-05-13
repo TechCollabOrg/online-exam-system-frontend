@@ -1,19 +1,18 @@
 <template>
   <div class="content">
     <el-upload
-      v-model="fileUrl"
       :action="server"
       :accept="accept"
       :before-remove="beforeRemove"
       :on-remove="handleRemove"
       :on-success="handleSuccess"
       :on-exceed="handleExceed"
-
       :drag="listType !='picture'"
       :limit="limit"
       :headers="header"
       :file-list="fileList"
       :list-type="listType"
+      :multiple="limit > 1"
     >
 
       <el-button v-if="listType==='picture'" size="small" type="primary">点击上传</el-button>
@@ -33,6 +32,7 @@
 <script>
 
 import { getToken } from '@/utils/auth'
+import { joinImageUrls, parseImageUrls } from '@/utils/imageUrls'
 
 export default {
   name: 'FileUploadLocal',
@@ -47,20 +47,18 @@ export default {
     listType: String,
     limit: {
       type: Number,
-      default: 1
+      default: 500
     }
   },
   data() {
     return {
       server: `api/questions/uploadImage`,
       fileList: [],
-      fileUrl: '',
       header: {}
     }
   },
 
   watch: {
-    // 检测查询变化
     value: {
       handler() {
         this.fillValue()
@@ -76,39 +74,45 @@ export default {
   methods: {
 
     fillValue() {
-      this.fileList = []
-      this.fileUrl = this.value
-      if (this.fileUrl) {
-        this.fileList = [{ name: this.fileUrl, url: this.fileUrl }]
-      }
+      const urls = parseImageUrls(this.value)
+      this.fileList = urls.map((url, i) => ({ name: `图片${i + 1}`, url }))
     },
 
-    // 文件超出个数限制时的钩子
     handleExceed() {
-      this.$message.warning(`每次只能上传 ${this.limit} 个文件`)
+      this.$message.warning(`最多上传 ${this.limit} 张图片`)
     },
-    // 删除文件之前的钩子
+
     beforeRemove() {
-      return this.$confirm(`确定移除文件吗？`)
+      return this.$confirm(`确定移除该图片吗？`)
     },
 
-    // 文件列表移除文件时的钩子
-    handleRemove() {
-      this.$emit('input', '')
-      this.fileList = []
+    handleRemove(file, fileList) {
+      const urls = fileList
+        .map(f => f.url)
+        .filter(u => u && typeof u === 'string' && !u.startsWith('blob:'))
+      this.$emit('input', joinImageUrls(urls))
     },
 
-    // 文件上传成功时的钩子
-    handleSuccess(response) {
+    handleSuccess(response, file, fileList) {
       if (response.code === 1) {
+        const urls = fileList
+          .map(f => {
+            if (f.url && typeof f.url === 'string' && !f.url.startsWith('blob:')) return f.url
+            if (f.response && f.response.code === 1 && f.response.data) return f.response.data
+            return null
+          })
+          .filter(Boolean)
+        this.$emit('input', joinImageUrls(urls))
         this.$message({
           type: 'success',
-          message: response.msg
+          message: response.msg || '上传成功'
         })
-        this.$emit('input', response.data)
-        this.fileList = []
         return
       }
+      this.$message({
+        type: 'error',
+        message: (response && response.msg) || '上传失败'
+      })
     }
 
   }

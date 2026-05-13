@@ -54,6 +54,13 @@ function createWindow() {
 
   win.once('ready-to-show', () => win.show())
 
+  win.on('enter-full-screen', () => {
+    win.webContents.send('native-fullscreen-changed', true)
+  })
+  win.on('leave-full-screen', () => {
+    win.webContents.send('native-fullscreen-changed', false)
+  })
+
   // 需求 STU-10：交卷前由前端二次确认；此处不拦截关闭，便于非考试场景退出
   win.on('closed', () => {
     // 在 Windows 上多窗口时可在此清理引用
@@ -93,3 +100,27 @@ ipcMain.handle('app:get-mode', () => ({
   isElectron: true,
   kiosk: useExamKiosk()
 }))
+
+/**
+ * 渲染进程在「开始考试」等时机请求系统级窗口全屏（不依赖浏览器 Fullscreen API 的手势限制）。
+ * 若启动时已带 --exam-kiosk / EXAM_KIOSK=1，窗口已是 kiosk，此处不改状态，避免交卷误退出机考模式。
+ */
+ipcMain.handle('window:set-fullscreen', (event, flag) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  if (!win || win.isDestroyed()) return { ok: false }
+  if (useExamKiosk()) {
+    return { ok: true, skipped: true }
+  }
+  win.setFullScreen(Boolean(flag))
+  return { ok: true }
+})
+
+ipcMain.handle('window:is-fullscreen', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  if (!win || win.isDestroyed()) return false
+  try {
+    return Boolean(win.isFullScreen() || (typeof win.isKiosk === 'function' && win.isKiosk()))
+  } catch {
+    return win.isFullScreen()
+  }
+})

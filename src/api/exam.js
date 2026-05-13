@@ -107,7 +107,7 @@ export function examCollect(examId) {
 
 export function details(examId) {
   return request({
-    url: `exams//details//${examId}`,
+    url: `exams/details/${examId}`,
     method: 'get'
   })
 }
