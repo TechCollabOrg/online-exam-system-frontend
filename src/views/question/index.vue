@@ -270,6 +270,7 @@ export default {
   methods: {
     questionStemListLabel(row) {
       return questionStemPlainSummary(row)
+    },
     /** 弹窗打开时清空上次选择 */
     onImportDialogOpened() {
       this.clearImportFileState()
