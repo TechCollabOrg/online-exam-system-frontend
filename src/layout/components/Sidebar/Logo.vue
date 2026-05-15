@@ -14,6 +14,8 @@
 </template>
 
 <script>
+import defaultSettings from '@/settings'
+
 export default {
   name: 'SidebarLogo',
   props: {
@@ -24,14 +26,16 @@ export default {
   },
   data() {
     return {
-      title: 'Vue Admin Template',
-      logo: 'https://wpimg.wallstcn.com/69a1c46c-eb1c-4b46-8bd4-e9e686ef5251.png'
+      title: defaultSettings.title,
+      logo: ''
     }
   }
 }
 </script>
 
 <style lang="scss" scoped>
+@use "~@/styles/variables.scss" as vars;
+
 .sidebarLogoFade-enter-active {
   transition: opacity 1.5s;
 }
@@ -46,9 +50,10 @@ export default {
   width: 100%;
   height: 50px;
   line-height: 50px;
-  background: #2b2f3a;
+  background: vars.$menuBg;
   text-align: center;
   overflow: hidden;
+  border-bottom: 1px solid rgba(59, 130, 246, 0.12);
 
   & .sidebar-logo-link {
     height: 100%;
@@ -64,12 +69,13 @@ export default {
     & .sidebar-title {
       display: inline-block;
       margin: 0;
-      color: #fff;
+      color: #1e40af;
       font-weight: 600;
       line-height: 50px;
       font-size: 14px;
-      font-family: Avenir, Helvetica Neue, Arial, Helvetica, sans-serif;
+      font-family: 'Segoe UI', system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif;
       vertical-align: middle;
+      letter-spacing: 0.02em;
     }
   }
 

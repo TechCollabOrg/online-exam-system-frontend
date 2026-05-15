@@ -1,4 +1,151 @@
 // cover some element-ui styles
+// 主色覆盖（与 variables 侧栏高亮、:root --theme-primary 一致）
+$theme-primary: #3b82f6;
+$theme-primary-hover: #2563eb;
+
+.el-button--primary {
+  background-color: $theme-primary !important;
+  border-color: $theme-primary !important;
+
+  &:hover,
+  &:focus {
+    background-color: $theme-primary-hover !important;
+    border-color: $theme-primary-hover !important;
+  }
+
+  &:active {
+    background-color: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
+  }
+
+  &.is-plain {
+    color: $theme-primary !important;
+    background: #fff !important;
+    border-color: rgba(59, 130, 246, 0.45) !important;
+
+    &:hover,
+    &:focus {
+      color: #fff !important;
+      background: $theme-primary !important;
+      border-color: $theme-primary !important;
+    }
+  }
+
+  &.is-disabled,
+  &.is-disabled:active,
+  &.is-disabled:focus,
+  &.is-disabled:hover {
+    background-color: #bfdbfe !important;
+    border-color: #93c5fd !important;
+    color: #f8fafc !important;
+  }
+}
+
+.el-link.el-link--primary {
+  color: $theme-primary;
+
+  &:hover {
+    color: $theme-primary-hover;
+  }
+}
+
+.el-input__inner:focus,
+.el-textarea__inner:focus {
+  border-color: $theme-primary !important;
+}
+
+.el-checkbox__input.is-checked .el-checkbox__inner,
+.el-checkbox__input.is-indeterminate .el-checkbox__inner {
+  background-color: $theme-primary;
+  border-color: $theme-primary;
+}
+
+.el-radio__input.is-checked .el-radio__inner {
+  background-color: $theme-primary;
+  border-color: $theme-primary;
+}
+
+.el-switch.is-checked .el-switch__core {
+  background-color: $theme-primary !important;
+  border-color: $theme-primary !important;
+}
+
+.el-pagination.is-background .el-pager li:not(.disabled).active,
+.el-pagination.is-background .el-pager li:not(.disabled):hover {
+  background-color: $theme-primary !important;
+  color: #fff !important;
+}
+
+.el-tabs__active-bar {
+  background-color: $theme-primary;
+}
+
+.el-tabs__item.is-active,
+.el-tabs__item:hover {
+  color: $theme-primary;
+}
+
+.el-select .el-input.is-focus .el-input__inner {
+  border-color: $theme-primary !important;
+}
+
+.el-date-table td.today span {
+  color: $theme-primary;
+}
+
+.el-picker-panel__icon-btn:hover,
+.el-date-picker__header-label:hover {
+  color: $theme-primary;
+}
+
+.el-table th.el-table__cell {
+  background-color: #eff6ff !important;
+  color: #1e40af !important;
+  font-weight: 600;
+  border-bottom: 1px solid #dbeafe !important;
+}
+
+.el-table {
+  font-size: 14px;
+  color: #334155;
+  border-radius: 10px;
+
+  td.el-table__cell {
+    border-bottom: 1px solid #f1f5f9 !important;
+    padding-top: 11px !important;
+    padding-bottom: 11px !important;
+  }
+
+  .el-table__body tr:hover > td.el-table__cell {
+    background-color: #eff6ff !important;
+  }
+
+  &.el-table--striped .el-table__body tr.el-table__row--striped td.el-table__cell {
+    background-color: #fafbfc !important;
+  }
+
+  &.el-table--striped .el-table__body tr.el-table__row--striped:hover td.el-table__cell {
+    background-color: #eff6ff !important;
+  }
+
+  &.el-table--border {
+    border: 1px solid #e2e8f0;
+
+    th.el-table__cell,
+    td.el-table__cell {
+      border-right: 1px solid #f1f5f9 !important;
+    }
+  }
+
+  .el-table__fixed-right::before,
+  .el-table__fixed::before {
+    background-color: #e2e8f0;
+  }
+}
+
+.el-table--enable-row-hover .el-table__body tr:hover > td.el-table__cell {
+  background-color: #eff6ff !important;
+}
 
 .el-breadcrumb__inner,
 .el-breadcrumb__inner a {

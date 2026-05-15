@@ -340,7 +340,8 @@ export default {
     this.fetchData(this.examId)
   },
   mounted() {
-    document.addEventListener('visibilitychange', this.pageHidden)
+    // 焦点离开当前考试窗口（切标签/其它应用/最小化等）视为切屏
+    window.addEventListener('blur', this.onExamWindowBlur)
     document.addEventListener('fullscreenchange', this.syncExamFullscreenState)
     document.addEventListener('webkitfullscreenchange', this.syncExamFullscreenState)
     if (typeof window !== 'undefined' && window.electronAPI && typeof window.electronAPI.onNativeFullscreenChange === 'function') {
@@ -362,7 +363,7 @@ export default {
     })
   },
   beforeDestroy() {
-    document.removeEventListener('visibilitychange', this.pageHidden)
+    window.removeEventListener('blur', this.onExamWindowBlur)
     document.removeEventListener('fullscreenchange', this.syncExamFullscreenState)
     document.removeEventListener('webkitfullscreenchange', this.syncExamFullscreenState)
     if (typeof this._removeNativeFsListener === 'function') {
@@ -466,23 +467,21 @@ export default {
         this.handExamPreLoading = false
       }
     },
-    // 切换页面检测
-    pageHidden(e = null) {
-      if (document.visibilityState === 'hidden') {
-        examCheat(this.examId).then((res) => {
-          if (res.code) {
-            this.examMeg = res.msg
-            this.tipsFlag = true
-            if (res.data) {
-              exitExamDisplayMode().catch(() => {})
-              this.$router.push({
-                name: 'text-center',
-                params: { id: this.paperId }
-              })
-            }
+    // 窗口失焦检测（替代 document.visibilitychange）
+    onExamWindowBlur() {
+      examCheat(this.examId).then((res) => {
+        if (res.code) {
+          this.examMeg = res.msg
+          this.tipsFlag = true
+          if (res.data) {
+            exitExamDisplayMode().catch(() => {})
+            this.$router.push({
+              name: 'text-center',
+              params: { id: this.paperId }
+            })
           }
-        })
-      }
+        }
+      })
     },
 
     // 开始考试
