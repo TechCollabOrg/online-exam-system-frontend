@@ -90,25 +90,22 @@
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
       <el-table-column prop="id" label="ID" width="76" align="center" />
-      <el-table-column prop="content" label="题干" align="center" />
+      <el-table-column label="题干" align="left" min-width="220" show-overflow-tooltip>
+        <template slot-scope="scope">{{ questionStemListLabel(scope.row) }}</template>
+      </el-table-column>
       <el-table-column label="题目类型" align="center">
         <template slot-scope="scope">
           <span v-if="scope.row.quType == 1">单选题</span>
           <span v-else-if="scope.row.quType == 2">多选题</span>
           <span v-else-if="scope.row.quType == 3">判断题</span>
           <span v-else-if="scope.row.quType == 4">简答题</span>
+          <span v-else-if="scope.row.quType == 5">复合题</span>
         </template>
       </el-table-column>
       <el-table-column prop="repoTitle" label="所属题库" align="center" />
       <el-table-column prop="createTime" label="创建时间" align="center" />
       <el-table-column align="center" label="操作">
         <template slot-scope="{ row }">
-          <el-button
-            type="text"
-            size="small"
-            style="font-size: 14px"
-            @click="addSubQuestion(row)"
-          >材料下小问</el-button>
           <el-button
             type="text"
             size="small"
@@ -169,6 +166,7 @@
 <script>
 import { quPaging, quDel, quUpdate, importQue } from '@/api/question'
 import RepoSelect from '@/components/RepoSelect'
+import { questionStemPlainSummary } from '@/utils/questionStemHtml'
 
 export default {
   components: { RepoSelect },
@@ -194,6 +192,10 @@ export default {
         {
           value: 4,
           label: '简答题'
+        },
+        {
+          value: 5,
+          label: '复合题'
         }
       ],
       length: '',
@@ -260,6 +262,9 @@ export default {
     this.getQuPage()
   },
   methods: {
+    questionStemListLabel(row) {
+      return questionStemPlainSummary(row)
+    },
     handleRepoChangeSingle(repo) {
       ('单选题库变化:', repo)
       // 这里可以进一步处理repo对象，比如更新UI或发送网络请求等
@@ -267,11 +272,6 @@ export default {
     updateRow(row) {
       localStorage.setItem('quId', row.id)
       this.$router.push({ name: 'questions-add' })
-    },
-    /** 以当前行为共用材料父题，打开新增页录 (1)(2)… 小问（父题一般为简答材料题） */
-    addSubQuestion(row) {
-      localStorage.removeItem('quId')
-      this.$router.push({ name: 'questions-add', query: { parentQuId: row.id }})
     },
     importQu() {
       if (this.fileList && this.fileList.length > 0 && this.selectedRepoSingle !== '') {

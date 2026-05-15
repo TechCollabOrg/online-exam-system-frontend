@@ -156,8 +156,12 @@ export default {
     },
 
     screenInfo(row) {
-      localStorage.setItem('record_exam_examId', row.id)
-      this.$router.push({ name: 'exam-record-detail', query: { zhi: row }})
+      if (!row || row.id == null) {
+        this.$message.error('无法查看：缺少试卷编号')
+        return
+      }
+      localStorage.setItem('record_exam_examId', String(row.id))
+      this.$router.push({ name: 'exam-record-detail', query: { examId: row.id }})
     },
 
     handleSizeChange(val) {

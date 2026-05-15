@@ -20,26 +20,15 @@
                     <el-col :span="20" style="text-align: left">
                       <!-- 题目: 序号、类型、题干 -->
                       <compound-stem-block
-                        :stem-content="index.stemContent"
-                        :stem-image="index.stemImage"
-                        :parent-qu-id="index.parentQuId"
+                        v-if="index.quType === 5"
+                        :stem-content="questionStemDisplay(index)"
+                        :stem-image="index.image"
                       />
-                      <div>
-                        <!-- <div class="qu_num">{{ index }}</div> -->
-                        <!-- 【 单选题 】 -->
-                        <div class="qu_content">{{ indexx+1 }}、{{ index.title }}</div>
+                      <div v-if="index.quType !== 5 && questionStemDisplay(index)" style="margin: 8px 0 12px">
+                        <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">{{ indexx + 1 }}、</div>
+                        <rich-html-content :html="questionStemDisplay(index)" />
+                      </div>
 
-                      </div>
-                      <div v-if="parseImageUrls(index.image).length" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px">
-                        <el-image
-                          v-for="(img, si) in parseImageUrls(index.image)"
-                          :key="'s-' + indexx + '-' + si"
-                          :src="img"
-                          :preview-src-list="parseImageUrls(index.image)"
-                          fit="contain"
-                          style="height: 100px; max-width: 200px"
-                        />
-                      </div>
                       <!-- 选项 -->
                       <el-radio-group class="qu_choose_group">
                         <!-- ['A', 'B', 'C', 'D'] -->
@@ -116,24 +105,13 @@
                     <el-col :span="20" style="text-align: left">
                       <!-- 题目: 序号、类型、题干 -->
                       <compound-stem-block
-                        :stem-content="index.stemContent"
-                        :stem-image="index.stemImage"
-                        :parent-qu-id="index.parentQuId"
+                        v-if="index.quType === 5"
+                        :stem-content="questionStemDisplay(index)"
+                        :stem-image="index.image"
                       />
-                      <div>
-                        <!-- <div class="qu_num">{{ index }}</div> -->
-                        <!-- 【 单选题 】 -->
-                        <div class="qu_content">{{ index.title }}</div>
-                      </div>
-                      <div v-if="parseImageUrls(index.image).length" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px">
-                        <el-image
-                          v-for="(img, si) in parseImageUrls(index.image)"
-                          :key="'saq-stem-' + si"
-                          :src="img"
-                          :preview-src-list="parseImageUrls(index.image)"
-                          fit="contain"
-                          style="max-height: 120px; max-width: 200px"
-                        />
+                      <div v-if="index.quType !== 5 && questionStemDisplay(index)" style="margin: 8px 0 12px">
+                        <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">题干</div>
+                        <rich-html-content :html="questionStemDisplay(index)" />
                       </div>
 
                       <!-- 选项 -->
@@ -197,6 +175,7 @@ import imageUrlsMixin from '@/mixins/imageUrlsMixin'
 import RichHtmlContent from '@/components/RichHtmlContent'
 import CompoundStemBlock from '@/components/CompoundStemBlock'
 import { saqReferenceDisplayHtml } from '@/utils/saqAnswerHtml'
+import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
 
 export default {
   name: 'ExamProcess',
@@ -225,6 +204,9 @@ export default {
     this.ExamDetail()
   },
   methods: {
+    questionStemDisplay(row) {
+      return questionStemDisplayHtml(row || {})
+    },
     saqRefDisplay(row) {
       return saqReferenceDisplayHtml(row.option && row.option[0])
     },

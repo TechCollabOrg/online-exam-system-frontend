@@ -129,31 +129,25 @@
       <el-col :span="19" :xs="24">
         <el-card class="qu-content content-h">
           <compound-stem-block
-            :stem-content="quDetail.stemContent"
-            :stem-image="quDetail.stemImage"
-            :parent-qu-id="quDetail.parentQuId"
+            v-if="quDetail.quType === 5"
+            :stem-content="questionStemDisplay(quDetail)"
+            :stem-image="quDetail.image"
           />
-          <p v-if="quDetail.content">
-            <span
-              :class="['question-type', {
-                'single-choice': quDetail.quType === 1,
-                'multiple-choice': quDetail.quType === 2,
-                'judgment': quDetail.quType === 3,
-                'short-answer': quDetail.quType === 4
-              }]"
-            >{{ shouQuType(quDetail.quType) }}</span>
-            {{ number == 1 ? curTypeIndex + 1 : currentQuIndex + 1 }}.{{ quDetail.content }}
-          </p>
-          <p v-if="parseImageUrls(quDetail.image).length" style="display: flex; flex-wrap: wrap; gap: 8px">
-            <el-image
-              v-for="(img, qi) in parseImageUrls(quDetail.image)"
-              :key="'exq-' + qi"
-              :src="img"
-              style="max-width: 100px;max-height:100%"
-              :preview-src-list="parseImageUrls(quDetail.image)"
-              fit="contain"
-            />
-          </p>
+          <div v-if="quDetail.quType !== 5 && questionStemDisplay(quDetail)" style="margin: 10px 0 14px">
+            <p style="margin: 0 0 8px">
+              <span
+                :class="['question-type', {
+                  'single-choice': quDetail.quType === 1,
+                  'multiple-choice': quDetail.quType === 2,
+                  'judgment': quDetail.quType === 3,
+                  'short-answer': quDetail.quType === 4
+                }]"
+              >{{ shouQuType(quDetail.quType) }}</span>
+              <span>{{ number == 1 ? curTypeIndex + 1 : currentQuIndex + 1 }}.</span>
+            </p>
+            <rich-html-content :html="questionStemDisplay(quDetail)" />
+          </div>
+
           <div v-if="quDetail.quType == 1 || quDetail.quType == 3">
             <el-radio-group v-model="radioValue" :disabled="isAnswered">
               <el-radio
@@ -334,6 +328,7 @@ import {
 } from '@/utils/fullscreen'
 import RichHtmlContent from '@/components/RichHtmlContent'
 import { saqReferenceDisplayHtml } from '@/utils/saqAnswerHtml'
+import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
 
 export default {
   name: 'ExamProcess',
@@ -507,6 +502,9 @@ export default {
     exitExamDisplayMode().catch(() => {})
   },
   methods: {
+    questionStemDisplay(row) {
+      return questionStemDisplayHtml(row || {})
+    },
     syncExerciseFullscreenState() {
       isExamDisplayFullscreen().then((fs) => {
         this.isFullscreen = fs
@@ -809,6 +807,8 @@ export default {
         return '判断题'
       } else if (type === 4) {
         return '简答题'
+      } else if (type === 5) {
+        return '复合题'
       }
     },
     async handNext() {

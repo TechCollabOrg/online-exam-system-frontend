@@ -64,31 +64,17 @@
                     <el-col :span="20" style="text-align: left">
                       <!-- 题目: 序号、类型、题干 -->
                       <compound-stem-block
-                        :stem-content="index.stemContent"
-                        :stem-image="index.stemImage"
-                        :parent-qu-id="index.parentQuId"
+                        v-if="index.quType === 5"
+                        :stem-content="questionStemDisplay(index)"
+                        :stem-image="index.image"
                       />
-                      <div>
-                        <!-- <div class="qu_num">{{ index }}</div> -->
-                        <!-- 【 单选题 】 -->
-                        <div class="qu_content">
-                          {{ indexx + 1 }}、{{ index.title }}
+                      <div v-if="index.quType !== 5 && questionStemDisplay(index)" style="margin: 8px 0 12px">
+                        <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">
+                          {{ indexx + 1 }}、
                         </div>
+                        <rich-html-content :html="questionStemDisplay(index)" />
+                      </div>
 
-                        <!-- <div v-if="item.image != null && item.image != ''" style="clear: both">
-                          <el-image :src="item.image" style="max-width: 200px" />
-                        </div> -->
-                      </div>
-                      <div v-if="parseImageUrls(index.image).length" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px">
-                        <el-image
-                          v-for="(img, si) in parseImageUrls(index.image)"
-                          :key="'rs-' + indexx + '-' + si"
-                          :src="img"
-                          :preview-src-list="parseImageUrls(index.image)"
-                          fit="contain"
-                          style="height: 100px; max-width: 200px"
-                        />
-                      </div>
                       <!-- 选项 -->
                       <el-radio-group class="qu_choose_group">
                         <!-- ['A', 'B', 'C', 'D'] -->
@@ -170,24 +156,13 @@
                     <el-col :span="20" style="text-align: left">
                       <!-- 题目: 序号、类型、题干 -->
                       <compound-stem-block
-                        :stem-content="index.stemContent"
-                        :stem-image="index.stemImage"
-                        :parent-qu-id="index.parentQuId"
+                        v-if="index.quType === 5"
+                        :stem-content="questionStemDisplay(index)"
+                        :stem-image="index.image"
                       />
-                      <div>
-                        <!-- <div class="qu_num">{{ index }}</div> -->
-                        <!-- 【 单选题 】 -->
-                        <div class="qu_content">{{ index.title }}</div>
-                      </div>
-                      <div v-if="parseImageUrls(index.image).length" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px">
-                        <el-image
-                          v-for="(img, si) in parseImageUrls(index.image)"
-                          :key="'rsa-' + si"
-                          :src="img"
-                          :preview-src-list="parseImageUrls(index.image)"
-                          fit="contain"
-                          style="max-height: 120px; max-width: 200px"
-                        />
+                      <div v-if="index.quType !== 5 && questionStemDisplay(index)" style="margin: 8px 0 12px">
+                        <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">题干</div>
+                        <rich-html-content :html="questionStemDisplay(index)" />
                       </div>
 
                       <!-- 选项 -->
@@ -236,6 +211,64 @@
                   <el-divider />
                 </div>
               </template>
+              <template v-for="(item, indexx) in data">
+                <div v-if="item.quType === 5" :key="'compound-' + indexx" :class="'index' + indexx">
+                  <el-row :gutter="24">
+                    <el-col :span="20" style="text-align: left">
+                      <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">
+                        {{ indexx + 1 }}、
+                        <el-tag size="mini" type="info" style="margin-left: 8px">复合题</el-tag>
+                      </div>
+                      <compound-stem-block
+                        :stem-content="questionStemDisplay(item)"
+                        :stem-image="item.image"
+                      />
+                      <div
+                        v-for="(sub, sidx) in item.subItemList || []"
+                        :key="'sub-' + indexx + '-' + sidx"
+                        style="margin: 14px 0; padding-bottom: 12px; border-bottom: 1px dashed #ebeef5"
+                      >
+                        <div v-if="sub.content" style="margin-bottom: 8px">
+                          <span style="font-weight: 600">({{ sidx + 1 }})</span>
+                          <rich-html-content :html="sub.content" />
+                        </div>
+                        <div v-if="sub.quType === 1 || sub.quType === 3 || sub.quType === 2">
+                          <div style="margin-top: 8px; color: #606266">考生答案：{{ formatObjectiveAnswer(sub) }}</div>
+                          <div style="margin-top: 6px; color: #606266">正确答案：{{ formatSubRightAnswer(sub) }}</div>
+                        </div>
+                        <div v-else-if="sub.quType === 4">
+                          <div style="font-size: 13px; color: #606266; margin-bottom: 6px">考生作答</div>
+                          <template v-if="parseSaqStudentAnswer(sub).length">
+                            <div
+                              v-for="(txt, bidx) in parseSaqStudentAnswer(sub)"
+                              :key="'ans-' + sidx + '-' + bidx"
+                              style="margin-bottom: 6px"
+                            >
+                              <span v-if="parseSaqStudentAnswer(sub).length > 1">空{{ bidx + 1 }}：</span>
+                              <rich-html-content v-if="txt" :html="txt" />
+                              <span v-else style="color: #c0c4cc">（未作答）</span>
+                            </div>
+                          </template>
+                          <span v-else style="color: #c0c4cc">（未作答）</span>
+                          <div v-for="(opt, oidx) in sub.options || []" :key="'ref-' + sidx + '-' + oidx" style="margin-top: 8px">
+                            <span>参考答案（空{{ oidx + 1 }}）：</span>
+                            <rich-html-content :html="opt.content || ''" />
+                          </div>
+                        </div>
+                      </div>
+                      <div class="qu_analysis">
+                        <el-card>
+                          <div style="margin-top: 8px">
+                            <span>试题解析：</span>
+                            <span>{{ item.analyse }}</span>
+                          </div>
+                        </el-card>
+                      </div>
+                    </el-col>
+                  </el-row>
+                  <el-divider />
+                </div>
+              </template>
             </div>
             <el-divider />
           </el-card>
@@ -251,6 +284,7 @@ import imageUrlsMixin from '@/mixins/imageUrlsMixin'
 import RichHtmlContent from '@/components/RichHtmlContent'
 import CompoundStemBlock from '@/components/CompoundStemBlock'
 import { saqReferenceDisplayHtml } from '@/utils/saqAnswerHtml'
+import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
 
 export default {
   name: 'ExamProcess',
@@ -260,23 +294,76 @@ export default {
     return {
       input: '',
       quIndex: -1,
-      examId: 0,
-      data: null,
+      examId: '',
+      data: [],
       userId: null,
       index: {
         quType: 4 // 确保这里有一个值
       }
     }
   },
+  watch: {
+    '$route'() {
+      this.resolveExamIdFromRouteOrStorage()
+      this.ExamDetail()
+    }
+  },
   created() {
     if (this.$route.query?.data?.type === 1) {
       this.userId = this.$route.query.data.userId
     }
-    // this.examId=this.$route.query.zhi.examId
-    this.examId = localStorage.getItem('record_exam_examId')
+    this.resolveExamIdFromRouteOrStorage()
     this.ExamDetail()
   },
   methods: {
+    resolveExamIdFromRouteOrStorage() {
+      const q = this.$route.query || {}
+      const fromRoute = q.examId ?? q.id
+      const id =
+        fromRoute != null && fromRoute !== ''
+          ? String(fromRoute)
+          : localStorage.getItem('record_exam_examId')
+      this.examId = id || ''
+      if (this.examId) {
+        localStorage.setItem('record_exam_examId', this.examId)
+      }
+    },
+    questionStemDisplay(row) {
+      return questionStemDisplayHtml(row || {})
+    },
+    parseSaqStudentAnswer(sub) {
+      if (!sub) return []
+      const raw = sub.studentFill != null ? sub.studentFill : sub.studentAnswer
+      if (raw == null || raw === '') return []
+      const s = String(raw).trim()
+      if (s.startsWith('[')) {
+        try {
+          const arr = JSON.parse(s)
+          if (Array.isArray(arr)) return arr.map((x) => (x == null ? '' : String(x)))
+        } catch (e) { /* ignore */ }
+      }
+      return [s]
+    },
+    formatObjectiveAnswer(sub) {
+      if (!sub || sub.studentAnswer == null || sub.studentAnswer === '') return '未作答'
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+      try {
+        const parsed = JSON.parse(sub.studentAnswer)
+        if (Array.isArray(parsed)) {
+          return parsed.map((i) => letters[i] || i).join('、')
+        }
+      } catch (e) { /* single index */ }
+      const idx = parseInt(sub.studentAnswer, 10)
+      return Number.isNaN(idx) ? sub.studentAnswer : (letters[idx] || sub.studentAnswer)
+    },
+    formatSubRightAnswer(sub) {
+      if (!sub || !sub.options || !sub.options.length) return '—'
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+      const rights = sub.options
+        .map((opt, oidx) => ((opt.isRight === 1 || opt.isRight === true) ? letters[oidx] || oidx : null))
+        .filter(Boolean)
+      return rights.length ? rights.join('、') : '—'
+    },
     saqRefDisplay(row) {
       return saqReferenceDisplayHtml(row.option && row.option[0])
     },
@@ -321,9 +408,19 @@ export default {
     },
     // 分页查询
     async ExamDetail() {
-      const params = { examId: this.examId, userId: this.userId }
-      const res = await recordExamDetail(params)
-      this.data = res.data
+      if (!this.examId) {
+        this.data = []
+        this.$message.error('缺少试卷编号，无法加载考试记录')
+        return
+      }
+      try {
+        const params = { examId: this.examId, userId: this.userId }
+        const res = await recordExamDetail(params)
+        this.data = res.data || []
+      } catch (e) {
+        this.data = []
+        this.$message.error('加载考试记录失败')
+      }
     },
     // 点击答题卡题号, 右侧题目滑动
     handleTag(index) {

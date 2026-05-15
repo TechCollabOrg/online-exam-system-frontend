@@ -1,39 +1,41 @@
 <template>
-  <div
-    v-if="stemContent || parseImageUrls(stemImage || '').length"
-    class="compound-stem-block"
-    style="margin-bottom: 16px; padding: 12px 14px; background: #f9fafb; border: 1px solid #e4e7ed; border-radius: 6px"
-  >
-    <div style="margin-bottom: 8px">
-      <el-tag v-if="parentQuId != null && parentQuId !== ''" size="small" type="info">同一大题 · 共用题干</el-tag>
-    </div>
-    <p v-if="stemContent" style="margin: 0; white-space: pre-wrap; line-height: 1.65; color: #303133">{{ stemContent }}</p>
-    <div
-      v-if="parseImageUrls(stemImage || '').length"
-      style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center"
-    >
+  <div v-if="stemContent" class="compound-stem-block">
+    <el-tag size="mini" type="info" style="margin-bottom: 8px">共用材料</el-tag>
+    <rich-html-content :html="stemContent" />
+    <div v-if="stemImage && parseImageUrls(stemImage).length" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px">
       <el-image
-        v-for="(img, i) in parseImageUrls(stemImage || '')"
-        :key="'compound-stem-img-' + i"
+        v-for="(img, idx) in parseImageUrls(stemImage)"
+        :key="'stem-img-' + idx"
         :src="img"
-        :preview-src-list="parseImageUrls(stemImage || '')"
+        :preview-src-list="parseImageUrls(stemImage)"
         fit="contain"
-        style="max-width: 220px; max-height: 220px"
+        style="max-width: 240px"
       />
     </div>
   </div>
 </template>
 
 <script>
+import RichHtmlContent from '@/components/RichHtmlContent'
 import imageUrlsMixin from '@/mixins/imageUrlsMixin'
 
 export default {
   name: 'CompoundStemBlock',
+  components: { RichHtmlContent },
   mixins: [imageUrlsMixin],
   props: {
     stemContent: { type: String, default: '' },
-    stemImage: { type: String, default: '' },
-    parentQuId: { type: [Number, String], default: null }
+    stemImage: { type: String, default: '' }
   }
 }
 </script>
+
+<style scoped>
+.compound-stem-block {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  background: #f5f7fa;
+  border-radius: 4px;
+  border-left: 3px solid #409eff;
+}
+</style>

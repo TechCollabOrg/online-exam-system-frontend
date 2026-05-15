@@ -71,6 +71,15 @@
             :current-item="cardItem"
             @select-question="handSave"
           />
+
+          <!-- 复合题答题卡 -->
+          <question-card-section
+            v-if="hasQuestions(paperData.compoundList)"
+            title="复合题"
+            :questions="paperData.compoundList"
+            :current-item="cardItem"
+            @select-question="handSave"
+          />
         </el-card>
       </el-col>
 
@@ -78,22 +87,15 @@
       <el-col :span="19" :xs="24">
         <el-card class="qu-content content-h">
           <compound-stem-block
-            :stem-content="quData.stemContent"
-            :stem-image="quData.stemImage"
-            :parent-qu-id="quData.parentQuId"
+            v-if="quData.quType === 5"
+            :stem-content="questionStemDisplay(quData)"
+            :stem-image="quData.image"
           />
-          <!-- 题干 -->
-          <p v-if="quData.content">{{ quData.sort + 1 }}.{{ quData.content }}</p>
-          <p v-if="parseImageUrls(quData.image).length" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
-            <el-image
-              v-for="(img, qIdx) in parseImageUrls(quData.image)"
-              :key="'stem-' + qIdx"
-              :src="img"
-              :preview-src-list="parseImageUrls(quData.image)"
-              fit="contain"
-              style="max-width: 200px; max-height: 200px"
-            />
-          </p>
+          <!-- 题干（非复合题） -->
+          <div v-if="quData.quType !== 5 && questionStemDisplay(quData)" style="margin: 10px 0 14px">
+            <div style="font-weight: 600; margin-bottom: 6px">{{ quData.sort + 1 }}.</div>
+            <rich-html-content :html="questionStemDisplay(quData)" />
+          </div>
 
           <!-- 单选和判断题选项区域 -->
           <div v-if="quData.quType === 1 || quData.quType === 3">
@@ -141,9 +143,34 @@
             </el-checkbox-group>
           </div>
 
-          <!-- 简答题区域 -->
+          <!-- 复合题：共用材料 + 多小题 -->
+          <div v-if="quData.quType === 5">
+            <div style="font-weight: 600; margin-bottom: 8px">{{ quData.sort + 1 }}.</div>
+            <compound-question-display
+              v-model="compoundAnswers"
+              :sub-items="quData.subItemList || []"
+            />
+          </div>
+
+          <!-- 简答题区域：单空 或 多空（JSON 数组提交） -->
           <div v-if="quData.quType === 4">
+            <template v-if="saqMultiSlot">
+              <div
+                v-for="(slot, sidx) in saqMultiInputs"
+                :key="'saq-slot-' + cardItem.questionId + '-' + sidx"
+                style="margin-bottom: 14px"
+              >
+                <div style="font-size: 13px; color: #606266; margin-bottom: 4px">第 {{ sidx + 1 }} 空</div>
+                <el-input
+                  v-model="saqMultiInputs[sidx]"
+                  type="textarea"
+                  :autosize="{ minRows: 2, maxRows: 8 }"
+                  :placeholder="'请输入第 ' + (sidx + 1) + ' 空的答案'"
+                />
+              </div>
+            </template>
             <el-input
+              v-else
               v-model="saqTextarea"
               type="textarea"
               :autosize="{ minRows: 2, maxRows: 4 }"
@@ -233,12 +260,15 @@ import ExamTimer from '@/components/ExamTimer'
 import QuestionCardSection from './components/QuestionCardSection'
 import ExamSummaryDialog from './components/ExamSummaryDialog'
 import CompoundStemBlock from '@/components/CompoundStemBlock'
+import CompoundQuestionDisplay from '@/components/CompoundQuestionDisplay'
 import {
   enterExamDisplayMode,
   exitExamDisplayMode,
   isExamDisplayFullscreen
 } from '@/utils/fullscreen'
 import imageUrlsMixin from '@/mixins/imageUrlsMixin'
+import RichHtmlContent from '@/components/RichHtmlContent'
+import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
 
 export default {
   name: 'ExamProcess',
@@ -246,7 +276,9 @@ export default {
     ExamTimer,
     QuestionCardSection,
     ExamSummaryDialog,
-    CompoundStemBlock
+    CompoundStemBlock,
+    CompoundQuestionDisplay,
+    RichHtmlContent
   },
   mixins: [imageUrlsMixin],
   data() {
@@ -261,6 +293,10 @@ export default {
       loading: false,
       handleText: '交卷',
       saqTextarea: '',
+      /** 简答题多空（与题库多条「参考答案」选项对应） */
+      saqMultiSlot: false,
+      saqMultiInputs: [],
+      compoundAnswers: {},
       pageLoading: false,
       // 试卷ID
       paperId: '',
@@ -282,7 +318,8 @@ export default {
         radioList: [],
         multiList: [],
         judgeList: [],
-        saqList: []
+        saqList: [],
+        compoundList: []
       },
       // 单选选定值
       radioValue: '',
@@ -292,7 +329,8 @@ export default {
       answeredIds: [],
       recordData: null,
       //
-      submittedAnswers: {}
+      submittedAnswers: {},
+      handExamPreLoading: false
     }
   },
   created() {
@@ -358,6 +396,10 @@ export default {
       return list && list.length > 0
     },
 
+    questionStemDisplay(row) {
+      return questionStemDisplayHtml(row || {})
+    },
+
     // 检查选项是否被选中
     isCheck(myOption, sort) {
       if (!myOption) return false
@@ -397,17 +439,32 @@ export default {
       return ''
     },
 
-    // 交卷前预览
-    handHandExamPre() {
-      this.handSave(this.cardItem)
-      examCollect(this.examId).then((res) => {
-        // 按答题卡排序
-        this.recordData = this.allItem.map(item =>
-          res.data.find(d => d.id === item.questionId)
-        )
+    /** 交卷/预览前仅保存当前题，不切换题目 */
+    persistCurrentAnswer() {
+      if (!this.cardItem || !this.cardItem.questionId) {
+        return Promise.resolve()
+      }
+      return this.handSave(this.cardItem, null, { skipNavigate: true })
+    },
 
+    // 交卷前预览：先保存当前题作答，再拉取汇总（避免答案未落库、汇总弹窗因空项报错）
+    async handHandExamPre() {
+      if (this.handExamPreLoading || this.loading) return
+      this.handExamPreLoading = true
+      this.loading = true
+      try {
+        await this.persistCurrentAnswer()
+        const res = await examCollect(this.examId)
+        this.recordData = this.allItem
+          .map(item => (res.data || []).find(d => d.id === item.questionId))
+          .filter(Boolean)
         this.examPreVisible = true
-      })
+      } catch (e) {
+        console.error('交卷预览失败:', e)
+      } finally {
+        this.loading = false
+        this.handExamPreLoading = false
+      }
     },
     // 切换页面检测
     pageHidden(e = null) {
@@ -454,6 +511,7 @@ export default {
       checkList(this.paperData.multiList)
       checkList(this.paperData.judgeList)
       checkList(this.paperData.saqList)
+      checkList(this.paperData.compoundList)
 
       return notAnswered
     },
@@ -544,8 +602,81 @@ export default {
       }
     },
 
-    // 保存答案
-    handSave(item, callback) {
+    buildCompoundAnswerContent() {
+      return JSON.stringify(this.compoundAnswers || {})
+    },
+    compoundHasAnyFill() {
+      const ans = this.compoundAnswers || {}
+      return Object.keys(ans).some(k => {
+        const v = ans[k]
+        if (Array.isArray(v)) return v.some(s => s != null && String(s).trim() !== '')
+        return v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && v.length === 0)
+      })
+    },
+    initCompoundAnswerState(vo) {
+      this.compoundAnswers = {}
+      if (!vo || vo.quType !== 5 || !vo.subItemList) return
+      const out = {}
+      vo.subItemList.forEach((sub, idx) => {
+        if (sub.quType === 4) {
+          if (sub.studentFill && String(sub.studentFill).trim().startsWith('[')) {
+            try { out[String(idx)] = JSON.parse(sub.studentFill) } catch (e) { out[String(idx)] = sub.studentFill || '' }
+          } else {
+            out[String(idx)] = sub.studentFill || ''
+          }
+        } else if (sub.quType === 2) {
+          if (sub.studentAnswer && String(sub.studentAnswer).trim().startsWith('[')) {
+            try { out[String(idx)] = JSON.parse(sub.studentAnswer) } catch (e) { out[String(idx)] = [] }
+          } else if (sub.studentAnswer) {
+            out[String(idx)] = String(sub.studentAnswer).split(',').map(s => Number(s.trim())).filter(n => !Number.isNaN(n))
+          }
+        } else if (sub.studentAnswer !== undefined && sub.studentAnswer !== null && sub.studentAnswer !== '') {
+          out[String(idx)] = Number(sub.studentAnswer)
+        }
+      })
+      this.compoundAnswers = out
+    },
+    buildSaqAnswerContent() {
+      if (!this.quData || this.quData.quType !== 4) return ''
+      if (this.saqMultiSlot && this.saqMultiInputs && this.saqMultiInputs.length > 1) {
+        return JSON.stringify(this.saqMultiInputs.map(s => (s == null ? '' : String(s)).trim()))
+      }
+      return (this.saqTextarea || '').trim()
+    },
+    saqHasAnyFill() {
+      if (!this.quData || this.quData.quType !== 4) return false
+      if (this.saqMultiSlot && this.saqMultiInputs && this.saqMultiInputs.length > 0) {
+        return this.saqMultiInputs.some(s => s != null && String(s).trim() !== '')
+      }
+      return !!(this.saqTextarea && this.saqTextarea.trim())
+    },
+    initSaqAnswerState(vo) {
+      this.saqMultiSlot = false
+      this.saqMultiInputs = []
+      this.saqTextarea = ''
+      if (!vo || vo.quType !== 4 || !vo.answerList) return
+      const al = vo.answerList
+      if (al.length > 1) {
+        this.saqMultiSlot = true
+        this.saqMultiInputs = al.map(o => {
+          const f = o.studentFill
+          return f != null && f !== undefined ? String(f) : ''
+        })
+      } else if (al.length === 1) {
+        const f = al[0].studentFill
+        this.saqTextarea = f != null && f !== undefined ? String(f) : ''
+      }
+    },
+
+    // 保存答案；返回 Promise 便于交卷前 await。options.skipNavigate=true 时不切换/刷新题目（交卷预览用）
+    handSave(item, callback, options = {}) {
+      const skipNavigate = !!options.skipNavigate
+      return new Promise((resolve, reject) => {
+        this._handSaveCore(item, callback, skipNavigate, resolve, reject)
+      })
+    },
+
+    _handSaveCore(item, callback, skipNavigate, resolve, reject) {
       // 更新上一题/下一题按钮状态
       this.showPrevious = item.sort > 0
       this.showNext = item.sort < this.allItem.length - 1
@@ -560,12 +691,11 @@ export default {
 
       // 准备答案数据
       let answerContent = ''
-      if (currentQuType === 4) {
-        ('简答题')
-        // 简答题答案
-        answerContent = this.saqTextarea.trim() // 去除首尾空格
+      if (currentQuType === 5) {
+        answerContent = this.buildCompoundAnswerContent()
+      } else if (currentQuType === 4) {
+        answerContent = this.buildSaqAnswerContent()
       } else {
-        ('单选、多选、判断题')
         // 单选、多选、判断题答案
         const answers = [] // 使用空数组初始化
         if (currentQuType === 2) { // 多选
@@ -579,33 +709,27 @@ export default {
         answerContent = answers.join(',')
       }
 
-      const hasAnswer = !!answerContent // 检查是否有实际答案内容
+      const hasAnswer = currentQuType === 5
+        ? this.compoundHasAnyFill()
+        : (currentQuType === 4 ? this.saqHasAnyFill() : !!answerContent)
       // 获取上次成功保存的答案
       const lastSavedAnswer = this.submittedAnswers[questionId]
       // 决定是否需要调用API保存
       // 条件：1. 有答案内容 且 (上次未保存过 或 当前答案与上次保存的不同)
       //       2. 或者是一个强制保存的回调 (如交卷前预览)
-      const shouldCallApi = (hasAnswer && (lastSavedAnswer === undefined || answerContent !== lastSavedAnswer)) || callback
+      const shouldCallApi = hasAnswer && (lastSavedAnswer === undefined || answerContent !== lastSavedAnswer)
 
-      // 如果答案已提交且未更改，且不是强制提交（callback不存在），则跳过提交
       // --- 不需要调用 API 的情况 ---
       if (!shouldCallApi) {
-        console.log(`Question ${questionId}: No change or no answer, skipping API call.`)
-        // 如果用户清空了答案 (从有答案变为空)
         if (!hasAnswer && lastSavedAnswer !== undefined) {
-          console.log(`Question ${questionId}: Answer cleared by user.`)
-          this.updateQuestionStatus(questionId, 0) // 更新UI为未作答
-          delete this.submittedAnswers[questionId] // 从已提交记录中移除
-          sessionStorage.removeItem('exam_' + questionId) // 清理sessionStorage标记
+          this.updateQuestionStatus(questionId, 0)
+          delete this.submittedAnswers[questionId]
+          sessionStorage.removeItem('exam_' + questionId)
         }
-        // 无论是否需要API调用，如果不是强制回调，都需要加载下一题
-        if (!callback) {
-          this.fetchQuData(item) // 加载目标题目数据
-        } else {
-          // 如果是强制回调（预览），直接执行回调
-          callback()
-        }
-        return // 结束 handSave
+        if (callback) callback()
+        else if (!skipNavigate) this.fetchQuData(item)
+        resolve()
+        return
       }
 
       // --- 需要调用 API 的情况 ---
@@ -652,30 +776,27 @@ export default {
           // }
 
           // 执行回调（如果存在）
-          if (callback) {
-            callback()
-          }
-          // 保存成功后，加载下一个题目
-          this.fetchQuData(item)
-        } else { // 保存失败 (API 返回 code 为 false)
+          if (callback) callback()
+          else if (!skipNavigate) this.fetchQuData(item)
+          resolve()
+        } else {
           console.error(`Question ${questionId}: Save failed (API response error):`, res.msg)
           this.$message({
             message: `答案保存失败: ${res.msg || '未知错误'}`,
             type: 'error',
-            duration: 3000 // 显示时间长一点
+            duration: 3000
           })
-          // 保存失败，**不** 清空输入框，**不** 更新状态，**不** 加载下一题
-          // 用户停留在当前页面，可以尝试重新提交
+          reject(new Error(res.msg || 'save failed'))
         }
-      }).catch((error) => { // 保存异常 (网络错误等)
-        saveLoading.close() // 关闭 loading
+      }).catch((error) => {
+        saveLoading.close()
         console.error(`Question ${questionId}: Save failed (Network/request error):`, error)
         this.$message({
           message: '答案保存时发生网络错误，请稍后重试！',
           type: 'error',
           duration: 3000
         })
-        // 保存异常，**不** 清空输入框，**不** 更新状态，**不** 加载下一题
+        reject(error)
       })
     },
 
@@ -695,6 +816,7 @@ export default {
       updateListStatus(this.paperData.multiList)
       updateListStatus(this.paperData.judgeList)
       updateListStatus(this.paperData.saqList)
+      updateListStatus(this.paperData.compoundList)
     },
 
     // 提交最后一题答案
@@ -707,9 +829,10 @@ export default {
 
       // 准备答案数据
       let answerContent = ''
-      if (currentQuType === 4) {
-        // 简答题答案
-        answerContent = this.saqTextarea.trim()
+      if (currentQuType === 5) {
+        answerContent = this.buildCompoundAnswerContent()
+      } else if (currentQuType === 4) {
+        answerContent = this.buildSaqAnswerContent()
       } else {
         // 单选、多选、判断题答案
         const answers = []
@@ -729,7 +852,9 @@ export default {
       }
 
       // 检查是否有答案
-      const hasAnswer = !!answerContent
+      const hasAnswer = currentQuType === 5
+        ? this.compoundHasAnyFill()
+        : (currentQuType === 4 ? this.saqHasAnyFill() : !!answerContent)
 
       if (!hasAnswer) {
         this.$message({
@@ -814,16 +939,14 @@ export default {
       // 在请求新数据前，清空上一题的答案状态，避免显示残留
       this.radioValue = ''
       this.multiValue = []
-      // 简答题不清空，因为 fetchQuData 会覆盖它
+      this.initSaqAnswerState(null)
+      this.compoundAnswers = {}
 
       quDetail(params).then((response) => {
         this.quData = response.data
-        // 根据新加载的题目数据，恢复用户已选的答案 (如果之前保存过)
-        // 注意：quDetail API 返回的数据结构中似乎包含了用户的答案信息 (checkout 字段 和 content for SAQ)
-        if (response.data.quType === 4) {
-          // 后端返回的 answerList[0].content 应该是用户之前填写的简答题内容
-          this.saqTextarea = response.data.answerList?.[0]?.content || '' // 安全访问
-        } else if (response.data.quType === 1 || response.data.quType === 3) {
+        this.initSaqAnswerState(response.data)
+        this.initCompoundAnswerState(response.data)
+        if (response.data.quType === 1 || response.data.quType === 3) {
           // 遍历选项，找到 checkout 为 true 的作为 radioValue
           const checkedOption = response.data.answerList?.find(opt => opt.checkout)
           this.radioValue = checkedOption ? checkedOption.id : ''
@@ -858,28 +981,22 @@ export default {
         this.paperData = response.data
         this.allItem = []
 
-        // 获得第一题内容
-        this.setFirstQuestion()
-
         // 合并所有题目到allItem数组
         this.mergeAllQuestions()
 
+        // 获得第一题内容
+        this.setFirstQuestion()
+
         // 当前选定
-        this.fetchQuData(this.cardItem)
+        if (this.cardItem && this.cardItem.questionId) {
+          this.fetchQuData(this.cardItem)
+        }
       })
     },
 
     // 设置第一个题目
     setFirstQuestion() {
-      if (this.paperData.radioList && this.paperData.radioList.length > 0) {
-        this.cardItem = this.paperData.radioList[0]
-      } else if (this.paperData.multiList && this.paperData.multiList.length > 0) {
-        this.cardItem = this.paperData.multiList[0]
-      } else if (this.paperData.judgeList && this.paperData.judgeList.length > 0) {
-        this.cardItem = this.paperData.judgeList[0]
-      } else if (this.paperData.saqList && this.paperData.saqList.length > 0) {
-        this.cardItem = this.paperData.saqList[0]
-      }
+      this.cardItem = this.allItem.length > 0 ? this.allItem[0] : {}
     },
 
     // 合并所有题目
@@ -894,6 +1011,18 @@ export default {
       addQuestionsToAllItems(this.paperData.multiList)
       addQuestionsToAllItems(this.paperData.judgeList)
       addQuestionsToAllItems(this.paperData.saqList)
+      addQuestionsToAllItems(this.paperData.compoundList)
+
+      this.allItem.sort((a, b) => {
+        const sortA = Number(a.sort)
+        const sortB = Number(b.sort)
+        if (Number.isFinite(sortA) && Number.isFinite(sortB) && sortA !== sortB) {
+          return sortA - sortB
+        }
+        const idA = Number(a.questionId || a.id || 0)
+        const idB = Number(b.questionId || b.id || 0)
+        return idA - idB
+      })
     },
 
     // 处理滚动事件
@@ -1142,6 +1271,8 @@ page {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  /* 仅中间面板可点；其余区域不拦截，避免挡住顶部「交卷」等按钮 */
+  pointer-events: none;
 }
 
 .exam-fullscreen-gate__panel {
@@ -1153,6 +1284,7 @@ page {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
   text-align: center;
   cursor: pointer;
+  pointer-events: auto;
 }
 
 .exam-fullscreen-gate__title {

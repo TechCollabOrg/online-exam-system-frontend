@@ -37,25 +37,26 @@
       <el-col :span="24">
         <el-card class="qu-content content-h">
           <compound-stem-block
-            :stem-content="quData.stemContent"
-            :stem-image="quData.stemImage"
-            :parent-qu-id="quData.parentQuId"
+            v-if="quData.quType === 5"
+            :stem-content="questionStemDisplay(quData)"
+            :stem-image="quData.image"
           />
-          <!-- 题干 -->
-          <p v-if="quData.content">
-            <span>({{ getQuestionType(quData.quType) }}) {{ index + 1 }}.</span>
-            {{ quData.content }}
-          </p>
-          <p v-if="parseImageUrls(quData.image).length" style="display: flex; flex-wrap: wrap; gap: 8px">
-            <el-image
-              v-for="(img, gi) in parseImageUrls(quData.image)"
-              :key="'rb-stem-' + gi"
-              :src="img"
-              :preview-src-list="parseImageUrls(quData.image)"
-              fit="contain"
-              style="max-width: 200px"
+          <div v-if="quData.quType === 5">
+            <p style="margin: 10px 0 8px; font-weight: 600">
+              <span>({{ getQuestionType(quData.quType) }}) {{ index + 1 }}.</span>
+            </p>
+            <compound-question-display
+              v-model="compoundAnswers"
+              :sub-items="quData.subItemList || []"
             />
-          </p>
+          </div>
+          <!-- 题干 -->
+          <div v-if="quData.quType !== 5 && questionStemDisplay(quData)" style="margin: 10px 0 14px">
+            <p style="margin: 0 0 8px">
+              <span>({{ getQuestionType(quData.quType) }}) {{ index + 1 }}.</span>
+            </p>
+            <rich-html-content :html="questionStemDisplay(quData)" />
+          </div>
           <div v-if="quData.quType === 1 || quData.quType === 3">
             <!-- 选项 -->
             <el-radio-group v-model="radioValue">
@@ -174,6 +175,14 @@
             <!-- </el-checkbox-group> -->
           </div>
           <div
+            v-if="flag == true && quData.quType === 5 && failQuData"
+            style="margin-top: 10px"
+          >
+            <div>
+              <span>试题分析: {{ failQuData.analysis }}</span>
+            </div>
+          </div>
+          <div
             v-if="flag == true && quData.quType === 4"
             style="margin-top: 10px"
           >
@@ -216,6 +225,7 @@
 import { fullBook, getSingleQu, getUserBookList } from '@/api/userbook'
 import imageUrlsMixin from '@/mixins/imageUrlsMixin'
 import CompoundStemBlock from '@/components/CompoundStemBlock'
+import CompoundQuestionDisplay from '@/components/CompoundQuestionDisplay'
 import {
   enterExamDisplayMode,
   exitExamDisplayMode,
@@ -223,8 +233,9 @@ import {
 } from '@/utils/fullscreen'
 import RichHtmlContent from '@/components/RichHtmlContent'
 import { saqReferenceDisplayHtml } from '@/utils/saqAnswerHtml'
+import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
 export default {
-  components: { RichHtmlContent, CompoundStemBlock },
+  components: { RichHtmlContent, CompoundStemBlock, CompoundQuestionDisplay },
   mixins: [imageUrlsMixin],
   data() {
     return {
@@ -258,6 +269,7 @@ export default {
       // 已答ID
       answeredIds: [],
       saqTextarea: '',
+      compoundAnswers: {},
       myAnswers: '',
       lastIndex: 0,
       paperData: {
@@ -309,6 +321,9 @@ export default {
   },
 
   methods: {
+    questionStemDisplay(row) {
+      return questionStemDisplayHtml(row || {})
+    },
     syncRebrushFullscreenState() {
       isExamDisplayFullscreen().then((fs) => {
         this.isFullscreen = fs
@@ -355,7 +370,29 @@ export default {
 
     getSingleQuFun(quId) {
       getSingleQu(quId).then((res) => {
-        this.quData = res.data
+        this.quData = res.data || { answerList: [] }
+        this.radioValue = ''
+        this.multiValue = []
+        this.saqTextarea = ''
+        this.compoundAnswers = {}
+        if (this.quData.quType === 5 && this.quData.subItemList) {
+          this.initCompoundAnswerState(this.quData)
+        }
+      })
+    },
+    initCompoundAnswerState(vo) {
+      this.compoundAnswers = {}
+      if (!vo || vo.quType !== 5 || !vo.subItemList) return
+    },
+    buildCompoundAnswerContent() {
+      return JSON.stringify(this.compoundAnswers || {})
+    },
+    compoundHasAnyFill() {
+      const ans = this.compoundAnswers || {}
+      return Object.keys(ans).some(k => {
+        const v = ans[k]
+        if (Array.isArray(v)) return v.some(s => s != null && String(s).trim() !== '')
+        return v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && v.length === 0)
       })
     },
     getUserBookListFun() {
@@ -403,7 +440,8 @@ export default {
         1: '单选题',
         2: '多选题',
         3: '判断题',
-        4: '简答题'
+        4: '简答题',
+        5: '复合题'
       }
       return typeMap[type] || '未知类型'
     },
@@ -442,8 +480,9 @@ export default {
           // 单选题或判断题
           answer = this.radioValue
         } else if (this.quData.quType === 4) {
-          // 简答题
           answer = this.saqTextarea
+        } else if (this.quData.quType === 5) {
+          answer = this.buildCompoundAnswerContent()
         }
 
         const params = {

@@ -7,7 +7,7 @@
       @ready="onReady"
     />
     <p class="rich-html-editor__tip">
-      支持分段、标题、加粗与列表；点击工具栏「图片」可多次上传并插入到当前光标处（与选项附图不同，此为解析内嵌图）。
+      支持分段、标题、加粗与列表；点击工具栏「图片」可多次上传并插入到当前光标处（与单独「附图」上传不同，此为正文内嵌图）。
     </p>
   </div>
 </template>
@@ -26,13 +26,18 @@ export default {
     minEditorHeight: {
       type: String,
       default: '200px'
+    },
+    /** Quill 占位提示，题干 / 选项解析等场景可分别传入 */
+    editorPlaceholder: {
+      type: String,
+      default: '选填：该选项解析（可分段、可插入多张图片）'
     }
   },
-  data() {
-    return {
-      editorOption: {
+  computed: {
+    editorOption() {
+      return {
         theme: 'snow',
-        placeholder: '选填：该选项解析（可分段、可插入多张图片）',
+        placeholder: this.editorPlaceholder,
         modules: {
           toolbar: {
             container: [
@@ -47,11 +52,26 @@ export default {
       }
     }
   },
+  data() {
+    return {
+      quill: null
+    }
+  },
   methods: {
     onInput(html) {
       this.$emit('input', html || '')
     },
+    /** 保存前强制把编辑器最新 HTML 写回 v-model（避免只插图未同步就校验） */
+    flushContent() {
+      if (!this.quill) {
+        return this.value || ''
+      }
+      const html = this.quill.root.innerHTML || ''
+      this.onInput(html)
+      return html
+    },
     onReady(quill) {
+      this.quill = quill
       const toolbar = quill.getModule('toolbar')
       toolbar.addHandler('image', () => {
         const input = document.createElement('input')

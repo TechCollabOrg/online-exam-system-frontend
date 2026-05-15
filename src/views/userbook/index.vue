@@ -173,8 +173,12 @@ export default {
     },
 
     screenInfo(row) {
-      localStorage.setItem('userbook_examId', row.examId)
-      this.$router.push({ path: '/rebrush' })
+      if (!row || row.examId == null) {
+        this.$message.error('无法重刷：缺少考试编号')
+        return
+      }
+      localStorage.setItem('userbook_examId', String(row.examId))
+      this.$router.push({ name: 'rebrush' })
     }
   }
 }

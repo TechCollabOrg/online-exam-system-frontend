@@ -272,6 +272,7 @@ export default {
         judgeScore: 0,
         saqScore: 0
       },
+      manualSelectedRows: [],
       postForm: {
         start: [],
         // 总分数
@@ -283,14 +284,13 @@ export default {
         // 考试班级列表
         departIds: [],
         // 初始化班级列表
-        classIds: []
+        classIds: [],
+        certificateId: []
       },
       rules: {
         title: [{ required: true, message: '考试名称不能为空！' }],
 
         // content: [{ required: true, message: '考试描述不能为空！' }],
-
-        open: [{ required: true, message: '考试权限不能为空！' }],
 
         totalScore: [{ required: true, message: '考试分数不能为空！' }],
 
@@ -331,6 +331,9 @@ export default {
       handler(val) {
         this.excludes = []
         const list = Array.isArray(val) ? val : []
+        if (this.activeName === 'first') {
+          return
+        }
         const totalScore = this.calcTotalScore(list)
         for (let i = 0; i < list.length; i++) {
           const item = list[i]
@@ -355,6 +358,16 @@ export default {
     }
   },
   methods: {
+    calcManualTotalScore(rows = []) {
+      let total = 0
+      for (const row of rows) {
+        const s = Number(row.assignScore)
+        if (Number.isFinite(s) && s > 0) {
+          total += s
+        }
+      }
+      return total
+    },
     calcTotalScore(list) {
       let totalScore = 0
       for (let i = 0; i < list.length; i++) {
@@ -455,10 +468,9 @@ export default {
     },
     // 子组件选择的ids
     handleSelectedChange(selectedIds) {
-      var ids = []
-      selectedIds.selectedRows.forEach((item) => {
-        ids.push(item.id)
-      })
+      const rows = selectedIds.selectedRows || []
+      this.manualSelectedRows = rows
+      const ids = rows.map((item) => item.id)
 
       this.repoList[0].queIds = ids.join(',')
       this.repoList[0].addQuType = '0'
@@ -470,15 +482,22 @@ export default {
       this.repoList[0].judgeScore = selectedIds.questionList.judgeScore
       this.repoList[0].saqCount = selectedIds.questionList.saqCount
       this.repoList[0].saqScore = selectedIds.questionList.saqScore
-      console.log('从子组件接收到的选中ID:', this.repoList)
-      // 在这里你可以将选中的ID保存到父组件的数据中
+      this.postForm.totalScore = this.calcManualTotalScore(rows)
       this.selectedQuestionIds = selectedIds
       // 或者执行其他需要的操作
     },
     handleSave() {
       const validateAndSubmit = () => {
         this.$refs.postForm.validate((valid) => {
-          if (!valid) return
+          if (!valid) {
+            this.$notify({
+              title: '提示信息',
+              message: '请先完善考试配置（请检查标红项）',
+              type: 'warning',
+              duration: 2500
+            })
+            return
+          }
 
           if (this.postForm.totalScore === 0) {
             this.$notify({
@@ -572,55 +591,29 @@ export default {
               })
               return
             }
+          }
 
-            if (!isRandomMode && (
-              (repo.radioCount > 0 && repo.radioScore === 0) ||
-              (repo.radioCount === 0 && repo.radioScore > 0)
-            )) {
+          if (!isRandomMode) {
+            const manualRows = this.manualSelectedRows || []
+            if (manualRows.length === 0) {
               this.$notify({
                 title: '提示信息',
-                message: '题库第：[' + (i + 1) + ']项存在无效的单选题配置！',
+                message: '请至少选择一道试题！',
                 type: 'warning',
                 duration: 2000
               })
               return
             }
-
-            if (!isRandomMode && (
-              (repo.multiCount > 0 && repo.multiScore === 0) ||
-              (repo.multiCount === 0 && repo.multiScore > 0)
-            )) {
+            const invalidRow = manualRows.find((row) => {
+              const s = Number(row.assignScore)
+              return !Number.isFinite(s) || s <= 0
+            })
+            if (invalidRow) {
               this.$notify({
                 title: '提示信息',
-                message: '题库第：[' + (i + 1) + ']项存在无效的多选题配置！',
+                message: '请为每道已选题目设置大于 0 的分值（可点「设置分值」单独修改）！',
                 type: 'warning',
-                duration: 2000
-              })
-              return
-            }
-
-            if (!isRandomMode && (
-              (repo.judgeCount > 0 && repo.judgeScore === 0) ||
-              (repo.judgeCount === 0 && repo.judgeScore > 0)
-            )) {
-              this.$notify({
-                title: '提示信息',
-                message: '题库第：[' + (i + 1) + ']项存在无效的判断题配置！',
-                type: 'warning',
-                duration: 2000
-              })
-              return
-            }
-
-            if (!isRandomMode && (
-              (repo.saqCount > 0 && repo.saqScore === 0) ||
-              (repo.saqCount === 0 && repo.saqScore > 0)
-            )) {
-              this.$notify({
-                title: '提示信息',
-                message: '题库第：[' + (i + 1) + ']项存在无效的简答题配置！',
-                type: 'warning',
-                duration: 2000
+                duration: 2500
               })
               return
             }
@@ -630,9 +623,11 @@ export default {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             type: 'warning'
-          }).then(() => {
-            this.submitForm()
           })
+            .then(() => {
+              this.submitForm()
+            })
+            .catch(() => {})
         })
       }
 
@@ -680,12 +675,9 @@ export default {
       console.log('postForm', this.postForm)
       // 校验和处理数据
       let cerTemp = ''
-      if (
-        this.postForm.certificateId !== null &&
-        this.postForm.certificateId !== ''
-      ) {
-        console.log(this.postForm.certificateId)
-        cerTemp = this.postForm.certificateId.join(',')
+      const certIds = this.postForm.certificateId
+      if (Array.isArray(certIds) && certIds.length > 0) {
+        cerTemp = certIds.join(',')
       }
       this.postForm.repoList = this.repoList
       const isRandomMode = this.activeName === 'second'
@@ -720,7 +712,14 @@ export default {
           : this.normalizeRepoId(firstRepo.repoId),
         certificateId: cerTemp,
         addQuype: isRandomMode ? '1' : firstRepo.addQuType,
-        quIds: isRandomMode ? '' : firstRepo.queIds,
+        quIds: isRandomMode
+          ? ''
+          : (this.manualSelectedRows || []).map((row) => row.id).join(','),
+        quScores: isRandomMode
+          ? ''
+          : (this.manualSelectedRows || [])
+            .map((row) => Number(row.assignScore || 0))
+            .join(','),
         radioCount: isRandomMode
           ? effectiveRepoList.map((item) => Number(item.radioCount || 0)).join(',')
           : firstRepo.radioCount,
@@ -746,25 +745,35 @@ export default {
           ? effectiveRepoList.map(() => Number(this.randomScoreConfig.saqScore || 0)).join(',')
           : firstRepo.saqScore
       }
-      saveData(params).then((res) => {
-        if (res.code) {
-          this.$notify({
-            title: '成功',
-            message: '考试保存成功！',
-            type: 'success',
-            duration: 2000
-          })
+      saveData(params)
+        .then((res) => {
+          if (res.code) {
+            this.$notify({
+              title: '成功',
+              message: '考试保存成功！',
+              type: 'success',
+              duration: 2000
+            })
 
-          this.$router.push({ name: 'exam-management' })
-        } else {
+            this.$router.push({ name: 'exam-management' })
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.msg || '保存失败，请稍后重试',
+              type: 'error',
+              duration: 2000
+            })
+          }
+        })
+        .catch((err) => {
+          console.error('save exam failed', err)
           this.$notify({
             title: '失败',
-            message: res.msg,
+            message: (err && err.message) || '保存失败，请检查网络或后端服务',
             type: 'error',
-            duration: 2000
+            duration: 2500
           })
-        }
-      })
+        })
     },
 
     filterNode(value, data) {
