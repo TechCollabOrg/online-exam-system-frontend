@@ -3,22 +3,50 @@
 @use 'transition.scss';
 @use 'element-ui.scss';
 @use 'sidebar.scss';
+@use 'auth-pages.scss';
+
+:root {
+  --theme-primary: #3b82f6;
+  --theme-primary-hover: #2563eb;
+  --theme-primary-soft: rgba(59, 130, 246, 0.14);
+  --app-surface: #ffffff;
+  --app-muted: #64748b;
+}
+
+html {
+  height: 100%;
+  box-sizing: border-box;
+  background-color: #eef4ff;
+}
 
 body {
   height: 100%;
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Arial, sans-serif;
+  font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'PingFang SC',
+    'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+  background: linear-gradient(180deg, #eff6ff 0%, #f8fafc 38%, #f1f5f9 100%);
+  background-attachment: fixed;
+  color: #0f172a;
+}
+
+::selection {
+  background: rgba(59, 130, 246, 0.28);
+  color: #0f172a;
+}
+
+#nprogress .bar {
+  background: var(--theme-primary) !important;
+  height: 3px !important;
+}
+
+#nprogress .peg {
+  box-shadow: 0 0 10px var(--theme-primary), 0 0 5px var(--theme-primary) !important;
 }
 
 label {
   font-weight: 700;
-}
-
-html {
-  height: 100%;
-  box-sizing: border-box;
 }
 
 #app {
@@ -70,8 +98,10 @@ div:focus {
 }
 
 .pagination-container {
-  background: #fff;
-  padding: 32px 16px;
+  background: var(--app-surface);
+  padding: 24px 16px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .el-table .cell {

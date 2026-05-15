@@ -19,11 +19,13 @@ export default {
 
 <style scoped>
 .app-main {
-  /*50 = navbar  */
-  min-height: calc(100vh - 111px);
+  /* 顶栏约 56px + 标签栏约 44px */
+  min-height: calc(100vh - 100px);
   width: 100%;
   position: relative;
   overflow: hidden;
+  padding: 12px 18px 28px;
+  box-sizing: border-box;
 }
 .fixed-header+.app-main {
   padding-top: 50px;
