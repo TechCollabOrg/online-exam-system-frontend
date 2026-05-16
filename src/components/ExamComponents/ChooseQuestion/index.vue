@@ -76,18 +76,158 @@
       <el-table-column label="序号" align="center" width="80">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
-      <el-table-column prop="content" label="题干" align="center" />
+      <el-table-column label="题干" align="left" min-width="220" show-overflow-tooltip>
+        <template slot-scope="scope">{{ questionStemListLabel(scope.row) }}</template>
+      </el-table-column>
       <el-table-column label="题目类型" align="center">
         <template slot-scope="scope">
           <span v-if="scope.row.quType == 1">单选题</span>
           <span v-else-if="scope.row.quType == 2">多选题</span>
           <span v-else-if="scope.row.quType == 3">判断题</span>
           <span v-else-if="scope.row.quType == 4">简答题</span>
+          <span v-else-if="scope.row.quType == 5">复合题</span>
         </template>
       </el-table-column>
       <el-table-column prop="repoTitle" label="所属题库" align="center" />
       <el-table-column prop="createTime" label="创建时间" align="center" />
+      <el-table-column label="操作" align="center" width="100">
+        <template slot-scope="scope">
+          <el-button type="text" size="small" @click="openDetailDialog(scope.row)">查看详情</el-button>
+        </template>
+      </el-table-column>
     </el-table>
+
+    <!-- 已选题目：可逐题改分 -->
+    <el-card v-if="selectedRows.length" class="selected-qu-panel" shadow="never">
+      <div slot="header" class="selected-qu-header">
+        <span>已选题目（{{ selectedRows.length }}）</span>
+        <span class="selected-qu-tip">点击「设置分值」可单独修改该题分数；修改上方题型默认分时会同步未单独改过的题目</span>
+      </div>
+      <el-table
+        :data="orderedSelectedRows"
+        border
+        size="small"
+        max-height="320"
+      >
+        <el-table-column label="序号" align="center" width="60">
+          <template slot-scope="scope">{{ scope.$index + 1 }}</template>
+        </el-table-column>
+        <el-table-column label="题干" align="left" min-width="200" show-overflow-tooltip>
+          <template slot-scope="scope">{{ questionStemListLabel(scope.row) }}</template>
+        </el-table-column>
+        <el-table-column label="题型" align="center" width="90">
+          <template slot-scope="scope">{{ quTypeLabel(scope.row.quType) }}</template>
+        </el-table-column>
+        <el-table-column label="分值" align="center" width="100">
+          <template slot-scope="scope">
+            <span>{{ scope.row.assignScore }}</span>
+            <el-tag v-if="scope.row.scoreCustomized" size="mini" type="warning" style="margin-left: 4px">已改</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" align="center" width="110">
+          <template slot-scope="scope">
+            <el-button type="text" size="small" @click="openScoreDialog(scope.row)">设置分值</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
+
+    <el-dialog
+      title="题目详情"
+      :visible.sync="detailDialogVisible"
+      width="720px"
+      append-to-body
+      @closed="detailLoading = false; detailQuestion = null"
+    >
+      <div v-loading="detailLoading" style="min-height: 120px">
+        <template v-if="detailQuestion">
+          <p style="margin: 0 0 12px">
+            <el-tag size="small">{{ quTypeLabel(detailQuestion.quType) }}</el-tag>
+            <span v-if="detailQuestion.repoTitle" style="margin-left: 8px; color: #909399; font-size: 13px">
+              {{ detailQuestion.repoTitle }}
+            </span>
+          </p>
+          <compound-stem-block
+            v-if="detailQuestion.quType === 5"
+            :stem-content="questionStemDisplay(detailQuestion)"
+            :stem-image="detailQuestion.image"
+          />
+          <div v-if="detailQuestion.quType !== 5 && questionStemDisplay(detailQuestion)" style="margin-bottom: 14px">
+            <rich-html-content :html="questionStemDisplay(detailQuestion)" />
+          </div>
+          <template v-if="detailQuestion.quType === 5 && detailQuestion.subItems && detailQuestion.subItems.length">
+            <div
+              v-for="(sub, sidx) in detailQuestion.subItems"
+              :key="'detail-sub-' + sidx"
+              class="detail-sub-item"
+            >
+              <div style="font-weight: 600; margin-bottom: 6px">
+                小题 {{ sidx + 1 }} · {{ quTypeLabel(sub.quType) }}
+              </div>
+              <rich-html-content v-if="sub.content" :html="sub.content" />
+              <ul v-if="sub.options && sub.options.length && sub.quType !== 4" class="detail-option-list">
+                <li v-for="(opt, oidx) in sub.options" :key="'dopt-' + oidx">
+                  {{ String.fromCharCode(65 + oidx) }}. {{ opt.content }}
+                  <el-tag v-if="opt.isRight" size="mini" type="success" style="margin-left: 6px">答案</el-tag>
+                </li>
+              </ul>
+              <div v-if="sub.quType === 4 && sub.options && sub.options.length">
+                <div
+                  v-for="(opt, oidx) in sub.options"
+                  :key="'dblank-' + oidx"
+                  style="margin-top: 8px"
+                >
+                  <span style="font-size: 12px; color: #909399">第 {{ oidx + 1 }} 空参考答案</span>
+                  <rich-html-content :html="opt.content || ''" />
+                </div>
+              </div>
+            </div>
+          </template>
+          <ul v-else-if="detailQuestion.options && detailQuestion.options.length" class="detail-option-list">
+            <li v-for="(opt, oidx) in detailQuestion.options" :key="'opt-' + oidx">
+              {{ String.fromCharCode(65 + oidx) }}. {{ opt.content }}
+              <el-tag v-if="opt.isRight" size="mini" type="success" style="margin-left: 6px">答案</el-tag>
+            </li>
+          </ul>
+          <p v-if="detailQuestion.analysis" style="margin-top: 16px; color: #606266">
+            <strong>解析：</strong>{{ detailQuestion.analysis }}
+          </p>
+        </template>
+      </div>
+      <span slot="footer">
+        <el-button type="primary" @click="detailDialogVisible = false">关闭</el-button>
+      </span>
+    </el-dialog>
+
+    <el-dialog
+      title="设置题目分值"
+      :visible.sync="scoreDialogVisible"
+      width="420px"
+      append-to-body
+      @closed="scoreEditRow = null"
+    >
+      <div v-if="scoreEditRow" class="score-dialog-body">
+        <p class="score-dialog-stem">{{ questionStemListLabel(scoreEditRow) }}</p>
+        <el-form label-width="80px">
+          <el-form-item label="题型">
+            <span>{{ quTypeLabel(scoreEditRow.quType) }}</span>
+          </el-form-item>
+          <el-form-item label="本题分值">
+            <el-input-number
+              v-model="scoreEditValue"
+              :min="1"
+              :max="999"
+              :controls="true"
+              style="width: 160px"
+            />
+          </el-form-item>
+        </el-form>
+      </div>
+      <span slot="footer">
+        <el-button @click="scoreDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmScoreDialog">确定</el-button>
+      </span>
+    </el-dialog>
 
     <!-- 分页 -->
     <div class="pagination-container">
@@ -105,11 +245,14 @@
 </template>
 
 <script>
-import { quPaging } from '@/api/question'
+import { quPaging, quDetail } from '@/api/question'
 import RepoSelect from '@/components/RepoSelect'
+import CompoundStemBlock from '@/components/CompoundStemBlock'
+import RichHtmlContent from '@/components/RichHtmlContent'
+import { questionStemPlainSummary, questionStemDisplayHtml } from '@/utils/questionStemHtml'
 
 export default {
-  components: { RepoSelect },
+  components: { RepoSelect, CompoundStemBlock, RichHtmlContent },
   data() {
     return {
       singleChoiceQuestions: false,
@@ -137,6 +280,10 @@ export default {
         {
           value: 4,
           label: '简答题'
+        },
+        {
+          value: 5,
+          label: '复合题'
         }
       ],
       length: '',
@@ -182,18 +329,155 @@ export default {
         desc: ''
       },
       selectedRows: [], // 存储所有选中的行数据
+      isSyncingSelection: false,
+      scoreDialogVisible: false,
+      scoreEditRow: null,
+      scoreEditValue: 1,
+      detailDialogVisible: false,
+      detailLoading: false,
+      detailQuestion: null,
       formLabelWidth: '110px'
     }
   },
   computed: {
     selectedIds() {
       return this.selectedRows.map((item) => item.id)
+    },
+    orderedSelectedRows() {
+      return this.orderSelectedRowsByGroup(this.selectedRows)
     }
   },
   created() {
     this.getQuPage()
   },
   methods: {
+    orderSelectedRowsByGroup(rows = []) {
+      return [...(Array.isArray(rows) ? rows : [])].sort((a, b) => Number(a.id) - Number(b.id))
+    },
+    updateQuestionListBySelectedRows() {
+      this.questionList.radioCount = 0
+      this.questionList.multiCount = 0
+      this.questionList.judgeCount = 0
+      this.questionList.saqCount = 0
+
+      this.singleChoiceQuestions = false
+      this.multipleChoiceQuestions = false
+      this.trueOrFalseQuestions = false
+      this.shortAnswerQuestions = false
+
+      this.selectedRows.forEach((item) => {
+        if (item.quType === 1) {
+          this.questionList.radioCount += 1
+          this.singleChoiceQuestions = true
+        }
+        if (item.quType === 2) {
+          this.questionList.multiCount += 1
+          this.multipleChoiceQuestions = true
+        }
+        if (item.quType === 3) {
+          this.questionList.judgeCount += 1
+          this.trueOrFalseQuestions = true
+        }
+        if (item.quType === 4 || item.quType === 5) {
+          this.questionList.saqCount += 1
+          this.shortAnswerQuestions = true
+        }
+      })
+
+      if (this.questionList.radioCount === 0) this.questionList.radioScore = 0
+      if (this.questionList.multiCount === 0) this.questionList.multiScore = 0
+      if (this.questionList.judgeCount === 0) this.questionList.judgeScore = 0
+      if (this.questionList.saqCount === 0) this.questionList.saqScore = 0
+    },
+    quTypeLabel(quType) {
+      const map = { 1: '单选题', 2: '多选题', 3: '判断题', 4: '简答题', 5: '复合题' }
+      return map[quType] || '未知'
+    },
+    defaultScoreByType(quType) {
+      if (quType === 1) return Number(this.questionList.radioScore) || 0
+      if (quType === 2) return Number(this.questionList.multiScore) || 0
+      if (quType === 3) return Number(this.questionList.judgeScore) || 0
+      if (quType === 4 || quType === 5) return Number(this.questionList.saqScore) || 0
+      return 0
+    },
+    ensureRowScore(row) {
+      if (row.assignScore == null || row.assignScore === '') {
+        this.$set(row, 'assignScore', this.defaultScoreByType(row.quType))
+      }
+      if (row.scoreCustomized == null) {
+        this.$set(row, 'scoreCustomized', false)
+      }
+    },
+    applyTypeDefaultsToRows() {
+      this.selectedRows.forEach((row) => {
+        if (!row.scoreCustomized) {
+          this.$set(row, 'assignScore', this.defaultScoreByType(row.quType))
+        }
+      })
+    },
+    openScoreDialog(row) {
+      this.ensureRowScore(row)
+      this.scoreEditRow = row
+      this.scoreEditValue = Number(row.assignScore) || this.defaultScoreByType(row.quType) || 1
+      this.scoreDialogVisible = true
+    },
+    confirmScoreDialog() {
+      if (!this.scoreEditRow) return
+      const val = Number(this.scoreEditValue)
+      if (!Number.isFinite(val) || val <= 0) {
+        this.$message.warning('分值必须大于 0')
+        return
+      }
+      this.$set(this.scoreEditRow, 'assignScore', val)
+      this.$set(this.scoreEditRow, 'scoreCustomized', true)
+      this.scoreDialogVisible = false
+      this.emitSelectedChange()
+    },
+    emitSelectedChange() {
+      const orderedRows = this.orderSelectedRowsByGroup(this.selectedRows)
+      orderedRows.forEach((row) => this.ensureRowScore(row))
+      this.selectedRows = orderedRows
+      const data = {
+        selectedRows: orderedRows,
+        questionList: this.questionList
+      }
+      this.$emit('selected-change', data)
+    },
+    questionStemListLabel(row) {
+      return questionStemPlainSummary(row)
+    },
+    questionStemDisplay(row) {
+      return questionStemDisplayHtml(row)
+    },
+    async openDetailDialog(row) {
+      if (!row || !row.id) return
+      this.detailDialogVisible = true
+      this.detailLoading = true
+      this.detailQuestion = null
+      try {
+        const res = await quDetail(row.id)
+        if (res.code) {
+          const data = res.data || {}
+          if (data.options) {
+            data.options.forEach((o) => { o.isRight = !!o.isRight })
+          }
+          if (data.subItems) {
+            data.subItems.forEach((sub) => {
+              if (sub.options) sub.options.forEach((o) => { o.isRight = !!o.isRight })
+            })
+          }
+          this.detailQuestion = data
+        } else {
+          this.$message.error(res.msg || '加载题目详情失败')
+          this.detailDialogVisible = false
+        }
+      } catch (e) {
+        this.$message.error('加载题目详情失败')
+        this.detailDialogVisible = false
+      } finally {
+        this.detailLoading = false
+      }
+    },
     handleRepoChangeSingle(repo) {
       console.log('单选题库变化:', repo)
     },
@@ -273,60 +557,22 @@ export default {
         this.selValue)
     },
     scoreFun() {
-      this.questionList.radioCount = 0
-      this.questionList.multiCount = 0
-      this.questionList.judgeCount = 0
-      this.questionList.saqCount = 0
-
-      this.singleChoiceQuestions = false
-      this.multipleChoiceQuestions = false
-      this.trueOrFalseQuestions = false
-      this.shortAnswerQuestions = false
-      this.selectedRows.forEach((item) => {
-        if (item.quType === 1) {
-          this.questionList.radioCount += 1
-          this.singleChoiceQuestions = true
-        }
-        if (item.quType === 2) {
-          this.questionList.multiCount += 1
-          this.multipleChoiceQuestions = true
-        }
-        if (item.quType === 3) {
-          this.questionList.judgeCount += 1
-          this.trueOrFalseQuestions = true
-        }
-        if (item.quType === 4) {
-          this.questionList.saqCount += 1
-          this.shortAnswerQuestions = true
-        }
-      })
-      if (this.questionList.radioCount === 0) {
-        this.questionList.radioScore = 0
-      }
-      if (this.questionList.multiCount === 0) {
-        this.questionList.multiScore = 0
-      }
-      if (this.questionList.judgeCount === 0) {
-        this.questionList.judgeScore = 0
-      }
-      if (this.questionList.saqCount === 0) {
-        this.questionList.saqScore = 0
-      }
-      const data = {
-        selectedRows: this.selectedRows,
-        questionList: this.questionList
-      }
-      console.log('this.selectedRows', this.selectedRows)
-      // 触发自定义事件，将选中的ID数组传递给父组件
-      this.$emit('selected-change', data)
+      this.updateQuestionListBySelectedRows()
+      this.applyTypeDefaultsToRows()
+      this.emitSelectedChange()
     },
     handleSelectionChange(val) {
+      if (this.isSyncingSelection) return
+
       // 合并新旧选中项，去重
       const newSelected = [...this.selectedRows]
       // 添加新选中的项
       val.forEach((item) => {
         if (!this.selectedIds.includes(item.id)) {
-          newSelected.push(item)
+          const row = { ...item }
+          this.$set(row, 'assignScore', this.defaultScoreByType(row.quType))
+          this.$set(row, 'scoreCustomized', false)
+          newSelected.push(row)
         }
       })
 
@@ -343,54 +589,8 @@ export default {
         return true
       })
 
-      this.questionList.radioCount = 0
-      this.questionList.multiCount = 0
-      this.questionList.judgeCount = 0
-      this.questionList.saqCount = 0
-
-      this.singleChoiceQuestions = false
-      this.multipleChoiceQuestions = false
-      this.trueOrFalseQuestions = false
-      this.shortAnswerQuestions = false
-      this.selectedRows.forEach((item) => {
-        if (item.quType === 1) {
-          this.questionList.radioCount += 1
-          this.singleChoiceQuestions = true
-        }
-        if (item.quType === 2) {
-          this.questionList.multiCount += 1
-          this.multipleChoiceQuestions = true
-        }
-        if (item.quType === 3) {
-          this.questionList.judgeCount += 1
-          this.trueOrFalseQuestions = true
-        }
-        if (item.quType === 4) {
-          this.questionList.saqCount += 1
-          this.shortAnswerQuestions = true
-        }
-      })
-      if (this.questionList.radioCount === 0) {
-        this.questionList.radioScore = 0
-      }
-      if (this.questionList.multiCount === 0) {
-        this.questionList.multiScore = 0
-      }
-      if (this.questionList.judgeCount === 0) {
-        this.questionList.judgeScore = 0
-      }
-      if (this.questionList.saqCount === 0) {
-        this.questionList.saqScore = 0
-      }
-
-      const data = {
-        selectedRows: this.selectedRows,
-        questionList: this.questionList
-      }
-      console.log('data', data)
-      console.log('this.selectedRows', this.selectedRows)
-      // 触发自定义事件，将选中的ID数组传递给父组件
-      this.$emit('selected-change', data)
+      this.updateQuestionListBySelectedRows()
+      this.emitSelectedChange()
     },
 
     // 清空所有选中
@@ -401,3 +601,40 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.selected-qu-panel {
+  margin-top: 16px;
+}
+.selected-qu-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.selected-qu-tip {
+  font-size: 12px;
+  color: #909399;
+  font-weight: normal;
+}
+.score-dialog-stem {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.5;
+  max-height: 120px;
+  overflow: auto;
+}
+.detail-sub-item {
+  margin: 12px 0;
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 4px;
+  border: 1px solid #ebeef5;
+}
+.detail-option-list {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  line-height: 1.8;
+}
+</style>

@@ -31,18 +31,30 @@ module.exports = {
   productionSourceMap: false,
   devServer: {
     // disableHostCheck: true,
+    host: '0.0.0.0',
     port: port,
     // 开发启动默认打开登录页（无令牌或会话已失效时会停在此；已勾选记住我且仍有效会先被守卫送进首页）
-    open: `http://127.0.0.1:${port}/#/login`,
+    open: false,
     overlay: {
       warnings: false,
       errors: true
     },
     // 前端跨域
     proxy: {
+      '/websocket': {
+        target: 'ws://127.0.0.1:8080',
+        ws: true,
+        changeOrigin: true
+      },
       '/api': {
         target: 'http://127.0.0.1:8080',
         changeOrigin: true,
+        /**
+         * 局域网同学访问时，后端若下发了 `Domain=127.0.0.1` 之类的 Cookie，
+         * 浏览器会直接丢弃（因为当前域名是 10.x/192.168.x）。
+         * 这里把 Domain 去掉，让 Cookie 变成“当前访问域名”的 Cookie，从而保证验证码/会话不丢。
+         */
+        cookieDomainRewrite: '',
         pathRewrite: {
           '^/api': '/api'
         }

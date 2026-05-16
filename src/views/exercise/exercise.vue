@@ -1,18 +1,28 @@
 <template>
-  <div style="width: 100%; height: 100%; background-color: #f0f2f5; padding: 20px 0 0">
+  <div class="exercise-page-root" style="width: 100%; height: 100%; background-color: #f0f2f5; padding: 20px 0 0">
     <!-- 开头 -->
     <el-row :gutter="24">
       <el-col :span="24">
         <el-card style="margin-bottom: 10px">
-          题库：{{ repoTitle }}
-          <el-button
-            :loading="loading"
-            style="float: right; margin-top: -10px"
-            type="primary"
-            @click="exitFun()"
-          >
-            结束刷题
-          </el-button>
+          <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; justify-content: space-between">
+            <span>题库：{{ repoTitle }}</span>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <el-button
+                v-show="!isFullscreen"
+                size="small"
+                @click="enterExerciseFullscreenFromUser"
+              >
+                进入全屏
+              </el-button>
+              <el-button
+                :loading="loading"
+                type="primary"
+                @click="exitFun()"
+              >
+                结束刷题
+              </el-button>
+            </div>
+          </div>
         </el-card>
       </el-col>
 
@@ -118,24 +128,26 @@
 
       <el-col :span="19" :xs="24">
         <el-card class="qu-content content-h">
-          <p v-if="quDetail.content">
-            <span
-              :class="['question-type', {
-                'single-choice': quDetail.quType === 1,
-                'multiple-choice': quDetail.quType === 2,
-                'judgment': quDetail.quType === 3,
-                'short-answer': quDetail.quType === 4
-              }]"
-            >{{ shouQuType(quDetail.quType) }}</span>
-            {{ number == 1 ? curTypeIndex + 1 : currentQuIndex + 1 }}.{{ quDetail.content }}
-          </p>
-          <p v-if="quDetail.image != null && quDetail.image != ''">
-            <el-image
-              :src="quDetail.image"
-              style="max-width: 100px;max-height:100%"
-              :preview-src="[quDetail.image]"
-            />
-          </p>
+          <compound-stem-block
+            v-if="quDetail.quType === 5"
+            :stem-content="questionStemDisplay(quDetail)"
+            :stem-image="quDetail.image"
+          />
+          <div v-if="quDetail.quType !== 5 && questionStemDisplay(quDetail)" style="margin: 10px 0 14px">
+            <p style="margin: 0 0 8px">
+              <span
+                :class="['question-type', {
+                  'single-choice': quDetail.quType === 1,
+                  'multiple-choice': quDetail.quType === 2,
+                  'judgment': quDetail.quType === 3,
+                  'short-answer': quDetail.quType === 4
+                }]"
+              >{{ shouQuType(quDetail.quType) }}</span>
+              <span>{{ number == 1 ? curTypeIndex + 1 : currentQuIndex + 1 }}.</span>
+            </p>
+            <rich-html-content :html="questionStemDisplay(quDetail)" />
+          </div>
+
           <div v-if="quDetail.quType == 1 || quDetail.quType == 3">
             <el-radio-group v-model="radioValue" :disabled="isAnswered">
               <el-radio
@@ -148,8 +160,15 @@
                 <span :class="getOptionClass(item)">
                   {{ numberToLetter(item.sort + 1) }}.{{ item.content }}
                 </span>
-                <div v-if="item.image && item.image != ''" style="clear: both">
-                  <el-image :src="item.image" style="max-width: 100px" />
+                <div v-if="parseImageUrls(item.image).length" style="clear: both; display: flex; flex-wrap: wrap; gap: 8px">
+                  <el-image
+                    v-for="(img, oi) in parseImageUrls(item.image)"
+                    :key="'exo-' + item.id + '-' + oi"
+                    :src="img"
+                    :preview-src-list="parseImageUrls(item.image)"
+                    fit="contain"
+                    style="max-width: 100px"
+                  />
                 </div>
               </el-radio>
             </el-radio-group>
@@ -166,8 +185,15 @@
                 <span :class="getOptionClass(item)">
                   {{ numberToLetter(item.sort + 1) }}.{{ item.content }}
                 </span>
-                <div v-if="item.image && item.image != ''" style="clear: both">
-                  <el-image :src="item.image" style="max-width: 100px" />
+                <div v-if="parseImageUrls(item.image).length" style="clear: both; display: flex; flex-wrap: wrap; gap: 8px">
+                  <el-image
+                    v-for="(img, oi) in parseImageUrls(item.image)"
+                    :key="'exo-' + item.id + '-' + oi"
+                    :src="img"
+                    :preview-src-list="parseImageUrls(item.image)"
+                    fit="contain"
+                    style="max-width: 100px"
+                  />
                 </div>
               </el-checkbox>
             </el-checkbox-group>
@@ -189,8 +215,26 @@
                 {{ rightQuAnswer.msg }}
               </span>
             </p>
-            <p v-if="rightQuAnswer.data">正确答案：{{ getRightAnswer() }}</p>
-            <p>试题分析：{{ rightQuAnswer.data.analysis }}</p>
+            <p v-if="rightQuAnswer.data && quDetail.quType !== 4">正确答案：{{ getRightAnswer() }}</p>
+            <div v-if="rightQuAnswer.data && quDetail.quType === 4" class="option-analysis-block">
+              <strong>参考答案：</strong>
+              <rich-html-content :html="exerciseSaqRefHtml" />
+            </div>
+            <p v-if="rightQuAnswer.data && rightQuAnswer.data.analysis">整题解析：{{ rightQuAnswer.data.analysis }}</p>
+            <template
+              v-if="isAnswered && rightQuAnswer.data && rightQuAnswer.data.options && (quDetail.quType === 1 || quDetail.quType === 2 || quDetail.quType === 3)"
+            >
+              <template v-for="opt in rightQuAnswer.data.options">
+                <div
+                  v-if="opt.analysis && String(opt.analysis).trim()"
+                  :key="'opt-an-' + opt.id"
+                  class="option-analysis-block"
+                >
+                  <strong>{{ numberToLetter(opt.sort + 1) }} 项解析：</strong>
+                  <rich-html-content :html="opt.analysis" />
+                </div>
+              </template>
+            </template>
           </div>
 
           <div style="margin-top: 20px">
@@ -258,15 +302,38 @@
       </span>
     </el-dialog>
 
+    <!-- 与正式考试一致：进入刷题页后尽量全屏；浏览器拒绝时点遮罩或顶部「进入全屏」 -->
+    <div
+      v-show="fullscreenGateVisible"
+      class="exam-fullscreen-gate"
+      @click="enterExerciseFullscreenFromUser"
+    >
+      <div class="exam-fullscreen-gate__panel" @click="enterExerciseFullscreenFromUser">
+        <p class="exam-fullscreen-gate__title">点击进入全屏刷题模式</p>
+        <p class="exam-fullscreen-gate__desc">浏览器请允许全屏；学生端 .exe 为窗口全屏。仍失败请用顶部「进入全屏」。</p>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import { getQuestion, getQuestionDetail, submitAnswer, getAnswerInfo } from '@/api/exercise'
 import { Loading } from 'element-ui'
+import imageUrlsMixin from '@/mixins/imageUrlsMixin'
+import CompoundStemBlock from '@/components/CompoundStemBlock'
+import {
+  enterExamDisplayMode,
+  exitExamDisplayMode,
+  isExamDisplayFullscreen
+} from '@/utils/fullscreen'
+import RichHtmlContent from '@/components/RichHtmlContent'
+import { saqReferenceDisplayHtml } from '@/utils/saqAnswerHtml'
+import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
 
 export default {
   name: 'ExamProcess',
+  components: { RichHtmlContent, CompoundStemBlock },
+  mixins: [imageUrlsMixin],
 
   data() {
     return {
@@ -286,6 +353,7 @@ export default {
       curTypeIndex: 0,
       curListIndex: 1,
       isFullscreen: false,
+      fullscreenGateVisible: false,
       showPrevious: false,
       showNext: true,
       loading: false,
@@ -382,6 +450,11 @@ export default {
       }).length
       const rate = Math.round((correct / answered.length) * 100)
       return rate + '%'
+    },
+    exerciseSaqRefHtml() {
+      const d = this.rightQuAnswer && this.rightQuAnswer.data
+      if (!d || !d.options || !d.options[0]) return ''
+      return saqReferenceDisplayHtml(d.options[0])
     }
 
   },
@@ -403,7 +476,51 @@ export default {
     this.repoTitle = this.$route.query.repoTitle
     this.test()
   },
+  mounted() {
+    document.addEventListener('fullscreenchange', this.syncExerciseFullscreenState)
+    document.addEventListener('webkitfullscreenchange', this.syncExerciseFullscreenState)
+    if (typeof window !== 'undefined' && window.electronAPI && typeof window.electronAPI.onNativeFullscreenChange === 'function') {
+      this._removeNativeFsListener = window.electronAPI.onNativeFullscreenChange(() => {
+        this.syncExerciseFullscreenState()
+      })
+    }
+    this.$nextTick(() => {
+      enterExamDisplayMode()
+        .then(() => this.syncExerciseFullscreenState())
+        .catch(() => this.syncExerciseFullscreenState())
+      setTimeout(() => this.syncExerciseFullscreenState(), 80)
+      setTimeout(() => this.syncExerciseFullscreenState(), 400)
+    })
+  },
+  beforeDestroy() {
+    document.removeEventListener('fullscreenchange', this.syncExerciseFullscreenState)
+    document.removeEventListener('webkitfullscreenchange', this.syncExerciseFullscreenState)
+    if (typeof this._removeNativeFsListener === 'function') {
+      this._removeNativeFsListener()
+      this._removeNativeFsListener = null
+    }
+    exitExamDisplayMode().catch(() => {})
+  },
   methods: {
+    questionStemDisplay(row) {
+      return questionStemDisplayHtml(row || {})
+    },
+    syncExerciseFullscreenState() {
+      isExamDisplayFullscreen().then((fs) => {
+        this.isFullscreen = fs
+        this.fullscreenGateVisible = !fs
+      })
+    },
+    enterExerciseFullscreenFromUser() {
+      enterExamDisplayMode()
+        .then(() => this.syncExerciseFullscreenState())
+        .catch(() => {
+          this.$message({
+            type: 'warning',
+            message: '无法进入全屏，请检查浏览器权限或按 F11；学生端 .exe 请尝试重启客户端。'
+          })
+        })
+    },
     // 根据答案返回class
     getOptionClass(option) {
       // 未提交答案不做样式处理
@@ -470,14 +587,15 @@ export default {
     },
 
     // 点击弹框中“确定结束”按钮后的处理：关闭弹框并进行跳转或其他后续处理
-    finishExam() {
+    async finishExam() {
+      this.statisticsDialogVisible = false
+      await exitExamDisplayMode().catch(() => {})
       // 删除当前标签页
       this.$store.commit('menu/REMOVE_TAG', {
         title: this.$route.meta.title, // 从路由元数据中获取标题
         path: this.$route.path,
         name: this.$route.name // 添加路由名称
       })
-      this.statisticsDialogVisible = false
       this.$router.push({ name: 'exercise-center', params: { id: this.paperId }})
     },
     // 取消弹框，不结束刷题
@@ -689,6 +807,8 @@ export default {
         return '判断题'
       } else if (type === 4) {
         return '简答题'
+      } else if (type === 5) {
+        return '复合题'
       }
     },
     async handNext() {
@@ -1007,6 +1127,52 @@ page {
   background-color: #f9f0ff;
   color: #722ed1;
   border: 1px solid #d3adf7;
+}
+
+.exam-fullscreen-gate {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1990;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.exam-fullscreen-gate__panel {
+  max-width: 440px;
+  margin: 16px;
+  padding: 28px 32px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  text-align: center;
+  cursor: pointer;
+}
+
+.exam-fullscreen-gate__title {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.exam-fullscreen-gate__desc {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #606266;
+}
+
+.option-analysis-block {
+  margin-top: 10px;
+  color: #606266;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 </style>

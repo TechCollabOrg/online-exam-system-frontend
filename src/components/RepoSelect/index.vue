@@ -33,7 +33,7 @@ export default {
     },
     // eslint-disable-next-line vue/require-default-prop
     value: {
-      type: [String, Array],
+      type: [String, Number, Array],
       default: null
     },
     // eslint-disable-next-line vue/require-default-prop
@@ -44,35 +44,52 @@ export default {
 
       // 下拉选项值
       dataList: [],
-      currentValue: []
+      currentValue: null
     }
   },
 
   watch: {
     // 检测查询变化
     value: {
+      immediate: true,
       handler() {
-        this.currentValue = this.value
+        this.currentValue = this.value == null ? (this.multi ? [] : null) : this.value
       }
     }
   },
   created() {
-    this.currentValue = this.value
+    this.currentValue = this.value == null ? (this.multi ? [] : null) : this.value
     this.fetchData()
   },
   methods: {
 
     fetchData(q) {
-      // , title: q, excludes: this.excludes
-      fetchPaging({ pageNum: 1, pageSize: 1000 }).then((res) => {
+      const params = { pageNum: 1, pageSize: 1000 }
+      if (q && String(q).trim()) {
+        params.title = String(q).trim()
+      }
+      if (Array.isArray(this.excludes) && this.excludes.length > 0) {
+        params.excludes = this.excludes.join(',')
+      }
+      fetchPaging(params).then((res) => {
         this.dataList = res.data
       })
     },
     handlerChange(e) {
+      if (e === '' || e === null || e === undefined || (Array.isArray(e) && e.length === 0)) {
+        this.$emit('change', null)
+        this.$emit('input', this.multi ? [] : null)
+        return
+      }
       const obj = this.dataList.find((item) => {
-        return item.id === e
+        return String(item.id) === String(e)
       })
 
+      if (!obj) {
+        this.$emit('change', null)
+        this.$emit('input', this.multi ? [] : null)
+        return
+      }
       this.$emit('change', obj)
       this.$emit('input', e)
     }

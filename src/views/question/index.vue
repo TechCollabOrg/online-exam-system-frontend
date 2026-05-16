@@ -35,11 +35,14 @@
 
     <!-- 文件上传 -->
     <el-dialog
-      width="400px"
+      width="480px"
       :show-close="false"
       :close-on-click-modal="false"
+      destroy-on-close
       title="上传文件"
       :visible.sync="fileDialogVisible"
+      @opened="onImportDialogOpened"
+      @closed="onImportDialogClosed"
     >
       <!-- v-model="scope.row.repoId" -->
       <!-- @change="repoChange($event, scope.row)" -->
@@ -50,13 +53,15 @@
         @change="handleRepoChangeSingle"
       />
       <el-upload
+        ref="questionImportUpload"
         class="upload-demo"
         drag
         action="xxxxxx"
         :limit="1"
-        accept=".xlsx,.xls,.json,application/json"
+        accept=".xlsx,.xls,.json"
         :auto-upload="false"
         :before-upload="beforeImportUpload"
+        :on-exceed="handleImportExceed"
         :on-remove="handleRemove"
         :on-change="handleFileChange"
         :file-list="fileList"
@@ -64,13 +69,14 @@
         <i class="el-icon-upload" />
         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
         <div slot="tip" class="el-upload__tip">
-          支持 Excel（.xls / .xlsx）或 JSON（.json），单文件不超过 10MB。可下载 JSON 示例参考格式。
+          支持 .xls / .xlsx / .json（扩展名不区分大小写），单文件不超过 10MB。
+          请从资源管理器或桌面拖入；在 IDE 侧栏拖到浏览器通常拿不到文件，请改用点击上传。
         </div>
       </el-upload>
       <div slot="footer" class="dialog-footer">
         <el-button @click="fileDialogVisible = false">取 消</el-button>
-        <el-button type="success" plain @click="startDownload">Excel 模板</el-button>
-        <el-button type="success" plain @click="downloadJsonExample">JSON 示例</el-button>
+        <el-button type="success" plain @click="startDownload">下载 Excel 模板</el-button>
+        <el-button type="success" plain @click="startDownloadJsonSample">下载 JSON 示例</el-button>
         <el-button type="primary" @click="importQu">确 定</el-button>
       </div>
     </el-dialog>
@@ -92,7 +98,10 @@
       <el-table-column label="序号" align="center" width="80">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
-      <el-table-column prop="content" label="题干" align="center" />
+      <el-table-column prop="id" label="ID" width="76" align="center" />
+      <el-table-column label="题干" align="left" min-width="220" show-overflow-tooltip>
+        <template slot-scope="scope">{{ questionStemListLabel(scope.row) }}</template>
+      </el-table-column>
       <el-table-column label="题目类型" align="center">
         <template slot-scope="scope">
           <span v-if="scope.row.quType == 1">单选题</span>
@@ -166,6 +175,7 @@
 <script>
 import { quPaging, quDel, quUpdate, importQue } from '@/api/question'
 import RepoSelect from '@/components/RepoSelect'
+import { questionStemPlainSummary } from '@/utils/questionStemHtml'
 
 export default {
   components: { RepoSelect },
@@ -261,6 +271,45 @@ export default {
     this.getQuPage()
   },
   methods: {
+    questionStemListLabel(row) {
+      return questionStemPlainSummary(row)
+    },
+    /** 弹窗打开时清空上次选择 */
+    onImportDialogOpened() {
+      this.clearImportFileState()
+    },
+    onImportDialogClosed() {
+      this.clearImportFileState()
+    },
+    clearImportFileState() {
+      this.fileList = []
+      this.$nextTick(() => {
+        const u = this.$refs.questionImportUpload
+        if (u && typeof u.clearFiles === 'function') {
+          u.clearFiles()
+        }
+      })
+    },
+    handleImportExceed() {
+      this.$message.warning('仅允许 1 个文件：请先删除列表中的文件再添加')
+    },
+    handleFileChange(file, fileList) {
+      const name = (file && file.name) || ''
+      if (!/\.(xlsx|xls|json)$/i.test(name)) {
+        this.$message.warning('仅支持 .xls、.xlsx、.json（扩展名不区分大小写）')
+        this.$nextTick(() => {
+          if (this.$refs.questionImportUpload) {
+            this.$refs.questionImportUpload.clearFiles()
+          }
+          this.fileList = []
+        })
+        return
+      }
+      this.fileList = fileList.slice(-1)
+    },
+    handleRemove(file, fileList) {
+      this.fileList = fileList
+    },
     handleRepoChangeSingle(repo) {
       ('单选题库变化:', repo)
       // 这里可以进一步处理repo对象，比如更新UI或发送网络请求等
@@ -289,13 +338,8 @@ export default {
     },
     importQu() {
       if (this.fileList && this.fileList.length > 0 && this.selectedRepoSingle !== '') {
-        const raw = this.fileList[0].raw
-        if (!this.isImportFileAllowed(raw)) {
-          this.$message.warning('仅支持 .xls、.xlsx、.json 文件')
-          return
-        }
         const formData = new FormData()
-        formData.append('file', raw)
+        formData.append('file', this.fileList[0].raw)
         importQue(this.selectedRepoSingle, formData)
           .then((response) => {
             if (response.code) {
@@ -305,43 +349,22 @@ export default {
               // 可以在这里处理成功后的逻辑，如刷新数据等
               // 清空题库选择和文件列表
               this.selectedRepoSingle = ''
-              this.fileList = []
+              this.clearImportFileState()
             } else {
               this.$message({
                 type: 'error',
                 message: response.msg
               })
               // 只清空文件列表
-              this.fileList = []
+              this.clearImportFileState()
             }
           })
           .catch((error) => {
-            console.error('文件上传失败：', error)
-            this.$message.error('文件上传失败！')
-            // 只清空文件列表
-            this.fileList = []
+            // 全局 request 拦截器已对 code!=1 弹过明细；此处避免再刷一条「上传失败」
+            console.error('导入试题请求失败：', error)
           })
       } else {
         this.$message.warning('请选择文件后再上传！')
-      }
-    },
-    handleFileChange(file, fileList) {
-      const last = fileList[fileList.length - 1]
-      if (last && last.raw && !this.isImportFileAllowed(last.raw)) {
-        this.$message.warning('仅支持 .xls、.xlsx、.json 文件')
-        this.fileList = fileList.filter((f) => f.uid !== last.uid)
-        return
-      }
-      this.fileList = fileList
-    },
-    isImportFileAllowed(file) {
-      if (!file || !file.name) return false
-      return /\.(xlsx|xls|json)$/i.test(file.name)
-    },
-    // 移除文件处理方法
-    handleRemove(file, fileList) {
-      if (fileList.length === 0) {
-        this.hasFiles = false
       }
     },
     // 分页查询
@@ -437,6 +460,7 @@ export default {
     },
 
     screenInfo(row, index, done) {
+      localStorage.removeItem('quId')
       this.$router.push({ name: 'questions-add', query: { zhi: row }})
     },
 
@@ -454,20 +478,69 @@ export default {
         this.selectedRepoSingleSearch,
         this.selValue)
     },
-    downloadStaticFile(href, filename) {
-      const a = document.createElement('a')
-      a.href = href
-      a.download = filename
-      a.style.display = 'none'
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
+    /**
+     * 下载导入模板：public/template 下的文件。
+     * publicPath 为 ./ 时，写死的 ./template/... 会相对「当前路由」拼错；这里用 URL 规范解析。
+     * 再用 fetch + Blob 触发保存，避免部分浏览器对 xlsx 只预览、或忽略 download 属性。
+     */
+    async startDownload() {
+      const fileName = '导入试题模板.xlsx'
+      const href = new URL('template/ImportQuestionTemplate.xlsx', window.location.href).href
+      try {
+        const res = await fetch(href, { method: 'GET', credentials: 'same-origin' })
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`)
+        }
+        const blob = await res.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = fileName
+        a.rel = 'noopener'
+        a.style.display = 'none'
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        window.URL.revokeObjectURL(url)
+        this.$message.success(
+          '已开始下载。未看到文件时，按 Ctrl+J 可打开下载记录，或在系统「下载」文件夹中查找。'
+        )
+      } catch (e) {
+        console.error('下载模板失败', e)
+        this.$message.error(
+          '模板下载失败。请确认使用 npm run dev 启动前端，且 public/template 下存在 ImportQuestionTemplate.xlsx；部署后勿改静态资源路径。'
+        )
+      }
     },
-    startDownload() {
-      this.downloadStaticFile('./template/ImportQuestionTemplate.xlsx', '导入试题模板.xlsx')
-    },
-    downloadJsonExample() {
-      this.downloadStaticFile('./template/ImportQuestionExample.json', '导入试题示例.json')
+    /** 下载 JSON 导入格式示例（与后端解析字段一致）。 */
+    async startDownloadJsonSample() {
+      const fileName = 'ImportQuestionTemplate.json'
+      const href = new URL('template/ImportQuestionTemplate.json', window.location.href).href
+      try {
+        const res = await fetch(href, { method: 'GET', credentials: 'same-origin' })
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`)
+        }
+        const blob = await res.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = fileName
+        a.rel = 'noopener'
+        a.style.display = 'none'
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        window.URL.revokeObjectURL(url)
+        this.$message.success(
+          '已开始下载 JSON 示例。根节点可为数组，或 {"questions":[...]}。'
+        )
+      } catch (e) {
+        console.error('下载 JSON 示例失败', e)
+        this.$message.error(
+          'JSON 示例下载失败。请确认 public/template/ImportQuestionTemplate.json 存在。'
+        )
+      }
     }
   }
 }

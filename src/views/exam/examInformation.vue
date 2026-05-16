@@ -20,7 +20,7 @@
           letter-spacing: 0.1em;
         "
       >
-        点击'开始考试'后将自动进入考试,请诚信考试！
+        点击「开始考试」后将自动全屏（浏览器为网页全屏；学生端 .exe 为窗口全屏）并开始考试，请诚信作答！
       </div>
     </div>
     <!-- 内容 -->
@@ -84,6 +84,8 @@
 
 <script>
 import { getExamDetail, examStart } from '@/api/exam'
+import { enterExamDisplayMode, exitExamDisplayMode } from '@/utils/fullscreen'
+
 export default {
   data() {
     return {
@@ -103,24 +105,39 @@ export default {
       const res = await getExamDetail(examId)
       this.data = res.data
     },
-    startExam() {
-      examStart(this.receivedRow).then((res) => {
+    async startExam() {
+      // 在用户点击的同步阶段立即发起全屏，再 await 开考与全屏结果，兼顾「用户激活」与路由切换前已进入全屏
+      const fullscreenPromise = enterExamDisplayMode().catch(() => {})
+
+      try {
+        const res = await examStart(this.receivedRow)
+        try {
+          await fullscreenPromise
+        } catch (e) {
+          /* 浏览器可能拒绝，考试页会再提示点击全屏 */
+        }
         if (res.code) {
-          // 删除当前标签页
           this.$store.commit('menu/REMOVE_TAG', {
-            title: this.$route.meta.title, // 从路由元数据中获取标题
+            title: this.$route.meta.title,
             path: this.$route.path,
-            name: this.$route.name // 添加路由名称
+            name: this.$route.name
           })
           localStorage.setItem('examId', this.receivedRow)
           this.$router.push({ name: 'start-exam', query: { zhi: this.receivedRow }})
         } else {
+          await exitExamDisplayMode().catch(() => {})
           this.$message({
             type: 'info',
             message: res.msg
           })
         }
-      })
+      } catch (e) {
+        await exitExamDisplayMode().catch(() => {})
+        this.$message({
+          type: 'error',
+          message: (e && e.message) || '开考失败，请重试'
+        })
+      }
     }
   }
 }

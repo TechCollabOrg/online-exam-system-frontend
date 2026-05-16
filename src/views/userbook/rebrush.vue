@@ -10,30 +10,53 @@
     <el-row :gutter="24">
       <el-col :span="24">
         <el-card style="margin-bottom: 10px">
-          错题本
-          <el-button
-            :loading="loading"
-            style="float: right; margin-top: -10px"
-            type="primary"
-            icon="el-icon-plus"
-            @click="handHandExam()"
-          >
-            {{ handleText }}
-          </el-button>
+          <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; justify-content: space-between">
+            <span>错题本</span>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <el-button
+                v-show="!isFullscreen"
+                size="small"
+                @click="enterRebrushFullscreenFromUser"
+              >
+                进入全屏
+              </el-button>
+              <el-button
+                :loading="loading"
+                type="primary"
+                icon="el-icon-plus"
+                @click="handHandExam()"
+              >
+                {{ handleText }}
+              </el-button>
+            </div>
+          </div>
         </el-card>
       </el-col>
     </el-row>
     <el-row>
       <el-col :span="24">
         <el-card class="qu-content content-h">
+          <compound-stem-block
+            v-if="quData.quType === 5"
+            :stem-content="questionStemDisplay(quData)"
+            :stem-image="quData.image"
+          />
+          <div v-if="quData.quType === 5">
+            <p style="margin: 10px 0 8px; font-weight: 600">
+              <span>({{ getQuestionType(quData.quType) }}) {{ index + 1 }}.</span>
+            </p>
+            <compound-question-display
+              v-model="compoundAnswers"
+              :sub-items="quData.subItemList || []"
+            />
+          </div>
           <!-- 题干 -->
-          <p v-if="quData.content">
-            <span>({{ getQuestionType(quData.quType) }}) {{ index + 1 }}.</span>
-            {{ quData.content }}
-          </p>
-          <p v-if="quData.image != null && quData.image != ''">
-            <el-image :src="quData.image" style="max-width: 200px" />
-          </p>
+          <div v-if="quData.quType !== 5 && questionStemDisplay(quData)" style="margin: 10px 0 14px">
+            <p style="margin: 0 0 8px">
+              <span>({{ getQuestionType(quData.quType) }}) {{ index + 1 }}.</span>
+            </p>
+            <rich-html-content :html="questionStemDisplay(quData)" />
+          </div>
           <div v-if="quData.quType === 1 || quData.quType === 3">
             <!-- 选项 -->
             <el-radio-group v-model="radioValue">
@@ -43,10 +66,17 @@
                 :label="item.id"
               >{{ numberToLetter(item.sort) }}.{{ item.content }}
                 <div
-                  v-if="item.image != null && item.image != ''"
-                  style="clear: both"
+                  v-if="parseImageUrls(item.image).length"
+                  style="clear: both; display: flex; flex-wrap: wrap; gap: 8px"
                 >
-                  <el-image :src="item.image" style="max-width: 200px" />
+                  <el-image
+                    v-for="(img, oi) in parseImageUrls(item.image)"
+                    :key="'rb-o-' + item.id + '-' + oi"
+                    :src="img"
+                    :preview-src-list="parseImageUrls(item.image)"
+                    fit="contain"
+                    style="max-width: 200px"
+                  />
                 </div>
               </el-radio>
             </el-radio-group>
@@ -64,6 +94,18 @@
             <div>
               <span>试题分析: {{ failQuData.analysis }}</span>
             </div>
+            <template v-if="failQuData.options && failQuData.options.length">
+              <template v-for="o in failQuData.options">
+                <div
+                  v-if="o.analysis && String(o.analysis).trim()"
+                  :key="'rb-an-sj-' + o.id"
+                  style="margin-top: 8px; color: #606266"
+                >
+                  <span>{{ numberToLetter(o.sort) }} 项解析：</span>
+                  <rich-html-content :html="o.analysis" />
+                </div>
+              </template>
+            </template>
           </div>
           <div v-if="quData.quType === 2">
             <el-checkbox-group v-model="multiValue">
@@ -73,10 +115,17 @@
                 :label="item.id"
               >{{ numberToLetter(item.sort) }}.{{ item.content }}
                 <div
-                  v-if="item.image != null && item.image != ''"
-                  style="clear: both"
+                  v-if="parseImageUrls(item.image).length"
+                  style="clear: both; display: flex; flex-wrap: wrap; gap: 8px"
                 >
-                  <el-image :src="item.image" style="max-width: 200px" />
+                  <el-image
+                    v-for="(img, oi) in parseImageUrls(item.image)"
+                    :key="'rb-o-' + item.id + '-' + oi"
+                    :src="img"
+                    :preview-src-list="parseImageUrls(item.image)"
+                    fit="contain"
+                    style="max-width: 200px"
+                  />
                 </div>
               </el-checkbox>
             </el-checkbox-group>
@@ -92,6 +141,18 @@
             <div>
               <span>试题分析: {{ failQuData.analysis }}</span>
             </div>
+            <template v-if="failQuData.options && failQuData.options.length">
+              <template v-for="o in failQuData.options">
+                <div
+                  v-if="o.analysis && String(o.analysis).trim()"
+                  :key="'rb-an-mul-' + o.id"
+                  style="margin-top: 8px; color: #606266"
+                >
+                  <span>{{ numberToLetter(o.sort) }} 项解析：</span>
+                  <rich-html-content :html="o.analysis" />
+                </div>
+              </template>
+            </template>
           </div>
 
           <div v-if="quData.quType === 4">
@@ -114,6 +175,14 @@
             <!-- </el-checkbox-group> -->
           </div>
           <div
+            v-if="flag == true && quData.quType === 5 && failQuData"
+            style="margin-top: 10px"
+          >
+            <div>
+              <span>试题分析: {{ failQuData.analysis }}</span>
+            </div>
+          </div>
+          <div
             v-if="flag == true && quData.quType === 4"
             style="margin-top: 10px"
           >
@@ -121,7 +190,8 @@
               <span>我的答案:{{ myAnswers }}</span>
             </div> -->
             <div>
-              <span>正确答案: {{ failQuData.rightAnswers }}</span>
+              <span>正确答案: </span>
+              <rich-html-content :html="rebrushSaqRefHtml" />
             </div>
             <div>
               <span>试题分析: {{ failQuData.analysis }}</span>
@@ -138,11 +208,35 @@
         </el-card>
       </el-col>
     </el-row>
+
+    <div
+      v-show="fullscreenGateVisible"
+      class="rebrush-fullscreen-gate"
+      @click="enterRebrushFullscreenFromUser"
+    >
+      <div class="rebrush-fullscreen-gate__panel" @click="enterRebrushFullscreenFromUser">
+        <p class="rebrush-fullscreen-gate__title">点击进入全屏错题模式</p>
+        <p class="rebrush-fullscreen-gate__desc">浏览器请允许全屏；学生端 .exe 为窗口全屏。</p>
+      </div>
+    </div>
   </div>
 </template>
 <script>
 import { fullBook, getSingleQu, getUserBookList } from '@/api/userbook'
+import imageUrlsMixin from '@/mixins/imageUrlsMixin'
+import CompoundStemBlock from '@/components/CompoundStemBlock'
+import CompoundQuestionDisplay from '@/components/CompoundQuestionDisplay'
+import {
+  enterExamDisplayMode,
+  exitExamDisplayMode,
+  isExamDisplayFullscreen
+} from '@/utils/fullscreen'
+import RichHtmlContent from '@/components/RichHtmlContent'
+import { saqReferenceDisplayHtml } from '@/utils/saqAnswerHtml'
+import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
 export default {
+  components: { RichHtmlContent, CompoundStemBlock, CompoundQuestionDisplay },
+  mixins: [imageUrlsMixin],
   data() {
     return {
       repoId: '',
@@ -150,6 +244,7 @@ export default {
       routeData: {},
       // 全屏/不全屏
       isFullscreen: false,
+      fullscreenGateVisible: false,
       showPrevious: false,
       showNext: true,
       loading: false,
@@ -174,6 +269,7 @@ export default {
       // 已答ID
       answeredIds: [],
       saqTextarea: '',
+      compoundAnswers: {},
       myAnswers: '',
       lastIndex: 0,
       paperData: {
@@ -184,14 +280,66 @@ export default {
       }
     }
   },
+  computed: {
+    rebrushSaqRefHtml() {
+      if (!this.failQuData || this.quData.quType !== 4) return ''
+      const o = this.failQuData.options && this.failQuData.options[0]
+      if (o) return saqReferenceDisplayHtml(o)
+      return this.failQuData.rightAnswers || ''
+    }
+  },
   created() {
     this.routeData = this.$route.query.zhi
     this.examId = localStorage.getItem('userbook_examId')
     this.getUserBookListFun()
     // this.getSingleQuFun()
   },
+  mounted() {
+    document.addEventListener('fullscreenchange', this.syncRebrushFullscreenState)
+    document.addEventListener('webkitfullscreenchange', this.syncRebrushFullscreenState)
+    if (typeof window !== 'undefined' && window.electronAPI && typeof window.electronAPI.onNativeFullscreenChange === 'function') {
+      this._removeNativeFsListener = window.electronAPI.onNativeFullscreenChange(() => {
+        this.syncRebrushFullscreenState()
+      })
+    }
+    this.$nextTick(() => {
+      enterExamDisplayMode()
+        .then(() => this.syncRebrushFullscreenState())
+        .catch(() => this.syncRebrushFullscreenState())
+      setTimeout(() => this.syncRebrushFullscreenState(), 80)
+      setTimeout(() => this.syncRebrushFullscreenState(), 400)
+    })
+  },
+  beforeDestroy() {
+    document.removeEventListener('fullscreenchange', this.syncRebrushFullscreenState)
+    document.removeEventListener('webkitfullscreenchange', this.syncRebrushFullscreenState)
+    if (typeof this._removeNativeFsListener === 'function') {
+      this._removeNativeFsListener()
+      this._removeNativeFsListener = null
+    }
+    exitExamDisplayMode().catch(() => {})
+  },
 
   methods: {
+    questionStemDisplay(row) {
+      return questionStemDisplayHtml(row || {})
+    },
+    syncRebrushFullscreenState() {
+      isExamDisplayFullscreen().then((fs) => {
+        this.isFullscreen = fs
+        this.fullscreenGateVisible = !fs
+      })
+    },
+    enterRebrushFullscreenFromUser() {
+      enterExamDisplayMode()
+        .then(() => this.syncRebrushFullscreenState())
+        .catch(() => {
+          this.$message({
+            type: 'warning',
+            message: '无法进入全屏，请检查浏览器权限或按 F11。'
+          })
+        })
+    },
     handHandExam() {
       const that = this
       // 交卷保存答案
@@ -202,14 +350,14 @@ export default {
           cancelButtonText: '取消',
           type: 'warning'
         })
-        .then(() => {
+        .then(async() => {
           // 删除当前标签页
+          await exitExamDisplayMode().catch(() => {})
           this.$store.commit('menu/REMOVE_TAG', {
             title: this.$route.meta.title, // 从路由元数据中获取标题
             path: this.$route.path,
             name: this.$route.name // 添加路由名称
           })
-          this.statisticsDialogVisible = false
           this.$router.push({ name: 'wrong-book' })
         })
         .catch(() => {
@@ -222,7 +370,29 @@ export default {
 
     getSingleQuFun(quId) {
       getSingleQu(quId).then((res) => {
-        this.quData = res.data
+        this.quData = res.data || { answerList: [] }
+        this.radioValue = ''
+        this.multiValue = []
+        this.saqTextarea = ''
+        this.compoundAnswers = {}
+        if (this.quData.quType === 5 && this.quData.subItemList) {
+          this.initCompoundAnswerState(this.quData)
+        }
+      })
+    },
+    initCompoundAnswerState(vo) {
+      this.compoundAnswers = {}
+      if (!vo || vo.quType !== 5 || !vo.subItemList) return
+    },
+    buildCompoundAnswerContent() {
+      return JSON.stringify(this.compoundAnswers || {})
+    },
+    compoundHasAnyFill() {
+      const ans = this.compoundAnswers || {}
+      return Object.keys(ans).some(k => {
+        const v = ans[k]
+        if (Array.isArray(v)) return v.some(s => s != null && String(s).trim() !== '')
+        return v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && v.length === 0)
       })
     },
     getUserBookListFun() {
@@ -270,7 +440,8 @@ export default {
         1: '单选题',
         2: '多选题',
         3: '判断题',
-        4: '简答题'
+        4: '简答题',
+        5: '复合题'
       }
       return typeMap[type] || '未知类型'
     },
@@ -309,8 +480,9 @@ export default {
           // 单选题或判断题
           answer = this.radioValue
         } else if (this.quData.quType === 4) {
-          // 简答题
           answer = this.saqTextarea
+        } else if (this.quData.quType === 5) {
+          answer = this.buildCompoundAnswerContent()
         }
 
         const params = {
@@ -449,5 +621,44 @@ page {
 
 ::v-deep .el-radio__label {
   line-height: 30px;
+}
+
+.rebrush-fullscreen-gate {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1990;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.rebrush-fullscreen-gate__panel {
+  max-width: 440px;
+  margin: 16px;
+  padding: 28px 32px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  text-align: center;
+  cursor: pointer;
+}
+
+.rebrush-fullscreen-gate__title {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.rebrush-fullscreen-gate__desc {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #606266;
 }
 </style>

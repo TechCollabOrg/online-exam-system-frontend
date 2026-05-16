@@ -163,9 +163,8 @@ export default {
       replyDel(id).then(res => {
         if (res.code) {
           this.$message({ type: 'success', message: res.msg })
-          // this.onConfirm()
-          // 发送websocket请求
           this.$sendMessage({ type: 'DISCUSSION', data: { discussionId: this.currentDiscussionId }})
+          this.getDiscussionRelyFun(this.currentDiscussionId, Number(this.radio))
         } else {
           this.$message({ type: 'error', message: res.msg })
         }
@@ -192,8 +191,8 @@ export default {
       replyAdd(this.form).then(res => {
         if (res) {
           this.$message({ type: 'success', message: res.msg })
-          // 发发送websocket请求
           this.$sendMessage({ type: 'DISCUSSION', data: { discussionId: this.currentDiscussionId }})
+          this.getDiscussionRelyFun(this.currentDiscussionId, Number(this.radio))
           this.form.content = ''
         } else {
           this.$message({ type: 'error', message: res.msg })

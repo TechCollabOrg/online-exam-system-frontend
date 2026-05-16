@@ -14,18 +14,18 @@
                   <el-row :gutter="24">
                     <el-col :span="20" style="text-align: left">
                       <!-- 题目: 序号、类型、题干 -->
-                      <div>
-                        <!-- <div class="qu_num">{{ index }}</div> -->
-                        <!-- 【 单选题 】 -->
-                        <div class="qu_content">{{ indexx+1 }}、{{ index.title }}</div>
+                      <compound-stem-block
+                        v-if="index.quType === 5"
+                        :stem-content="questionStemDisplay(index)"
+                        :stem-image="index.image"
+                      />
+                      <div v-if="index.quType !== 5 && questionStemDisplay(index)" style="margin: 8px 0 12px">
+                        <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">
+                          {{ indexx + 1 }}、
+                        </div>
+                        <rich-html-content :html="questionStemDisplay(index)" />
                       </div>
-                      <div v-if="index.image != null && index.image != ''">
-                        <el-image
-                          :src="index.image"
-                          :preview-src="[index.image]"
-                          style="height: 100px;"
-                        />
-                      </div>
+
                       <!-- 选项 -->
                       <el-radio-group class="qu_choose_group">
                         <!-- ['A', 'B', 'C', 'D'] -->
@@ -36,7 +36,7 @@
                           border
 
                           class="qu_choose"
-                          :class="{'imgC':item.image != null && item.image != '','isRight':index.myOption!=null&& isCheck(index.myOption ,item.sort) && item.isRight , 'incorrect':index.myOption!=null && isCheck(index.myOption ,item.sort) && !item.isRight}"
+                          :class="{'imgC':parseImageUrls(item.image).length > 0,'isRight':index.myOption!=null&& isCheck(index.myOption ,item.sort) && item.isRight , 'incorrect':index.myOption!=null && isCheck(index.myOption ,item.sort) && !item.isRight}"
                         >
 
                           <!-- 选项flex浮动 -->
@@ -44,12 +44,22 @@
                             <div class="qu_choose_tag_type">
                               {{ numberToLetter(indexs) }}、{{ item.content }}
                             </div>
-                            <div v-if="item.image != null && item.image != ''">
+                            <div v-if="parseImageUrls(item.image).length" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px">
                               <el-image
-                                :src="item.image"
-                                :preview-src="[item.image]"
+                                v-for="(img, oi) in parseImageUrls(item.image)"
+                                :key="'exo-' + indexs + '-' + oi"
+                                :src="img"
+                                :preview-src-list="parseImageUrls(item.image)"
+                                fit="contain"
                                 class="qu_choose_tag_img"
                               />
+                            </div>
+                            <div
+                              v-if="item.analysis && String(item.analysis).trim()"
+                              style="margin-top: 6px; color: #606266; font-size: 13px; width: 100%"
+                            >
+                              <span>选项解析：</span>
+                              <rich-html-content :html="item.analysis" />
                             </div>
                           </div>
                         </el-radio>
@@ -83,15 +93,18 @@
                   <el-row :gutter="24">
                     <el-col :span="20" style="text-align: left">
                       <!-- 题目: 序号、类型、题干 -->
-                      <div>
-                        <!-- <div class="qu_num">{{ index }}</div> -->
-                        <!-- 【 单选题 】 -->
-                        <div class="qu_content">{{ index.title }}</div>
+                      <compound-stem-block
+                        v-if="index.quType === 5"
+                        :stem-content="questionStemDisplay(index)"
+                        :stem-image="index.image"
+                      />
+                      <div v-if="index.quType !== 5 && questionStemDisplay(index)" style="margin: 8px 0 12px">
+                        <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">题干</div>
+                        <rich-html-content :html="questionStemDisplay(index)" />
                       </div>
 
                       <!-- 选项 -->
                       <el-radio-group class="qu_choose_group">
-                        <!-- ['A', 'B', 'C', 'D'] -->
                         <el-input
                           v-model="index.myOption"
                           style="margin-top: 10px"
@@ -120,7 +133,8 @@
                           </div>
                           <div style="margin-top: 8px">
                             <span>正确答案：</span>
-                            <span>{{ index.rightOption }}</span>
+                            <rich-html-content v-if="index.option && index.option[0]" :html="saqRefDisplay(index)" />
+                            <span v-else>{{ index.rightOption }}</span>
                             <br>
                           </div>
                           <div style="margin-top: 8px">
@@ -145,8 +159,16 @@
 
 <script>
 import { recordExerciseDetail } from '@/api/record'
+import imageUrlsMixin from '@/mixins/imageUrlsMixin'
+import RichHtmlContent from '@/components/RichHtmlContent'
+import CompoundStemBlock from '@/components/CompoundStemBlock'
+import { saqReferenceDisplayHtml } from '@/utils/saqAnswerHtml'
+import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
+
 export default {
   name: 'ExamProcess',
+  components: { RichHtmlContent, CompoundStemBlock },
+  mixins: [imageUrlsMixin],
   data() {
     return {
       input: '',
@@ -162,6 +184,12 @@ export default {
     this.ExerciseDetail()
   },
   methods: {
+    questionStemDisplay(row) {
+      return questionStemDisplayHtml(row || {})
+    },
+    saqRefDisplay(row) {
+      return saqReferenceDisplayHtml(row.option && row.option[0])
+    },
     isCheck(myOption, sort) {
       const arr = myOption.split(',').map(Number) // 将字符串转换为数字数组
       if (arr.includes(sort)) {

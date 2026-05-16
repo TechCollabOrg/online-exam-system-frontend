@@ -15,20 +15,23 @@
                 <!-- 客观题部分 -->
                 <template v-for="(item, index) in recordData">
                   <div
-                    v-if="item.quType === 1 || item.quType === 2 || item.quType === 3"
+                    v-if="item && (item.quType === 1 || item.quType === 2 || item.quType === 3)"
                     :key="'obj-' + index"
                     :class="'index' + index"
                   >
                     <el-row :gutter="24">
                       <el-col :span="20" style="text-align: left">
                         <!-- 题干区域 -->
-                        <div>
+                        <compound-stem-block
+                          v-if="item.quType === 5"
+                          :stem-content="questionStemDisplay(item)"
+                          :stem-image="item.image"
+                        />
+                        <div v-if="item.quType !== 5 && questionStemDisplay(item)">
                           <div class="qu_content">
-                            <span class="qu_num">{{ index + 1 }}. </span>{{ item.title }}
+                            <span class="qu_num">{{ index + 1 }}. </span>
                           </div>
-                          <div v-if="item.image != null && item.image != ''">
-                            <el-image :src="item.image" style="max-width: 200px;" />
-                          </div>
+                          <rich-html-content :html="questionStemDisplay(item)" />
                         </div>
 
                         <!-- 选项区域 -->
@@ -41,12 +44,20 @@
                             class="qu_choose"
                             :class="{
                               'current': item.myOption != null && isCheck(item.myOption, option.sort),
-                              'imgC': option.image != null && option.image != '',
+                              'imgC': parseImageUrls(option.image).length > 0,
                             }"
                           >
                             {{ numberToLetter(optionIndex) }}、{{ option.content }}
-                            <div v-if="option.image != null && option.image != ''">
-                              <el-image :src="option.image" style="max-width: 200px" class="qu_choose_tag_img" />
+                            <div v-if="parseImageUrls(option.image).length" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px">
+                              <el-image
+                                v-for="(img, oi) in parseImageUrls(option.image)"
+                                :key="'sum-opt-' + optionIndex + '-' + oi"
+                                :src="img"
+                                :preview-src-list="parseImageUrls(option.image)"
+                                fit="contain"
+                                style="max-width: 200px"
+                                class="qu_choose_tag_img"
+                              />
                             </div>
                           </el-radio>
                         </el-radio-group>
@@ -72,20 +83,56 @@
                   </div>
                 </template>
 
-                <!-- 主观题部分 -->
+                <!-- 复合题 -->
                 <template v-for="(item, index) in recordData">
                   <div
-                    v-if="item.quType === 4"
+                    v-if="item && item.quType === 5"
+                    :key="'cmp-' + index"
+                    :class="'index' + index"
+                  >
+                    <el-row :gutter="24">
+                      <el-col :span="20" style="text-align: left">
+                        <compound-stem-block
+                          :stem-content="questionStemDisplay(item)"
+                          :stem-image="item.image"
+                        />
+                        <div v-if="questionStemDisplay(item)" style="margin-top: 8px">
+                          <span class="qu_num">{{ index + 1 }}. </span>
+                          <rich-html-content :html="questionStemDisplay(item)" />
+                        </div>
+                        <div class="qu_analysis" style="margin-top: 12px">
+                          <el-card>
+                            <div>
+                              <span>我的作答：</span>
+                              <span style="color: #606266">{{ formatCompoundAnswer(item) }}</span>
+                            </div>
+                          </el-card>
+                        </div>
+                      </el-col>
+                    </el-row>
+                    <el-divider />
+                  </div>
+                </template>
+
+                <template v-for="(item, index) in recordData">
+                  <div
+                    v-if="item && item.quType === 4"
                     :key="'subj-' + index"
                     :class="'index' + index"
                   >
                     <el-row :gutter="24">
                       <el-col :span="20" style="text-align: left">
                         <!-- 题干部分 -->
-                        <div>
+                        <compound-stem-block
+                          v-if="item.quType === 5"
+                          :stem-content="questionStemDisplay(item)"
+                          :stem-image="item.image"
+                        />
+                        <div v-if="item.quType !== 5 && questionStemDisplay(item)">
                           <div class="qu_content">
-                            <span class="qu_num">{{ index + 1 }}. </span>{{ item.title }}
+                            <span class="qu_num">{{ index + 1 }}. </span>
                           </div>
+                          <rich-html-content :html="questionStemDisplay(item)" />
                         </div>
 
                         <!-- 简答题内容区域 -->
@@ -98,6 +145,13 @@
                             placeholder="请输入内容"
                             readonly
                           />
+                          <div
+                            v-if="item.option && item.option[0] && saqRefDisplay(item)"
+                            style="margin-top: 10px"
+                          >
+                            <span style="color: #606266; font-size: 13px">参考答案：</span>
+                            <rich-html-content :html="saqRefDisplay(item)" />
+                          </div>
                         </el-radio-group>
                       </el-col>
                     </el-row>
@@ -119,8 +173,16 @@
 </template>
 
 <script>
+import imageUrlsMixin from '@/mixins/imageUrlsMixin'
+import CompoundStemBlock from '@/components/CompoundStemBlock'
+import RichHtmlContent from '@/components/RichHtmlContent'
+import { saqReferenceDisplayHtml } from '@/utils/saqAnswerHtml'
+import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
+
 export default {
   name: 'ExamSummaryDialog',
+  components: { CompoundStemBlock, RichHtmlContent },
+  mixins: [imageUrlsMixin],
   props: {
     visible: {
       type: Boolean,
@@ -142,6 +204,12 @@ export default {
     }
   },
   methods: {
+    questionStemDisplay(row) {
+      return questionStemDisplayHtml(row || {})
+    },
+    saqRefDisplay(row) {
+      return saqReferenceDisplayHtml(row.option && row.option[0])
+    },
     // 检查选项是否被选中
     isCheck(myOption, sort) {
       if (!myOption) return false
@@ -171,6 +239,20 @@ export default {
       if (isRight === 1) return 'green'
       if (isRight === 0) return 'red'
       return 'gray'
+    },
+
+    formatCompoundAnswer(item) {
+      if (!item || !item.myOption) return '未作答'
+      try {
+        const parsed = JSON.parse(item.myOption)
+        if (parsed && typeof parsed === 'object') {
+          const keys = Object.keys(parsed).sort((a, b) => Number(a) - Number(b))
+          return keys.map(k => `(${Number(k) + 1}) ${JSON.stringify(parsed[k])}`).join('；') || '未作答'
+        }
+      } catch (e) {
+        /* 非 JSON 则原样展示 */
+      }
+      return String(item.myOption)
     },
 
     // 将数字转换为字母

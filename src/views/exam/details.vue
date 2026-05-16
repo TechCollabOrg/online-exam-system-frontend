@@ -14,35 +14,32 @@
                       index.quType === 2 ||
                       index.quType === 3
                   "
-                  :class="'index' + index"
+                  :class="'index' + indexx"
                 >
                   <el-row :gutter="24">
                     <el-col :span="20" style="text-align: left">
                       <!-- 题目: 序号、类型、题干 -->
-                      <div>
-                        <!-- <div class="qu_num">{{ index }}</div> -->
-                        <!-- 【 单选题 】 -->
-                        <div class="qu_content">{{ indexx+1 }}、{{ index.title }}</div>
+                      <compound-stem-block
+                        v-if="index.quType === 5"
+                        :stem-content="questionStemDisplay(index)"
+                        :stem-image="index.image"
+                      />
+                      <div v-if="index.quType !== 5 && questionStemDisplay(index)" style="margin: 8px 0 12px">
+                        <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">{{ indexx + 1 }}、</div>
+                        <rich-html-content :html="questionStemDisplay(index)" />
+                      </div>
 
-                      </div>
-                      <div v-if="index.image != null && index.image != ''">
-                        <el-image
-                          :src="index.image"
-                          :preview-src="[index.image]"
-                          style="height: 100px"
-                        />
-                      </div>
                       <!-- 选项 -->
                       <el-radio-group class="qu_choose_group">
                         <!-- ['A', 'B', 'C', 'D'] -->
                         <el-radio
-                          v-for="(item, indexs) in index.option"
+                          v-for="(item, indexs) in (index.option || [])"
                           :key="indexs"
                           :label="item.content"
                           border
                           class="qu_choose"
                           :class="{
-                            imgC: item.image != null && item.image != '',
+                            imgC: parseImageUrls(item.image).length > 0,
                             isRight:
                               item.isRight,
                             incorrect:
@@ -56,23 +53,26 @@
                             <div class="qu_choose_tag_type">
                               {{ numberToLetter(indexs) }}、{{ item.content }}.
                             </div>
-                            <!-- 选项内容和图片 -->
                             <div
-                              v-if="item.image != null && item.image != ''"
-                              style="clear: both"
+                              v-if="parseImageUrls(item.image).length"
+                              style="clear: both; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px"
                             >
                               <el-image
-                                :src="item.image"
-                                :preview-src="[item.image]"
+                                v-for="(img, oi) in parseImageUrls(item.image)"
+                                :key="'o-' + indexs + '-' + oi"
+                                :src="img"
+                                :preview-src-list="parseImageUrls(item.image)"
+                                fit="contain"
+                                class="qu_choose_tag_img"
                                 style="max-width: 200px"
                               />
                             </div>
-                            <div v-if="item.image != null && item.image != ''">
-                              <el-image
-                                :preview-src="[item.image]"
-                                :src="item.image"
-                                class="qu_choose_tag_img"
-                              />
+                            <div
+                              v-if="item.analysis && String(item.analysis).trim()"
+                              style="margin-top: 6px; color: #606266; font-size: 13px; width: 100%"
+                            >
+                              <span>选项解析：</span>
+                              <rich-html-content :html="item.analysis" />
                             </div>
                           </div>
                         </el-radio>
@@ -98,21 +98,24 @@
                 </div>
               </template>
               <!-- eslint-disable-next-line vue/no-template-shadow -->
-              <template v-for="index in data">
+              <template v-for="(index, idx) in data">
                 <!-- eslint-disable-next-line vue/require-v-for-key -->
-                <div v-if="index.quType === 4" :class="'index' + index">
+                <div v-if="index.quType === 4" :class="'index' + idx">
                   <el-row :gutter="24">
                     <el-col :span="20" style="text-align: left">
                       <!-- 题目: 序号、类型、题干 -->
-                      <div>
-                        <!-- <div class="qu_num">{{ index }}</div> -->
-                        <!-- 【 单选题 】 -->
-                        <div class="qu_content">{{ index.title }}</div>
+                      <compound-stem-block
+                        v-if="index.quType === 5"
+                        :stem-content="questionStemDisplay(index)"
+                        :stem-image="index.image"
+                      />
+                      <div v-if="index.quType !== 5 && questionStemDisplay(index)" style="margin: 8px 0 12px">
+                        <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">题干</div>
+                        <rich-html-content :html="questionStemDisplay(index)" />
                       </div>
 
                       <!-- 选项 -->
                       <el-radio-group class="qu_choose_group">
-                        <!-- ['A', 'B', 'C', 'D'] -->
                         <el-input
                           v-model="index.myOption"
                           style="margin-top: 10px"
@@ -142,7 +145,8 @@
                           </div>
                           <div style="margin-top: 8px">
                             <span>正确答案：</span>
-                            <span>{{ index.rightOption }}</span>
+                            <rich-html-content v-if="index.option && index.option[0]" :html="saqRefDisplay(index)" />
+                            <span v-else>{{ index.rightOption }}</span>
                             <br>
                           </div>
                           <div style="margin-top: 8px">
@@ -167,33 +171,62 @@
 
 <script>
 import { details } from '@/api/exam'
+import imageUrlsMixin from '@/mixins/imageUrlsMixin'
+import RichHtmlContent from '@/components/RichHtmlContent'
+import CompoundStemBlock from '@/components/CompoundStemBlock'
+import { saqReferenceDisplayHtml } from '@/utils/saqAnswerHtml'
+import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
+
 export default {
   name: 'ExamProcess',
+  components: { RichHtmlContent, CompoundStemBlock },
+  mixins: [imageUrlsMixin],
   data() {
     return {
       input: '',
       quIndex: -1,
       examId: '',
-      data: null,
+      data: [],
       userId: null,
       index: {
         quType: 4 // 确保这里有一个值
       }
     }
   },
+  watch: {
+    '$route'() {
+      this.resolveExamIdFromRouteOrStorage()
+      this.ExamDetail()
+    }
+  },
   created() {
-    console.log('this.$route.query', this.$route.query.examId)
-    this.examId = localStorage.getItem('exam-details-examId')
+    this.resolveExamIdFromRouteOrStorage()
     this.ExamDetail()
   },
   methods: {
-    isCheck(myOption, sort) {
-      const arr = myOption.split(',').map(Number) // 将字符串转换为数字数组
-      if (arr.includes(sort)) {
-        return true
-      } else {
-        return false
+    questionStemDisplay(row) {
+      return questionStemDisplayHtml(row || {})
+    },
+    saqRefDisplay(row) {
+      return saqReferenceDisplayHtml(row.option && row.option[0])
+    },
+    resolveExamIdFromRouteOrStorage() {
+      const q = this.$route.query || {}
+      const p = this.$route.params || {}
+      const fromRoute = q.examId ?? q.id ?? p.examId ?? p.id
+      const id =
+        fromRoute != null && fromRoute !== ''
+          ? String(fromRoute)
+          : localStorage.getItem('exam-details-examId')
+      this.examId = id || ''
+      if (this.examId) {
+        localStorage.setItem('exam-details-examId', this.examId)
       }
+    },
+    isCheck(myOption, sort) {
+      if (myOption == null || myOption === '') return false
+      const arr = String(myOption).split(',').map(Number)
+      return arr.includes(sort)
     },
     numberToLetter(input) {
       const numberToCharMap = {
@@ -228,8 +261,17 @@ export default {
     },
     // 分页查询
     async ExamDetail() {
-      const res = await details(this.examId)
-      this.data = res.data
+      if (!this.examId) {
+        this.data = []
+        this.$message.error('缺少试卷编号，无法加载试卷')
+        return
+      }
+      try {
+        const res = await details(this.examId)
+        this.data = Array.isArray(res.data) ? res.data : []
+      } catch (e) {
+        this.data = []
+      }
     },
     // 点击答题卡题号, 右侧题目滑动
     handleTag(index) {

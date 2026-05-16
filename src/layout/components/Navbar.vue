@@ -1,6 +1,6 @@
 <template>
   <div class="navbar">
-    <div style="width:100%;height:66px;box-shadow: rgb(0 21 41 / 9%) 0px 1px 4px;}">
+    <div class="navbar-topbar">
       <hamburger
         :is-active="sidebar.opened"
         class="hamburger-container"
@@ -33,25 +33,15 @@
         </el-dropdown>
       </div>
     </div>
-    <!-- tags -->
-    <div
-      style="
-        width: 100%;
-        height: 45px;
-        background-color: write;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-      "
-    >
+    <div class="navbar-tags">
       <template v-for="(item,index) in tags">
         <el-tag
           v-if="item.title"
           :key="index"
           closable
           disable-transitions
-          style="border: 1px solid #cacaca"
-          :class="{ active: item.checked }"
+          class="navbar-tag"
+          :class="{ 'navbar-tag--active': item.checked }"
           @click="$router.push(item.path)"
           @close="handleTagClose(item)"
         >
@@ -123,57 +113,97 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.el-tag {
-  background-color: #ffffff;
-  border-color: #cacaca;
-  display: inline-block;
-  height: 32px;
-  padding: 0 10px;
-  line-height: 30px;
-  margin-left: 5px;
-  font-size: 12px;
-  color: #000000;
-  border-width: 1.5px;
-  border-style: solid;
-  border-radius: 3px;
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
-  white-space: nowrap;
-}
-
-.active {
-  background-color: #58b289;
-  color: rgb(255, 255, 255);
-}
-
 .navbar {
-  height: 110px;
   overflow: hidden;
   position: relative;
-  background: #fff;
-  box-shadow: 0 1px 4px rgb(0 21 41 / 16%);
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+
+  .navbar-topbar {
+    width: 100%;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.06);
+  }
 
   .hamburger-container {
-    line-height: 46px;
-    height: 100%;
-    float: left;
+    line-height: 56px;
+    height: 56px;
+    float: none;
+    display: flex;
+    align-items: center;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: background 0.2s;
     -webkit-tap-highlight-color: transparent;
+    color: #475569;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.025);
+      background: rgba(59, 130, 246, 0.1);
+      color: #0f172a;
     }
   }
 
   .breadcrumb-container {
-    float: left;
+    flex: 1;
+    min-width: 0;
+    line-height: 56px;
+    float: none;
+    padding-left: 8px;
+  }
+
+  .navbar-tags {
+    width: 100%;
+    min-height: 44px;
+    padding: 6px 12px 10px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%);
+    border-top: 1px solid rgba(226, 232, 240, 0.9);
+  }
+
+  .navbar-tag {
+    background-color: #fff !important;
+    border-color: #e2e8f0 !important;
+    color: #334155 !important;
+    border-radius: 8px !important;
+    height: 30px !important;
+    line-height: 28px !important;
+    padding: 0 12px !important;
+    font-size: 12px !important;
+    border-width: 1px !important;
+    margin-left: 0 !important;
+    transition: border-color 0.2s, box-shadow 0.2s, color 0.2s;
+
+    &:hover {
+      border-color: #93c5fd !important;
+      color: #0f172a !important;
+    }
+  }
+
+  .navbar-tag--active {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    border-color: transparent !important;
+    color: #fff !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
+
+    &:hover {
+      border-color: transparent !important;
+      color: #fff !important;
+    }
   }
 
   .right-menu {
-    float: right;
-    height: 100%;
-    line-height: 50px;
+    float: none;
+    margin-left: auto;
+    height: 56px;
+    line-height: 56px;
+    display: flex;
+    align-items: center;
 
     &:focus {
       outline: none;
@@ -184,7 +214,7 @@ export default {
       padding: 0 8px;
       height: 100%;
       font-size: 18px;
-      color: #5a5e66;
+      color: #64748b;
       vertical-align: text-bottom;
 
       &.hover-effect {
@@ -192,40 +222,46 @@ export default {
         transition: background 0.3s;
 
         &:hover {
-          background: rgba(0, 0, 0, 0.025);
+          background: rgba(59, 130, 246, 0.1);
         }
       }
     }
 
     .avatar-container {
-      margin-right: 30px;
+      margin-right: 24px;
 
       .avatar-wrapper {
-        margin-top: 5px;
+        margin-top: 0;
         position: relative;
+        display: flex;
+        align-items: center;
 
         .user-avatar {
           cursor: pointer;
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
+          width: 38px;
+          height: 38px;
+          border-radius: 12px;
+          border: 2px solid rgba(59, 130, 246, 0.28);
+          object-fit: cover;
         }
 
         .user-avatar--placeholder {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #e8e8e8;
-          color: #909399;
-          font-size: 22px;
+          background: linear-gradient(145deg, #dbeafe, #f1f5f9);
+          color: #64748b;
+          font-size: 20px;
         }
 
         .el-icon-caret-bottom {
           cursor: pointer;
           position: absolute;
-          right: -20px;
-          top: 25px;
+          right: -18px;
+          top: 50%;
+          transform: translateY(-50%);
           font-size: 12px;
+          color: #94a3b8;
         }
       }
     }

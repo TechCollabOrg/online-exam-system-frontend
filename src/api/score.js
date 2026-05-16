@@ -25,3 +25,11 @@ export function exportScores(examId, gradeId) {
   })
 }
 
+/** 学生：本班各场考试班级名次序列（用于排名变化曲线） */
+export function studentRankTrend() {
+  return request({
+    url: 'score/student-rank-trend',
+    method: 'get'
+  })
+}
+
