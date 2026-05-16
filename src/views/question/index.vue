@@ -53,21 +53,24 @@
         class="upload-demo"
         drag
         action="xxxxxx"
-        multiple
         :limit="1"
-        accept=".xlsx, .xls"
+        accept=".xlsx,.xls,.json,application/json"
         :auto-upload="false"
+        :before-upload="beforeImportUpload"
         :on-remove="handleRemove"
         :on-change="handleFileChange"
         :file-list="fileList"
       >
         <i class="el-icon-upload" />
         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-        <div slot="tip" class="el-upload__tip">只能上传xls/xlsx文件，且不超过500kb</div>
+        <div slot="tip" class="el-upload__tip">
+          支持 Excel（.xls / .xlsx）或 JSON（.json），单文件不超过 10MB。可下载 JSON 示例参考格式。
+        </div>
       </el-upload>
       <div slot="footer" class="dialog-footer">
         <el-button @click="fileDialogVisible = false">取 消</el-button>
-        <el-button type="success" plain @click="startDownload">下载模板</el-button>
+        <el-button type="success" plain @click="startDownload">Excel 模板</el-button>
+        <el-button type="success" plain @click="downloadJsonExample">JSON 示例</el-button>
         <el-button type="primary" @click="importQu">确 定</el-button>
       </div>
     </el-dialog>
@@ -96,6 +99,7 @@
           <span v-else-if="scope.row.quType == 2">多选题</span>
           <span v-else-if="scope.row.quType == 3">判断题</span>
           <span v-else-if="scope.row.quType == 4">简答题</span>
+          <span v-else-if="scope.row.quType == 5">复合题</span>
         </template>
       </el-table-column>
       <el-table-column prop="repoTitle" label="所属题库" align="center" />
@@ -187,6 +191,10 @@ export default {
         {
           value: 4,
           label: '简答题'
+        },
+        {
+          value: 5,
+          label: '复合题'
         }
       ],
       length: '',
@@ -261,10 +269,33 @@ export default {
       localStorage.setItem('quId', row.id)
       this.$router.push({ name: 'questions-add' })
     },
+    beforeImportUpload(file) {
+      const name = (file.name || '').toLowerCase()
+      const okExt = /\.(xlsx|xls|json)$/.test(name)
+      const okMime =
+        !file.type ||
+        /spreadsheet|excel|json/i.test(file.type) ||
+        file.type === 'application/vnd.ms-excel'
+      if (!okExt && !okMime) {
+        this.$message.warning('仅支持 .xls、.xlsx、.json 文件')
+        return false
+      }
+      const max = 10 * 1024 * 1024
+      if (file.size > max) {
+        this.$message.warning('文件不能超过 10MB')
+        return false
+      }
+      return true
+    },
     importQu() {
       if (this.fileList && this.fileList.length > 0 && this.selectedRepoSingle !== '') {
-        const formData = new FormData() // 创建FormData对象
-        formData.append('file', this.fileList[0].raw) // 添加文件到formData
+        const raw = this.fileList[0].raw
+        if (!this.isImportFileAllowed(raw)) {
+          this.$message.warning('仅支持 .xls、.xlsx、.json 文件')
+          return
+        }
+        const formData = new FormData()
+        formData.append('file', raw)
         importQue(this.selectedRepoSingle, formData)
           .then((response) => {
             if (response.code) {
@@ -295,7 +326,17 @@ export default {
       }
     },
     handleFileChange(file, fileList) {
-      this.fileList = fileList // 收集文件信息
+      const last = fileList[fileList.length - 1]
+      if (last && last.raw && !this.isImportFileAllowed(last.raw)) {
+        this.$message.warning('仅支持 .xls、.xlsx、.json 文件')
+        this.fileList = fileList.filter((f) => f.uid !== last.uid)
+        return
+      }
+      this.fileList = fileList
+    },
+    isImportFileAllowed(file) {
+      if (!file || !file.name) return false
+      return /\.(xlsx|xls|json)$/i.test(file.name)
     },
     // 移除文件处理方法
     handleRemove(file, fileList) {
@@ -413,19 +454,20 @@ export default {
         this.selectedRepoSingleSearch,
         this.selValue)
     },
-    // 下载模板
-    async startDownload() {
+    downloadStaticFile(href, filename) {
       const a = document.createElement('a')
-      a.href = './template/ImportQuestionTemplate.xlsx'
-      a.download = '导入试题模板.xlsx'
-      // 障眼法藏起来a标签
+      a.href = href
+      a.download = filename
       a.style.display = 'none'
-      // 将a标签追加到文档对象中
       document.body.appendChild(a)
-      // 模拟点击了<a>标签,会触发<a>标签的href的读取,浏览器就会自动下载了
       a.click()
-      // 一次性的,用完就删除a标签
       a.remove()
+    },
+    startDownload() {
+      this.downloadStaticFile('./template/ImportQuestionTemplate.xlsx', '导入试题模板.xlsx')
+    },
+    downloadJsonExample() {
+      this.downloadStaticFile('./template/ImportQuestionExample.json', '导入试题示例.json')
     }
   }
 }
