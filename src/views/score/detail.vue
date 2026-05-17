@@ -36,6 +36,23 @@
       </el-row>
     </el-card>
 
+    <el-card v-loading="briefingLoading" shadow="never" class="ai-briefing-card">
+      <div slot="header" class="clearfix ai-briefing-header">
+        <span>AI 成绩分析简报</span>
+        <el-button
+          type="primary"
+          size="small"
+          :loading="briefingLoading"
+          :disabled="!examId || !gradeId"
+          @click="generateAiBriefing"
+        >生成简报</el-button>
+      </div>
+      <p v-if="!briefingText && !briefingLoading" class="briefing-placeholder">
+        基于本页成绩分布、及格率与题目正确率，由大模型生成教学分析建议（需已在 env.local 配置硅基流动 LLM）。
+      </p>
+      <div v-if="briefingText" class="briefing-body">{{ briefingText }}</div>
+    </el-card>
+
     <el-table
       :data="data.records"
       border
@@ -86,7 +103,7 @@
 
 <script>
 import echarts from 'echarts'
-import { scorePaging, exportScores } from '@/api/score'
+import { scorePaging, exportScores, scoreAiBriefing } from '@/api/score'
 import { getExamDetail } from '@/api/exam'
 
 const BELOW_PASS_BUCKETS = 2
@@ -145,7 +162,9 @@ export default {
       rankedAll: [],
       bucketLegendRows: [],
       pieChart: null,
-      resizeHandler: null
+      resizeHandler: null,
+      briefingLoading: false,
+      briefingText: ''
     }
   },
   computed: {
@@ -204,6 +223,28 @@ export default {
       row.type = 1
       localStorage.setItem('record_exam_examId', row.examId)
       this.$router.push({ name: 'exam-record-detail', query: { data: row }})
+    },
+    async generateAiBriefing() {
+      if (!this.examId || !this.gradeId) {
+        return
+      }
+      this.briefingLoading = true
+      try {
+        const res = await scoreAiBriefing({
+          examId: this.examId,
+          gradeId: this.gradeId
+        })
+        if (res.code && res.data && res.data.briefing) {
+          this.briefingText = res.data.briefing
+          this.$message.success(res.msg || '简报已生成')
+        } else {
+          this.$message.error(res.msg || '生成失败')
+        }
+      } catch (e) {
+        this.$message.error('AI 简报请求失败，请确认已配置 LLM_API_KEY 并重启后端')
+      } finally {
+        this.briefingLoading = false
+      }
     },
     async fetchAllScoreRows() {
       const pageSize = 200
@@ -480,6 +521,24 @@ export default {
 .chart-card {
   margin-bottom: 20px;
 }
+.ai-briefing-card {
+  margin-bottom: 20px;
+}
+.ai-briefing-header .el-button {
+  float: right;
+}
+.briefing-placeholder {
+  color: #909399;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
+}
+.briefing-body {
+  white-space: pre-wrap;
+  line-height: 1.75;
+  color: #303133;
+  font-size: 14px;
+}
 .pie-heading {
   text-align: center;
   margin-bottom: 4px;
@@ -514,3 +573,4 @@ export default {
   margin: 0 0 12px;
 }
 </style>
+

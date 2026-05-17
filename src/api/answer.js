@@ -32,6 +32,15 @@ export function correct(data) {
   })
 }
 
+/** 触发指定考生的主观题 AI 阅卷（异步） */
+export function triggerAiScore(params) {
+  return request({
+    url: 'answers/ai-score',
+    method: 'post',
+    params
+  })
+}
+
 // export function scorePaging(data) {
 //     return request({
 //       url: 'answers/correct',

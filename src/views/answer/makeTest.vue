@@ -43,6 +43,13 @@
 
           <el-button
             v-if="waitQuList.length"
+            type="warning"
+            class="ann"
+            :loading="aiScoringLoading"
+            @click="runAiScore"
+          >AI 阅卷</el-button>
+          <el-button
+            v-if="waitQuList.length"
             type="success"
             class="ann"
             @click="subCorrect"
@@ -320,7 +327,7 @@
 
 <script>
 
-import { answerDetail, correct } from '@/api/answer'
+import { answerDetail, correct, triggerAiScore } from '@/api/answer'
 
 import CompoundStemBlock from '@/components/CompoundStemBlock'
 
@@ -345,7 +352,9 @@ export default {
 
       objectiveOnlyHint: false,
 
-      scoreData: null
+      scoreData: null,
+
+      aiScoringLoading: false
 
     }
   },
@@ -439,6 +448,28 @@ export default {
 
       this.waitQuList = res.data || []
       this.objectiveOnlyHint = !this.waitQuList.length
+    },
+
+    runAiScore() {
+      if (!this.info || !this.info.examId) {
+        return
+      }
+      this.aiScoringLoading = true
+      triggerAiScore({ examId: this.info.examId, userId: this.info.userId })
+        .then((res) => {
+          if (res.code) {
+            this.$message.success(res.msg || 'AI 阅卷已提交，约 10–30 秒后请刷新')
+            setTimeout(() => this.getUserAnswerDetail(), 12000)
+          } else {
+            this.$message.error(res.msg || '提交失败')
+          }
+        })
+        .catch(() => {
+          this.$message.error('AI 阅卷请求失败')
+        })
+        .finally(() => {
+          this.aiScoringLoading = false
+        })
     },
 
     backToAnswerList() {
