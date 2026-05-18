@@ -3,7 +3,7 @@
     <el-card shadow="never" class="box-card">
       <div slot="header" class="clearfix">
         <span>AI 助手</span>
-        <span class="sub">使用与阅卷相同的对话平台配置（Coze / Dify / LLM），适合答疑与备考咨询。</span>
+        <span class="sub">使用管理员配置的 AI 接口；若无法使用请联系管理员在「API 连接配置」中完成设置。</span>
       </div>
       <el-input
         v-model="message"
@@ -13,8 +13,16 @@
         show-word-limit
         placeholder="输入你的问题…"
       />
+      <el-alert
+        v-if="!configured"
+        type="warning"
+        :closable="false"
+        show-icon
+        title="AI 尚未由管理员配置或未启用，暂时无法使用。"
+        style="margin-bottom: 12px"
+      />
       <div class="actions">
-        <el-button type="primary" :loading="loading" @click="send">发送</el-button>
+        <el-button type="primary" :loading="loading" :disabled="!configured" @click="send">发送</el-button>
         <el-button :disabled="loading" @click="clear">清空</el-button>
       </div>
       <el-divider content-position="left">回复</el-divider>
@@ -25,6 +33,7 @@
 
 <script>
 import { aiChat } from '@/api/ai'
+import { getAiConfigStatus } from '@/api/aiConfig'
 
 export default {
   name: 'AiAssistant',
@@ -32,8 +41,17 @@ export default {
     return {
       message: '',
       reply: '',
-      loading: false
+      loading: false,
+      configured: true,
+      configModel: ''
     }
+  },
+  created() {
+    getAiConfigStatus().then(res => {
+      const d = res.data || {}
+      this.configured = d.configured !== false
+      this.configModel = d.modelName || ''
+    }).catch(() => {})
   },
   methods: {
     clear() {
