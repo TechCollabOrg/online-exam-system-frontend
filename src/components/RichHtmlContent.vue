@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="sanitized"
-    class="rich-html-content"
+    :class="['rich-html-content', { 'rich-html-content--block-images': blockImages }]"
     v-html="sanitized"
   />
 </template>
@@ -15,6 +15,11 @@ export default {
     html: {
       type: String,
       default: ''
+    },
+    /** 解析等场景：图片块级排列，避免与文字叠层 */
+    blockImages: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {
@@ -41,6 +46,14 @@ export default {
   vertical-align: middle;
   display: inline-block;
   margin: 4px 0;
+}
+.rich-html-content--block-images >>> img {
+  display: block;
+  margin: 8px 0;
+}
+.rich-html-content--block-images >>> p {
+  display: block;
+  margin: 0.4em 0;
 }
 .rich-html-content >>> a {
   color: #409eff;
