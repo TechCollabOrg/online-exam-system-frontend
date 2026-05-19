@@ -240,7 +240,7 @@
     >
       <div class="exam-fullscreen-gate__panel" @click="enterExamFullscreenFromUser">
         <p class="exam-fullscreen-gate__title">点击进入全屏考试模式</p>
-        <p class="exam-fullscreen-gate__desc">浏览器请允许全屏；学生端 .exe 一般会自动窗口全屏。仍失败请用顶部「进入全屏」。</p>
+        <p class="exam-fullscreen-gate__desc">退出全屏（含按 ESC）将记为切屏。浏览器请允许全屏；学生端 .exe 一般会自动窗口全屏。</p>
       </div>
     </div>
   </div>
@@ -288,6 +288,10 @@ export default {
       // 全屏/不全屏（网页 Fullscreen API 或 Electron 窗口全屏 / kiosk）
       isFullscreen: false,
       fullscreenGateVisible: false,
+      /** 本场考试是否曾进入过全屏（用于区分「尚未全屏」与「ESC 退出全屏」） */
+      examHadFullscreen: false,
+      skipFullscreenExitCheat: false,
+      _cheatReporting: false,
       showPrevious: false,
       showNext: true,
       loading: false,
@@ -363,6 +367,7 @@ export default {
     })
   },
   beforeDestroy() {
+    this.skipFullscreenExitCheat = true
     window.removeEventListener('blur', this.onExamWindowBlur)
     document.removeEventListener('fullscreenchange', this.syncExamFullscreenState)
     document.removeEventListener('webkitfullscreenchange', this.syncExamFullscreenState)
@@ -376,6 +381,18 @@ export default {
   methods: {
     syncExamFullscreenState() {
       isExamDisplayFullscreen().then((fs) => {
+        const wasFs = this.isFullscreen
+        if (
+          wasFs &&
+          !fs &&
+          this.examHadFullscreen &&
+          !this.skipFullscreenExitCheat
+        ) {
+          this.reportExamCheat()
+        }
+        if (fs) {
+          this.examHadFullscreen = true
+        }
         this.isFullscreen = fs
         this.fullscreenGateVisible = !fs
       })
@@ -467,21 +484,34 @@ export default {
         this.handExamPreLoading = false
       }
     },
-    // 窗口失焦检测（替代 document.visibilitychange）
+    // 窗口失焦检测（切标签、其它应用、最小化等）
     onExamWindowBlur() {
-      examCheat(this.examId).then((res) => {
-        if (res.code) {
-          this.examMeg = res.msg
-          this.tipsFlag = true
-          if (res.data) {
-            exitExamDisplayMode().catch(() => {})
-            this.$router.push({
-              name: 'text-center',
-              params: { id: this.paperId }
-            })
+      this.reportExamCheat()
+    },
+    /** 记录切屏；退出全屏（含 ESC）与窗口失焦均会调用 */
+    reportExamCheat() {
+      if (this._cheatReporting || !this.examId) return
+      this._cheatReporting = true
+      examCheat(this.examId)
+        .then((res) => {
+          if (res.code) {
+            this.examMeg = res.msg
+            this.tipsFlag = true
+            if (res.data) {
+              this.skipFullscreenExitCheat = true
+              exitExamDisplayMode().catch(() => {})
+              this.$router.push({
+                name: 'text-center',
+                params: { id: this.paperId }
+              })
+            }
           }
-        }
-      })
+        })
+        .finally(() => {
+          setTimeout(() => {
+            this._cheatReporting = false
+          }, 800)
+        })
     },
 
     // 开始考试
