@@ -33,3 +33,12 @@ export function studentRankTrend() {
   })
 }
 
+/** 教师：AI 生成某班某场考试的成绩分析简报 */
+export function scoreAiBriefing(params) {
+  return request({
+    url: 'score/ai-briefing',
+    method: 'get',
+    params,
+    timeout: 120000
+  })
+}

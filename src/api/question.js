@@ -38,11 +38,13 @@ export function quDetail(id) {
   })
 }
 
+/** 批量导入试题：支持 Excel（.xls/.xlsx）与 JSON（.json） */
 export function importQue(id, data) {
   return request({
     url: `questions/import/${id}`,
     method: 'post',
-    data
+    data,
+    timeout: 120000
   })
 }
 

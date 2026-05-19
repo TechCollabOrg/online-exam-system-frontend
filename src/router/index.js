@@ -61,6 +61,38 @@ export const constantRoutes = [
   },
 
   {
+    path: '/ai-assistant',
+    component: Layout,
+    children: [{
+      path: '/ai-assistant',
+      name: 'ai-assistant',
+      component: () => import('@/views/ai-assistant/index'),
+      meta: {
+        title: 'AI 助手',
+        icon: 'el-icon-cpu',
+        visible: true,
+        roles: ['teacher', 'admin', 'student']
+      }
+    }]
+  },
+
+  {
+    path: '/ai-api-config',
+    component: Layout,
+    children: [{
+      path: '/ai-api-config',
+      name: 'ai-api-config',
+      component: () => import('@/views/ai-config/index'),
+      meta: {
+        title: 'API 连接配置',
+        icon: 'el-icon-setting',
+        visible: true,
+        roles: ['admin']
+      }
+    }]
+  },
+
+  {
     path: '/user-management',
     component: Layout,
     children: [{

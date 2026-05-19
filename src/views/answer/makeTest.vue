@@ -43,6 +43,13 @@
 
           <el-button
             v-if="waitQuList.length"
+            type="warning"
+            class="ann"
+            :loading="aiScoringLoading"
+            @click="runAiScore"
+          >AI 阅卷</el-button>
+          <el-button
+            v-if="waitQuList.length"
             type="success"
             class="ann"
             @click="subCorrect"
@@ -192,9 +199,9 @@
 
                       <el-card>
 
-                        <div style="display: flex; align-items: center">
+                        <div class="score-row">
 
-                          <span style="color: #e6a23c">分数：</span>
+                          <span class="score-label">确认分数</span>
 
                           <el-input
 
@@ -202,8 +209,15 @@
 
                             type="number"
 
-                            style="width: 100px; margin-left: 20px"
+                            class="score-input"
                           />
+
+                          <el-tag
+                            v-if="hasAiGrade(item)"
+                            type="warning"
+                            size="small"
+                            effect="plain"
+                          >AI阅卷 {{ item.aiScore }} 分</el-tag>
 
                           <span
 
@@ -211,12 +225,20 @@
 
                               item.correctScore > item.totalScore "
 
-                            style="color: #f00; margin-left: 10px"
+                            class="score-warn"
                           >
 
                             评分只能在 0-{{ item.totalScore }}之间
 
                           </span>
+
+                        </div>
+
+                        <div v-if="hasAiGrade(item)" class="ai-grade-box">
+
+                          <el-tag type="info" size="mini">AI阅卷说明</el-tag>
+
+                          <p class="ai-grade-reason">{{ item.aiReason }}</p>
 
                         </div>
 
@@ -254,14 +276,6 @@
                           <rich-html-content v-else-if="item.refAnswer" :html="item.refAnswer" />
 
                           <span v-else>—</span>
-
-                          <br><br>
-
-                          <span v-if="item.aiReason !== null">AI评分</span>
-
-                          <br>
-
-                          <span v-if="item.aiReason !== null">{{ item.aiReason }}</span>
 
                         </div>
 
@@ -320,7 +334,7 @@
 
 <script>
 
-import { answerDetail, correct } from '@/api/answer'
+import { answerDetail, correct, triggerAiScore } from '@/api/answer'
 
 import CompoundStemBlock from '@/components/CompoundStemBlock'
 
@@ -345,7 +359,9 @@ export default {
 
       objectiveOnlyHint: false,
 
-      scoreData: null
+      scoreData: null,
+
+      aiScoringLoading: false
 
     }
   },
@@ -437,8 +453,55 @@ export default {
 
       const res = await answerDetail(params)
 
-      this.waitQuList = res.data || []
+      this.waitQuList = (res.data || []).map((row) => ({
+        ...row,
+        correctScore: row.aiScore != null ? row.aiScore : ''
+      }))
       this.objectiveOnlyHint = !this.waitQuList.length
+    },
+
+    hasAiGrade(item) {
+      return item && item.aiScore != null && item.aiScore !== ''
+    },
+
+    runAiScore() {
+      if (!this.info || !this.info.examId) {
+        return
+      }
+      this.aiScoringLoading = true
+      triggerAiScore({ examId: this.info.examId, userId: this.info.userId })
+        .then((res) => {
+          if (res.code) {
+            this.$message.success(res.msg || 'AI 阅卷已提交，正在刷新结果…')
+            this.pollAiGradingResult(0)
+          } else {
+            this.$message.error(res.msg || '提交失败')
+            this.aiScoringLoading = false
+          }
+        })
+        .catch(() => {
+          this.$message.error('AI 阅卷请求失败')
+          this.aiScoringLoading = false
+        })
+    },
+
+    pollAiGradingResult(attempt) {
+      const maxAttempts = 8
+      if (attempt >= maxAttempts) {
+        this.aiScoringLoading = false
+        this.$message.warning('AI 阅卷可能仍在进行，请稍后手动刷新页面')
+        return
+      }
+      setTimeout(async() => {
+        await this.getUserAnswerDetail()
+        const hasAi = (this.waitQuList || []).some((q) => this.hasAiGrade(q))
+        if (hasAi) {
+          this.aiScoringLoading = false
+          this.$message.success('AI 阅卷结果已更新')
+        } else {
+          this.pollAiGradingResult(attempt + 1)
+        }
+      }, attempt === 0 ? 4000 : 5000)
     },
 
     backToAnswerList() {
@@ -681,6 +744,43 @@ export default {
 
   }
 
+}
+
+.score-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.score-label {
+  color: #e6a23c;
+  font-weight: 600;
+}
+
+.score-input {
+  width: 100px;
+}
+
+.score-warn {
+  color: #f56c6c;
+  font-size: 13px;
+}
+
+.ai-grade-box {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: #f4f4f5;
+  border-radius: 4px;
+  border-left: 3px solid #909399;
+}
+
+.ai-grade-reason {
+  margin: 8px 0 0;
+  color: #606266;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
 }
 
 </style>
