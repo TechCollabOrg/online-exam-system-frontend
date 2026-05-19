@@ -209,7 +209,9 @@
 
                             type="number"
 
-                            class="score-input"
+                            class="score-input score-input-no-wheel"
+
+                            @wheel.native.prevent
                           />
 
                           <el-tag
@@ -448,15 +450,19 @@ export default {
       if (page) page.scrollIntoView()
     },
 
+    mapGradingRows(rows) {
+      return (rows || []).map((row) => ({
+        ...row,
+        correctScore: row.aiScore != null && row.aiScore !== '' ? row.aiScore : (row.correctScore != null ? row.correctScore : '')
+      }))
+    },
+
     async getUserAnswerDetail() {
       const params = { userId: this.info.userId, examId: this.info.examId }
 
       const res = await answerDetail(params)
 
-      this.waitQuList = (res.data || []).map((row) => ({
-        ...row,
-        correctScore: row.aiScore != null ? row.aiScore : ''
-      }))
+      this.waitQuList = this.mapGradingRows(res.data)
       this.objectiveOnlyHint = !this.waitQuList.length
     },
 
@@ -464,44 +470,28 @@ export default {
       return item && item.aiScore != null && item.aiScore !== ''
     },
 
-    runAiScore() {
+    async runAiScore() {
       if (!this.info || !this.info.examId) {
         return
       }
       this.aiScoringLoading = true
-      triggerAiScore({ examId: this.info.examId, userId: this.info.userId })
-        .then((res) => {
-          if (res.code) {
-            this.$message.success(res.msg || 'AI 阅卷已提交，正在刷新结果…')
-            this.pollAiGradingResult(0)
-          } else {
-            this.$message.error(res.msg || '提交失败')
-            this.aiScoringLoading = false
-          }
+      try {
+        const res = await triggerAiScore({
+          examId: this.info.examId,
+          userId: this.info.userId
         })
-        .catch(() => {
-          this.$message.error('AI 阅卷请求失败')
-          this.aiScoringLoading = false
-        })
-    },
-
-    pollAiGradingResult(attempt) {
-      const maxAttempts = 8
-      if (attempt >= maxAttempts) {
-        this.aiScoringLoading = false
-        this.$message.warning('AI 阅卷可能仍在进行，请稍后手动刷新页面')
-        return
-      }
-      setTimeout(async() => {
         await this.getUserAnswerDetail()
-        const hasAi = (this.waitQuList || []).some((q) => this.hasAiGrade(q))
-        if (hasAi) {
-          this.aiScoringLoading = false
-          this.$message.success('AI 阅卷结果已更新')
+        const aiCount = (this.waitQuList || []).filter((q) => this.hasAiGrade(q)).length
+        if (aiCount > 0) {
+          this.$message.success(res.msg || `AI 阅卷完成，已为 ${aiCount} 题填入建议分数，请核对后提交批改`)
         } else {
-          this.pollAiGradingResult(attempt + 1)
+          this.$message.warning(res.msg || '阅卷已完成，但未生成 AI 分数，请检查考生是否作答简答题')
         }
-      }, attempt === 0 ? 4000 : 5000)
+      } catch (e) {
+        // 错误文案由 request 拦截器统一提示
+      } finally {
+        this.aiScoringLoading = false
+      }
     },
 
     backToAnswerList() {
@@ -760,6 +750,16 @@ export default {
 
 .score-input {
   width: 100px;
+}
+
+/* 禁止滚轮误改分数；隐藏 number 输入框上下箭头 */
+.score-input-no-wheel ::v-deep input[type="number"] {
+  -moz-appearance: textfield;
+}
+.score-input-no-wheel ::v-deep input[type="number"]::-webkit-outer-spin-button,
+.score-input-no-wheel ::v-deep input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .score-warn {
