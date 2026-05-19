@@ -142,13 +142,22 @@
                           />
                         </el-card>
                       </div>
+                      <div class="ai-review-actions">
+                        <el-button
+                          type="primary"
+                          plain
+                          size="small"
+                          icon="el-icon-cpu"
+                          @click="openAiReview(index, indexx + 1)"
+                        >AI 解析本题</el-button>
+                      </div>
                     </el-col>
                   </el-row>
                   <el-divider />
                 </div>
               </template>
               <!-- eslint-disable-next-line vue/no-template-shadow -->
-              <template v-for="index in data">
+              <template v-for="(index, indexx) in data">
                 <!-- eslint-disable-next-line vue/require-v-for-key -->
                 <div v-if="index.quType === 4" :class="'index' + index">
                   <el-row :gutter="24">
@@ -205,6 +214,15 @@
                             variant="question"
                           />
                         </el-card>
+                      </div>
+                      <div class="ai-review-actions">
+                        <el-button
+                          type="primary"
+                          plain
+                          size="small"
+                          icon="el-icon-cpu"
+                          @click="openAiReview(index, indexx + 1)"
+                        >AI 解析本题</el-button>
                       </div>
                     </el-col>
                   </el-row>
@@ -265,6 +283,15 @@
                           />
                         </el-card>
                       </div>
+                      <div class="ai-review-actions">
+                        <el-button
+                          type="primary"
+                          plain
+                          size="small"
+                          icon="el-icon-cpu"
+                          @click="openAiReview(item, indexx + 1)"
+                        >AI 解析本题</el-button>
+                      </div>
                     </el-col>
                   </el-row>
                   <el-divider />
@@ -276,6 +303,14 @@
         </el-col>
       </el-main>
     </el-container>
+    <question-ai-review-dialog
+      :visible.sync="aiReviewVisible"
+      :exam-id="examId"
+      :qu-id="aiReviewQuId"
+      :user-id="userId"
+      :question-no="aiReviewQuestionNo"
+      :sub-index="aiReviewSubIndex"
+    />
   </el-container>
 </template>
 
@@ -285,12 +320,13 @@ import imageUrlsMixin from '@/mixins/imageUrlsMixin'
 import RichHtmlContent from '@/components/RichHtmlContent'
 import AnalysisRichBlock from '@/components/AnalysisRichBlock'
 import CompoundStemBlock from '@/components/CompoundStemBlock'
+import QuestionAiReviewDialog from '@/components/QuestionAiReviewDialog'
 import { saqReferenceDisplayHtml } from '@/utils/saqAnswerHtml'
 import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
 
 export default {
   name: 'ExamProcess',
-  components: { RichHtmlContent, AnalysisRichBlock, CompoundStemBlock },
+  components: { RichHtmlContent, AnalysisRichBlock, CompoundStemBlock, QuestionAiReviewDialog },
   mixins: [imageUrlsMixin],
   data() {
     return {
@@ -301,7 +337,11 @@ export default {
       userId: null,
       index: {
         quType: 4 // 确保这里有一个值
-      }
+      },
+      aiReviewVisible: false,
+      aiReviewQuId: null,
+      aiReviewQuestionNo: '',
+      aiReviewSubIndex: null
     }
   },
   watch: {
@@ -425,6 +465,16 @@ export default {
       }
     },
     // 点击答题卡题号, 右侧题目滑动
+    openAiReview(question, questionNo, subIndex = null) {
+      if (!question || question.quId == null) {
+        this.$message.warning('题目信息不完整，请刷新页面后重试')
+        return
+      }
+      this.aiReviewQuId = question.quId
+      this.aiReviewQuestionNo = questionNo
+      this.aiReviewSubIndex = subIndex
+      this.aiReviewVisible = true
+    },
     handleTag(index) {
       // 高亮选中的题目index标签
       this.quIndex = index
@@ -484,6 +534,9 @@ export default {
   height: 1px;
   width: 95%;
   margin: 24px 0;
+}
+.ai-review-actions {
+  margin-top: 12px;
 }
 .type_tag {
   margin-right: 5px;
