@@ -39,18 +39,19 @@
     <el-card v-loading="briefingLoading" shadow="never" class="ai-briefing-card">
       <div slot="header" class="clearfix ai-briefing-header">
         <span>AI 成绩分析简报</span>
+        <span v-if="briefingSavedAt" class="briefing-saved-at">已保存于 {{ briefingSavedAt }}</span>
         <el-button
           type="primary"
           size="small"
           :loading="briefingLoading"
           :disabled="!examId || !gradeId"
           @click="generateAiBriefing"
-        >生成简报</el-button>
+        >{{ briefingText ? '重新生成' : '生成简报' }}</el-button>
       </div>
       <p v-if="!briefingText && !briefingLoading" class="briefing-placeholder">
-        基于本页成绩分布、及格率与题目正确率，由大模型生成教学分析建议（需已在 env.local 配置硅基流动 LLM）。
+        基于本页成绩分布、及格率与题目正确率生成教学分析建议（使用管理员在「API 连接配置」中启用的接口）。
       </p>
-      <div v-if="briefingText" class="briefing-body">{{ briefingText }}</div>
+      <markdown-view v-if="briefingText" class="briefing-body" :content="briefingText" />
     </el-card>
 
     <el-table
@@ -105,6 +106,13 @@
 import echarts from 'echarts'
 import { scorePaging, exportScores, scoreAiBriefing } from '@/api/score'
 import { getExamDetail } from '@/api/exam'
+import MarkdownView from '@/components/MarkdownView'
+import {
+  parsePositiveInt,
+  loadScoreDetailContext,
+  loadBriefingText,
+  saveBriefingText
+} from '@/utils/pagePersist'
 
 const BELOW_PASS_BUCKETS = 2
 const ABOVE_PASS_BUCKETS = 3
@@ -127,12 +135,13 @@ function scoreValue(row) {
 }
 
 export default {
+  components: { MarkdownView },
   data() {
     return {
       pageNum: 1,
       pageSize: 10,
-      gradeId: '',
-      examId: '',
+      gradeId: null,
+      examId: null,
       realName: '',
       examTitle: '',
       gradeName: '',
@@ -194,12 +203,29 @@ export default {
       return this.tableData
     }
   },
+  watch: {
+    '$route'(to) {
+      if (to.name !== 'user-score') return
+      if (this.initPageContext()) {
+        this.briefingText = loadBriefingText(this.examId, this.gradeId)
+        this.refreshAll()
+      }
+    }
+  },
   created() {
-    this.examId = localStorage.getItem('examId')
-    this.gradeId = localStorage.getItem('gradeId')
-    this.examTitle = localStorage.getItem('examTitle')
-    this.gradeName = localStorage.getItem('gradeName')
+    if (!this.initPageContext()) {
+      return
+    }
+    this.briefingText = loadBriefingText(this.examId, this.gradeId)
     this.refreshAll()
+  },
+  activated() {
+    if (!this.examId || !this.gradeId) {
+      if (this.initPageContext()) {
+        this.briefingText = loadBriefingText(this.examId, this.gradeId)
+        this.refreshAll()
+      }
+    }
   },
   mounted() {
     this.resizeHandler = () => {
@@ -208,8 +234,6 @@ export default {
     window.addEventListener('resize', this.resizeHandler)
   },
   beforeDestroy() {
-    localStorage.removeItem('examId')
-    localStorage.removeItem('gradeId')
     if (this.resizeHandler) {
       window.removeEventListener('resize', this.resizeHandler)
     }
@@ -219,6 +243,42 @@ export default {
     }
   },
   methods: {
+    initPageContext() {
+      const q = this.$route.query || {}
+      const ctx = loadScoreDetailContext() || {}
+      let examId = parsePositiveInt(q.examId)
+      let gradeId = parsePositiveInt(q.gradeId)
+      if (!examId) examId = parsePositiveInt(ctx.examId)
+      if (!gradeId) gradeId = parsePositiveInt(ctx.gradeId)
+      if (!examId || !gradeId) {
+        this.$message.warning('请从「成绩分析」列表点击「查看详情」进入本页')
+        return false
+      }
+      this.examId = examId
+      this.gradeId = gradeId
+      this.examTitle = q.examTitle || ctx.examTitle || this.examTitle || ''
+      this.gradeName = q.gradeName || ctx.gradeName || this.gradeName || ''
+      this.cleanLegacyStorageKeys()
+      const needFixQuery =
+        String(q.examId) !== String(examId) ||
+        String(q.gradeId) !== String(gradeId) ||
+        q.examId === 'null' ||
+        q.gradeId === 'null'
+      if (needFixQuery) {
+        this.$router.replace({
+          name: 'user-score',
+          query: { examId: String(examId), gradeId: String(gradeId) }
+        }).catch(() => {})
+      }
+      return true
+    },
+    cleanLegacyStorageKeys() {
+      ;['examId', 'gradeId'].forEach((key) => {
+        if (localStorage.getItem(key) === 'null') {
+          localStorage.removeItem(key)
+        }
+      })
+    },
     updateRow(row) {
       row.type = 1
       localStorage.setItem('record_exam_examId', row.examId)
@@ -236,12 +296,14 @@ export default {
         })
         if (res.code && res.data && res.data.briefing) {
           this.briefingText = res.data.briefing
+          saveBriefingText(this.examId, this.gradeId, this.briefingText)
           this.$message.success(res.msg || '简报已生成')
         } else {
           this.$message.error(res.msg || '生成失败')
         }
       } catch (e) {
-        this.$message.error('AI 简报请求失败，请确认已配置 LLM_API_KEY 并重启后端')
+        const msg = (e && e.message) ? e.message : 'AI 简报请求失败，请确认管理员已启用 API 连接配置并重启后端'
+        this.$message.error(msg)
       } finally {
         this.briefingLoading = false
       }
@@ -440,6 +502,9 @@ export default {
       }
     },
     async refreshAll() {
+      if (!this.examId || !this.gradeId) {
+        return
+      }
       this.loading = true
       try {
         const detailRes = await getExamDetail(this.examId)
@@ -534,7 +599,6 @@ export default {
   margin: 0;
 }
 .briefing-body {
-  white-space: pre-wrap;
   line-height: 1.75;
   color: #303133;
   font-size: 14px;

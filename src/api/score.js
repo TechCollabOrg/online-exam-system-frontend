@@ -42,4 +42,3 @@ export function scoreAiBriefing(params) {
     timeout: 120000
   })
 }
-

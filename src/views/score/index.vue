@@ -68,6 +68,7 @@
 <script>
 import ClassSelect from '@/components/ClassSelect'
 import { getExamScore } from '@/api/score'
+import { parsePositiveInt, saveScoreDetailContext } from '@/utils/pagePersist'
 export default {
   components: { ClassSelect },
   data() {
@@ -88,11 +89,23 @@ export default {
       },
       cancle() {},
       updateRow(row) {
-        localStorage.setItem('examId', row.examId)
-        localStorage.setItem('gradeId', row.gradeId)
-        localStorage.setItem('examTitle', row.examTitle)
-        localStorage.setItem('gradeName', row.gradeName)
-        this.$router.push({ name: 'user-score' })
+        if (row.examId == null || row.gradeId == null) {
+          this.$message.warning('缺少考试或班级信息，无法查看详情')
+          return
+        }
+        saveScoreDetailContext({
+          examId: row.examId,
+          gradeId: row.gradeId,
+          examTitle: row.examTitle,
+          gradeName: row.gradeName
+        })
+        this.$router.push({
+          name: 'user-score',
+          query: {
+            examId: String(row.examId),
+            gradeId: String(row.gradeId)
+          }
+        })
       },
       diaTitle: '',
       dialogTableVisible: false,
@@ -135,9 +148,10 @@ export default {
       const params = {
         pageNum: this.pageNum,
         pageSize: this.pageSize,
-        gradeId: this.gradeId,
-        examTitle: this.examTitle
+        examTitle: this.examTitle || undefined
       }
+      const gid = parsePositiveInt(this.gradeId)
+      if (gid) params.gradeId = gid
       const res = await getExamScore(params)
       this.data = res.data
     },

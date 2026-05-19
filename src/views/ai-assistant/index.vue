@@ -66,6 +66,8 @@
 import { aiChat } from '@/api/ai'
 import { getAiConfigStatus } from '@/api/aiConfig'
 import MarkdownView from '@/components/MarkdownView'
+import { getUserId } from '@/utils/auth'
+import { loadChatMessages, saveChatMessages, clearChatMessages } from '@/utils/pagePersist'
 
 export default {
   name: 'AiAssistant',
@@ -80,6 +82,8 @@ export default {
     }
   },
   created() {
+    this.messages = loadChatMessages(getUserId())
+    this.$nextTick(() => this.scrollToBottom())
     getAiConfigStatus().then(res => {
       const d = res.data || {}
       this.configured = d.configured !== false
@@ -96,6 +100,10 @@ export default {
     clearChat() {
       this.messages = []
       this.inputText = ''
+      clearChatMessages(getUserId())
+    },
+    persistChat() {
+      saveChatMessages(getUserId(), this.messages)
     },
     scrollToBottom() {
       this.$nextTick(() => {
@@ -112,6 +120,7 @@ export default {
         return
       }
       this.messages.push({ role: 'user', content: text })
+      this.persistChat()
       this.inputText = ''
       this.loading = true
       const assistantMsg = { role: 'assistant', content: '', loading: true }
@@ -133,6 +142,7 @@ export default {
         assistantMsg.loading = false
       } finally {
         this.loading = false
+        this.persistChat()
         this.scrollToBottom()
       }
     }
