@@ -220,19 +220,24 @@
               <strong>参考答案：</strong>
               <rich-html-content :html="exerciseSaqRefHtml" />
             </div>
-            <p v-if="rightQuAnswer.data && rightQuAnswer.data.analysis">整题解析：{{ rightQuAnswer.data.analysis }}</p>
+            <analysis-rich-block
+              v-if="rightQuAnswer.data && rightQuAnswer.data.analysis"
+              :html="rightQuAnswer.data.analysis"
+              label="整题解析："
+              variant="question"
+            />
             <template
               v-if="isAnswered && rightQuAnswer.data && rightQuAnswer.data.options && (quDetail.quType === 1 || quDetail.quType === 2 || quDetail.quType === 3)"
             >
               <template v-for="opt in rightQuAnswer.data.options">
-                <div
+                <analysis-rich-block
                   v-if="opt.analysis && String(opt.analysis).trim()"
                   :key="'opt-an-' + opt.id"
+                  :html="opt.analysis"
+                  :label="numberToLetter(opt.sort + 1) + ' 项解析：'"
+                  variant="option"
                   class="option-analysis-block"
-                >
-                  <strong>{{ numberToLetter(opt.sort + 1) }} 项解析：</strong>
-                  <rich-html-content :html="opt.analysis" />
-                </div>
+                />
               </template>
             </template>
           </div>
@@ -327,12 +332,13 @@ import {
   isExamDisplayFullscreen
 } from '@/utils/fullscreen'
 import RichHtmlContent from '@/components/RichHtmlContent'
+import AnalysisRichBlock from '@/components/AnalysisRichBlock'
 import { saqReferenceDisplayHtml } from '@/utils/saqAnswerHtml'
 import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
 
 export default {
   name: 'ExamProcess',
-  components: { RichHtmlContent, CompoundStemBlock },
+  components: { RichHtmlContent, AnalysisRichBlock, CompoundStemBlock },
   mixins: [imageUrlsMixin],
 
   data() {

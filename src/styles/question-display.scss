@@ -1,0 +1,37 @@
+/* 考试/刷题/记录页：选项块内图文纵向排布，避免选项解析与文字叠层 */
+.qu_choose_group .qu_choose {
+  display: block;
+  height: auto !important;
+  min-height: 0;
+  white-space: normal;
+}
+
+.qu_choose_group .qu_choose .el-radio__label {
+  display: block;
+  width: 100%;
+  white-space: normal;
+  line-height: 1.5;
+  padding-left: 0;
+}
+
+.qu_choose_group .qu_choose .qu_choose_tag {
+  display: block;
+  width: 100%;
+}
+
+.qu_choose_group .qu_choose .qu_choose_tag_type {
+  display: block;
+  width: auto;
+  margin-bottom: 4px;
+  font-weight: bold;
+}
+
+.option-analysis-block {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  color: #606266;
+  font-size: 14px;
+  line-height: 1.55;
+  clear: both;
+}

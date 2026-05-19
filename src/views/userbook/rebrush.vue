@@ -91,19 +91,20 @@
               <span>正确答案:
                 {{ numberToLetter(parseInt(failQuData.rightAnswers)) }}</span>
             </div>
-            <div>
-              <span>试题分析: {{ failQuData.analysis }}</span>
-            </div>
+            <analysis-rich-block
+              :html="failQuData.analysis"
+              label="试题分析："
+              variant="question"
+            />
             <template v-if="failQuData.options && failQuData.options.length">
               <template v-for="o in failQuData.options">
-                <div
+                <analysis-rich-block
                   v-if="o.analysis && String(o.analysis).trim()"
                   :key="'rb-an-sj-' + o.id"
-                  style="margin-top: 8px; color: #606266"
-                >
-                  <span>{{ numberToLetter(o.sort) }} 项解析：</span>
-                  <rich-html-content :html="o.analysis" />
-                </div>
+                  :html="o.analysis"
+                  :label="numberToLetter(o.sort) + ' 项解析：'"
+                  variant="option"
+                />
               </template>
             </template>
           </div>
@@ -138,19 +139,20 @@
             <div>
               <span>正确答案: {{ numberToLetter(failQuData.rightAnswers) }}</span>
             </div>
-            <div>
-              <span>试题分析: {{ failQuData.analysis }}</span>
-            </div>
+            <analysis-rich-block
+              :html="failQuData.analysis"
+              label="试题分析："
+              variant="question"
+            />
             <template v-if="failQuData.options && failQuData.options.length">
               <template v-for="o in failQuData.options">
-                <div
+                <analysis-rich-block
                   v-if="o.analysis && String(o.analysis).trim()"
                   :key="'rb-an-mul-' + o.id"
-                  style="margin-top: 8px; color: #606266"
-                >
-                  <span>{{ numberToLetter(o.sort) }} 项解析：</span>
-                  <rich-html-content :html="o.analysis" />
-                </div>
+                  :html="o.analysis"
+                  :label="numberToLetter(o.sort) + ' 项解析：'"
+                  variant="option"
+                />
               </template>
             </template>
           </div>
@@ -178,9 +180,11 @@
             v-if="flag == true && quData.quType === 5 && failQuData"
             style="margin-top: 10px"
           >
-            <div>
-              <span>试题分析: {{ failQuData.analysis }}</span>
-            </div>
+            <analysis-rich-block
+              :html="failQuData.analysis"
+              label="试题分析："
+              variant="question"
+            />
           </div>
           <div
             v-if="flag == true && quData.quType === 4"
@@ -193,9 +197,11 @@
               <span>正确答案: </span>
               <rich-html-content :html="rebrushSaqRefHtml" />
             </div>
-            <div>
-              <span>试题分析: {{ failQuData.analysis }}</span>
-            </div>
+            <analysis-rich-block
+              :html="failQuData.analysis"
+              label="试题分析："
+              variant="question"
+            />
           </div>
           <div style="margin-top: 20px">
             <!-- <el-button type="primary" @click="handPrevious()">
@@ -232,10 +238,11 @@ import {
   isExamDisplayFullscreen
 } from '@/utils/fullscreen'
 import RichHtmlContent from '@/components/RichHtmlContent'
+import AnalysisRichBlock from '@/components/AnalysisRichBlock'
 import { saqReferenceDisplayHtml } from '@/utils/saqAnswerHtml'
 import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
 export default {
-  components: { RichHtmlContent, CompoundStemBlock, CompoundQuestionDisplay },
+  components: { RichHtmlContent, AnalysisRichBlock, CompoundStemBlock, CompoundQuestionDisplay },
   mixins: [imageUrlsMixin],
   data() {
     return {

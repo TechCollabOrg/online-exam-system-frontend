@@ -48,12 +48,10 @@
         </el-form-item>
 
         <el-form-item label="整题解析" prop="oriPrice" style="margin-left: 7px">
-          <el-input
+          <rich-html-editor
             v-model="postForm.analysis"
-            type="textarea"
-            :rows="8"
-            resize="vertical"
-            style="width: 1200px"
+            min-editor-height="160px"
+            editor-placeholder="选填：整题解析，可分段、可插入图片"
           />
         </el-form-item>
       </el-card>

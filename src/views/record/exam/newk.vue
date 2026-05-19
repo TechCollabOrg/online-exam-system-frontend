@@ -115,13 +115,11 @@
                                 style="max-width: 200px"
                               />
                             </div>
-                            <div
-                              v-if="item.analysis && String(item.analysis).trim()"
-                              style="margin-top: 6px; color: #606266; font-size: 13px; width: 100%"
-                            >
-                              <span>选项解析：</span>
-                              <rich-html-content :html="item.analysis" />
-                            </div>
+                            <analysis-rich-block
+                              :html="item.analysis"
+                              label="选项解析："
+                              variant="option"
+                            />
                           </div>
                         </el-radio>
                       </el-radio-group>
@@ -137,10 +135,11 @@
                             <span>正确答案：</span>
                             <span>{{ numberToLetter(index.rightOption) }}</span><br>
                           </div>
-                          <div style="margin-top: 8px">
-                            <span>试题解析：</span>
-                            <span>{{ index.analyse }}</span><br>
-                          </div>
+                          <analysis-rich-block
+                            :html="index.analyse"
+                            label="试题解析："
+                            variant="question"
+                          />
                         </el-card>
                       </div>
                     </el-col>
@@ -200,10 +199,11 @@
                             <span v-else>{{ index.rightOption }}</span>
                             <br>
                           </div>
-                          <div style="margin-top: 8px">
-                            <span>试题解析：</span>
-                            <span>{{ index.analyse }}</span><br>
-                          </div>
+                          <analysis-rich-block
+                            :html="index.analyse"
+                            label="试题解析："
+                            variant="question"
+                          />
                         </el-card>
                       </div>
                     </el-col>
@@ -258,10 +258,11 @@
                       </div>
                       <div class="qu_analysis">
                         <el-card>
-                          <div style="margin-top: 8px">
-                            <span>试题解析：</span>
-                            <span>{{ item.analyse }}</span>
-                          </div>
+                          <analysis-rich-block
+                            :html="item.analyse"
+                            label="试题解析："
+                            variant="question"
+                          />
                         </el-card>
                       </div>
                     </el-col>
@@ -282,13 +283,14 @@
 import { recordExamDetail } from '@/api/record'
 import imageUrlsMixin from '@/mixins/imageUrlsMixin'
 import RichHtmlContent from '@/components/RichHtmlContent'
+import AnalysisRichBlock from '@/components/AnalysisRichBlock'
 import CompoundStemBlock from '@/components/CompoundStemBlock'
 import { saqReferenceDisplayHtml } from '@/utils/saqAnswerHtml'
 import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
 
 export default {
   name: 'ExamProcess',
-  components: { RichHtmlContent, CompoundStemBlock },
+  components: { RichHtmlContent, AnalysisRichBlock, CompoundStemBlock },
   mixins: [imageUrlsMixin],
   data() {
     return {
@@ -529,13 +531,11 @@ export default {
 
       // 单个选项内容样式
       .qu_choose_tag {
-        display: inline-flex;
-        width: 90%;
-        // 选项标签
+        display: block;
+        width: 100%;
         .qu_choose_tag_type {
           font-weight: bold;
-          // color: #0a84ff;
-          width: 10px;
+          width: auto;
         }
         // 选项内容
         .qu_choose_tag_content {
