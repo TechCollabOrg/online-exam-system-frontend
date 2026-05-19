@@ -59,6 +59,7 @@ import Hamburger from '@/components/Hamburger'
 import { getToken } from '@/utils/auth'
 import { parseJwt } from '@/utils/jwtUtils'
 import { resolveMediaUrl } from '@/utils/resolveMediaUrl'
+import { disconnectWebSocket } from '@/utils/websocket'
 export default {
   components: {
     Breadcrumb,
@@ -104,9 +105,16 @@ export default {
       this.$store.dispatch('app/toggleSideBar')
     },
     async logout() {
-      this.$store.dispatch('logoutUser')
-      await this.$store.dispatch('user/logout')
-      this.$router.push(`/login`)
+      try {
+        await this.$store.dispatch('user/logout')
+      } catch (e) {
+        // 后端登出失败时仍清理本地会话，避免卡在已登录态
+        await this.$store.dispatch('user/resetToken')
+        this.$store.dispatch('logoutUser')
+        disconnectWebSocket()
+      } finally {
+        this.$router.push('/login')
+      }
     }
   }
 }

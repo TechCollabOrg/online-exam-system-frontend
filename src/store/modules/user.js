@@ -107,9 +107,9 @@ const actions = {
   },
 
   // 用户注销：请求后端登出，清理 Cookie、本地存储并断开 WebSocket
-  logout({ commit, state }) {
+  logout({ commit, state, dispatch }) {
     return new Promise((resolve, reject) => {
-      logout(state.token).then(() => {
+      logout().then(() => {
         removeToken()
         resetRouter()
         commit('RESET_STATE')
@@ -120,6 +120,7 @@ const actions = {
         removeRole()
         localStorage.removeItem('roles')
         disconnectWebSocket()
+        dispatch('logoutUser', null, { root: true })
         resolve()
       }).catch(error => {
         reject(error)

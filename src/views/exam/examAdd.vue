@@ -28,6 +28,8 @@
             <el-input-number v-model="randomScoreConfig.judgeScore" :min="0" :controls="false" style="width: 80px" />
             <span>简答</span>
             <el-input-number v-model="randomScoreConfig.saqScore" :min="0" :controls="false" style="width: 80px" />
+            <span>复合题</span>
+            <el-input-number v-model="randomScoreConfig.compoundScore" :min="0" :controls="false" style="width: 80px" />
           </div>
 
           <el-table
@@ -102,6 +104,21 @@
                 />
                 <template v-if="repoTypeMax(scope.row, 'totalSaq') != null">
                   / {{ repoTypeMax(scope.row, 'totalSaq') }}
+                </template>
+              </template>
+            </el-table-column>
+
+            <el-table-column label="复合题数量" align="center">
+              <template v-slot="scope">
+                <el-input-number
+                  v-model="scope.row.compoundCount"
+                  :min="0"
+                  v-bind="repoTypeMaxBind(scope.row, 'totalCompound')"
+                  :controls="false"
+                  style="width: 80px"
+                />
+                <template v-if="repoTypeMax(scope.row, 'totalCompound') != null">
+                  / {{ repoTypeMax(scope.row, 'totalCompound') }}
                 </template>
               </template>
             </el-table-column>
@@ -258,10 +275,13 @@ export default {
           judgeScore: 0,
           saqCount: 0,
           saqScore: 0,
+          compoundCount: 0,
+          compoundScore: 0,
           totalRadio: null,
           totalMulti: null,
           totalJudge: null,
-          totalSaq: null
+          totalSaq: null,
+          totalCompound: null
         }
       ],
       // 已选择的题库
@@ -270,7 +290,8 @@ export default {
         radioScore: 0,
         multiScore: 0,
         judgeScore: 0,
-        saqScore: 0
+        saqScore: 0,
+        compoundScore: 0
       },
       manualSelectedRows: [],
       postForm: {
@@ -376,15 +397,18 @@ export default {
         const mc = Number(item.multiCount)
         const jc = Number(item.judgeCount)
         const sc = Number(item.saqCount)
+        const cc = Number(item.compoundCount)
         const rs = this.activeName === 'second' ? Number(this.randomScoreConfig.radioScore) : Number(item.radioScore)
         const ms = this.activeName === 'second' ? Number(this.randomScoreConfig.multiScore) : Number(item.multiScore)
         const js = this.activeName === 'second' ? Number(this.randomScoreConfig.judgeScore) : Number(item.judgeScore)
         const ss = this.activeName === 'second' ? Number(this.randomScoreConfig.saqScore) : Number(item.saqScore)
+        const cs = this.activeName === 'second' ? Number(this.randomScoreConfig.compoundScore) : Number(item.compoundScore)
 
         if (rc > 0 && rs > 0) totalScore += rc * rs
         if (mc > 0 && ms > 0) totalScore += mc * ms
         if (jc > 0 && js > 0) totalScore += jc * js
         if (sc > 0 && ss > 0) totalScore += sc * ss
+        if (cc > 0 && cs > 0) totalScore += cc * cs
       }
       return totalScore
     },
@@ -397,7 +421,7 @@ export default {
     /** 服务端可能返回 radioNum / radioCount 等，统一成各题型可用题量上限（无则 null，不限制输入也不误 clamp 成 0） */
     readRepoTypeTotals(repo) {
       if (!repo || typeof repo !== 'object') {
-        return { totalRadio: null, totalMulti: null, totalJudge: null, totalSaq: null }
+        return { totalRadio: null, totalMulti: null, totalJudge: null, totalSaq: null, totalCompound: null }
       }
       const pick = (...keys) => {
         for (const k of keys) {
@@ -411,7 +435,8 @@ export default {
         totalRadio: pick('radioNum', 'radioCount', 'totalRadio', 'singleNum', 'singleCount'),
         totalMulti: pick('multiNum', 'multiCount', 'totalMulti'),
         totalJudge: pick('judgeNum', 'judgeCount', 'totalJudge'),
-        totalSaq: pick('saqNum', 'saqCount', 'totalSaq', 'shortNum', 'subjectiveNum')
+        totalSaq: pick('saqNum', 'saqCount', 'totalSaq', 'shortNum', 'subjectiveNum'),
+        totalCompound: pick('compoundNum', 'compoundCount', 'totalCompound')
       }
     },
     repoTypeMax(row, key) {
@@ -436,6 +461,7 @@ export default {
       clamp('multiCount', 'totalMulti')
       clamp('judgeCount', 'totalJudge')
       clamp('saqCount', 'totalSaq')
+      clamp('compoundCount', 'totalCompound')
     },
     createRepoRow(addQuType = '0') {
       return {
@@ -452,10 +478,13 @@ export default {
         judgeScore: 0,
         saqCount: 0,
         saqScore: 0,
+        compoundCount: 0,
+        compoundScore: 0,
         totalRadio: null,
         totalMulti: null,
         totalJudge: null,
-        totalSaq: null
+        totalSaq: null,
+        totalCompound: null
       }
     },
     isRepoIdEmpty(value) {
@@ -482,6 +511,8 @@ export default {
       this.repoList[0].judgeScore = selectedIds.questionList.judgeScore
       this.repoList[0].saqCount = selectedIds.questionList.saqCount
       this.repoList[0].saqScore = selectedIds.questionList.saqScore
+      this.repoList[0].compoundCount = selectedIds.questionList.compoundCount
+      this.repoList[0].compoundScore = selectedIds.questionList.compoundScore
       this.postForm.totalScore = this.calcManualTotalScore(rows)
       this.selectedQuestionIds = selectedIds
       // 或者执行其他需要的操作
@@ -540,11 +571,13 @@ export default {
             const totalMultiCount = validateRepoList.reduce((sum, item) => sum + Number(item.multiCount || 0), 0)
             const totalJudgeCount = validateRepoList.reduce((sum, item) => sum + Number(item.judgeCount || 0), 0)
             const totalSaqCount = validateRepoList.reduce((sum, item) => sum + Number(item.saqCount || 0), 0)
+            const totalCompoundCount = validateRepoList.reduce((sum, item) => sum + Number(item.compoundCount || 0), 0)
 
             if ((totalRadioCount > 0 && Number(this.randomScoreConfig.radioScore) <= 0) ||
               (totalMultiCount > 0 && Number(this.randomScoreConfig.multiScore) <= 0) ||
               (totalJudgeCount > 0 && Number(this.randomScoreConfig.judgeScore) <= 0) ||
-              (totalSaqCount > 0 && Number(this.randomScoreConfig.saqScore) <= 0)) {
+              (totalSaqCount > 0 && Number(this.randomScoreConfig.saqScore) <= 0) ||
+              (totalCompoundCount > 0 && Number(this.randomScoreConfig.compoundScore) <= 0)) {
               this.$notify({
                 title: '提示信息',
                 message: '随机抽题模式下，请设置统一题型分值（有题量的题型分值必须大于 0）！',
@@ -580,7 +613,8 @@ export default {
               Number(repo.radioCount || 0) +
                 Number(repo.multiCount || 0) +
                 Number(repo.judgeCount || 0) +
-                Number(repo.saqCount || 0) ===
+                Number(repo.saqCount || 0) +
+                Number(repo.compoundCount || 0) ===
                 0
             ) {
               this.$notify({
@@ -743,7 +777,13 @@ export default {
           : firstRepo.saqCount,
         saqScore: isRandomMode
           ? effectiveRepoList.map(() => Number(this.randomScoreConfig.saqScore || 0)).join(',')
-          : firstRepo.saqScore
+          : firstRepo.saqScore,
+        compoundCount: isRandomMode
+          ? effectiveRepoList.map((item) => Number(item.compoundCount || 0)).join(',')
+          : firstRepo.compoundCount,
+        compoundScore: isRandomMode
+          ? effectiveRepoList.map(() => Number(this.randomScoreConfig.compoundScore || 0)).join(',')
+          : firstRepo.compoundScore
       }
       saveData(params)
         .then((res) => {
@@ -805,6 +845,7 @@ export default {
         row.totalMulti = t.totalMulti
         row.totalJudge = t.totalJudge
         row.totalSaq = t.totalSaq
+        row.totalCompound = t.totalCompound
         this.clampCountsToTotals(row)
       } else {
         row.repoId = null
@@ -813,10 +854,12 @@ export default {
         row.totalMulti = null
         row.totalJudge = null
         row.totalSaq = null
+        row.totalCompound = null
         row.radioCount = 0
         row.multiCount = 0
         row.judgeCount = 0
         row.saqCount = 0
+        row.compoundCount = 0
       }
     }
   }

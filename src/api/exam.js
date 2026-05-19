@@ -78,7 +78,9 @@ export function quDetail(params) {
 export function handExam(examId) {
   return request({
     url: 'exams/hand-exam/' + examId,
-    method: 'get'
+    method: 'get',
+    // 交卷需汇总判分、补录未答题，题量大时可能超过默认 30s
+    timeout: 120000
   })
 }
 
@@ -101,7 +103,8 @@ export function examCheat(examId) {
 export function examCollect(examId) {
   return request({
     url: `exams/collect/${examId}`,
-    method: 'get'
+    method: 'get',
+    timeout: 120000
   })
 }
 

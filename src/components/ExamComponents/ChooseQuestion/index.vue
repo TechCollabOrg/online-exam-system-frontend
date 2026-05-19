@@ -50,6 +50,9 @@
       <el-form-item v-if="shortAnswerQuestions" label="简答分数">
         <el-input v-model="questionList.saqScore" placeholder="输入试题名称" @change="scoreFun" />
       </el-form-item>
+      <el-form-item v-if="compoundQuestions" label="复合题分数">
+        <el-input v-model="questionList.compoundScore" placeholder="输入默认分值" @change="scoreFun" />
+      </el-form-item>
     </el-form>
     <!-- table -->
 
@@ -259,6 +262,7 @@ export default {
       multipleChoiceQuestions: false,
       trueOrFalseQuestions: false,
       shortAnswerQuestions: false,
+      compoundQuestions: false,
 
       options: [
         {
@@ -312,7 +316,9 @@ export default {
         judgeCount: 0,
         judgeScore: 0,
         saqCount: 0,
-        saqScore: 0
+        saqScore: 0,
+        compoundCount: 0,
+        compoundScore: 0
       },
       cancle() {},
       dialogTableVisible: false,
@@ -359,11 +365,13 @@ export default {
       this.questionList.multiCount = 0
       this.questionList.judgeCount = 0
       this.questionList.saqCount = 0
+      this.questionList.compoundCount = 0
 
       this.singleChoiceQuestions = false
       this.multipleChoiceQuestions = false
       this.trueOrFalseQuestions = false
       this.shortAnswerQuestions = false
+      this.compoundQuestions = false
 
       this.selectedRows.forEach((item) => {
         if (item.quType === 1) {
@@ -378,9 +386,13 @@ export default {
           this.questionList.judgeCount += 1
           this.trueOrFalseQuestions = true
         }
-        if (item.quType === 4 || item.quType === 5) {
+        if (item.quType === 4) {
           this.questionList.saqCount += 1
           this.shortAnswerQuestions = true
+        }
+        if (item.quType === 5) {
+          this.questionList.compoundCount += 1
+          this.compoundQuestions = true
         }
       })
 
@@ -388,6 +400,7 @@ export default {
       if (this.questionList.multiCount === 0) this.questionList.multiScore = 0
       if (this.questionList.judgeCount === 0) this.questionList.judgeScore = 0
       if (this.questionList.saqCount === 0) this.questionList.saqScore = 0
+      if (this.questionList.compoundCount === 0) this.questionList.compoundScore = 0
     },
     quTypeLabel(quType) {
       const map = { 1: '单选题', 2: '多选题', 3: '判断题', 4: '简答题', 5: '复合题' }
@@ -397,7 +410,8 @@ export default {
       if (quType === 1) return Number(this.questionList.radioScore) || 0
       if (quType === 2) return Number(this.questionList.multiScore) || 0
       if (quType === 3) return Number(this.questionList.judgeScore) || 0
-      if (quType === 4 || quType === 5) return Number(this.questionList.saqScore) || 0
+      if (quType === 4) return Number(this.questionList.saqScore) || 0
+      if (quType === 5) return Number(this.questionList.compoundScore) || 0
       return 0
     },
     ensureRowScore(row) {
