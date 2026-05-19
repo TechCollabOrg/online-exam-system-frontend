@@ -96,9 +96,8 @@
     >
       <el-table-column align="center" type="selection" width="55" />
       <el-table-column label="序号" align="center" width="80">
-        <template slot-scope="scope">{{ scope.$index + 1 }}</template>
+        <template slot-scope="scope">{{ rowIndex(scope.$index) }}</template>
       </el-table-column>
-      <el-table-column prop="id" label="ID" width="76" align="center" />
       <el-table-column label="题干" align="left" min-width="220" show-overflow-tooltip>
         <template slot-scope="scope">{{ questionStemListLabel(scope.row) }}</template>
       </el-table-column>
@@ -176,6 +175,8 @@
 import { quPaging, quDel, quUpdate, importQue } from '@/api/question'
 import RepoSelect from '@/components/RepoSelect'
 import { questionStemPlainSummary } from '@/utils/questionStemHtml'
+
+const LIST_STATE_KEY = 'questions-management-list-state'
 
 export default {
   components: { RepoSelect },
@@ -268,9 +269,47 @@ export default {
     // },
   },
   created() {
-    this.getQuPage()
+    this.restoreListState()
+    this.fetchList()
   },
   methods: {
+    rowIndex(index) {
+      return (this.pageNum - 1) * this.pageSize + index + 1
+    },
+    saveListState() {
+      sessionStorage.setItem(LIST_STATE_KEY, JSON.stringify({
+        pageNum: this.pageNum,
+        pageSize: this.pageSize,
+        searchName: this.searchName,
+        selectedRepoSingleSearch: this.selectedRepoSingleSearch,
+        selValue: this.selValue
+      }))
+    },
+    restoreListState() {
+      try {
+        const raw = sessionStorage.getItem(LIST_STATE_KEY)
+        if (!raw) return
+        const state = JSON.parse(raw)
+        if (state.pageNum) this.pageNum = state.pageNum
+        if (state.pageSize) this.pageSize = state.pageSize
+        if (state.searchName != null) this.searchName = state.searchName
+        if (state.selectedRepoSingleSearch != null) {
+          this.selectedRepoSingleSearch = state.selectedRepoSingleSearch
+        }
+        if (state.selValue !== undefined) this.selValue = state.selValue
+      } catch (e) {
+        sessionStorage.removeItem(LIST_STATE_KEY)
+      }
+    },
+    fetchList() {
+      this.getQuPage(
+        this.pageNum,
+        this.pageSize,
+        this.searchName || null,
+        this.selectedRepoSingleSearch || null,
+        this.selValue || null
+      )
+    },
     questionStemListLabel(row) {
       return questionStemPlainSummary(row)
     },
@@ -315,6 +354,7 @@ export default {
       // 这里可以进一步处理repo对象，比如更新UI或发送网络请求等
     },
     updateRow(row) {
+      this.saveListState()
       localStorage.setItem('quId', row.id)
       this.$router.push({ name: 'questions-add' })
     },
@@ -378,6 +418,9 @@ export default {
       }
       const res = await quPaging(params)
       this.data = res.data
+      if (res.data.current) this.pageNum = res.data.current
+      if (res.data.size) this.pageSize = res.data.size
+      this.saveListState()
     },
     // 编辑题库
     updateQu() {
@@ -450,8 +493,9 @@ export default {
         })
     },
     searchQu() {
+      this.pageNum = 1
       this.getQuPage(
-        this.pageNum,
+        1,
         this.pageSize,
         this.searchName,
         this.selectedRepoSingleSearch,
@@ -465,14 +509,12 @@ export default {
     },
 
     handleSizeChange(val) {
-      // 设置每页多少条逻辑
       this.pageSize = val
       this.getQuPage(this.pageNum, val, this.searchName,
         this.selectedRepoSingleSearch,
         this.selValue)
     },
     handleCurrentChange(val) {
-      // 设置当前页逻辑
       this.pageNum = val
       this.getQuPage(val, this.pageSize, this.searchName,
         this.selectedRepoSingleSearch,
