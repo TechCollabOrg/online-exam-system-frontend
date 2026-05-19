@@ -40,7 +40,17 @@
       <el-table-column prop="passedScore" align="center" label="及格分" />
       <el-table-column prop="userScore" align="center" label="用户成绩">
         <template slot-scope="scope">
-          <el-tooltip :content="scope.row.userScore >= scope.row.passedScore ? '及格' : '不及格'" placement="top">
+          <template v-if="scope.row.whetherMark === 0">
+            <el-tag type="warning" size="small">待批改</el-tag>
+            <span style="margin-left: 6px; color: #909399; font-size: 12px">
+              客观题 {{ scope.row.userScore }} 分
+            </span>
+          </template>
+          <el-tooltip
+            v-else
+            :content="scope.row.userScore >= scope.row.passedScore ? '及格' : '不及格'"
+            placement="top"
+          >
             <span
               :style="{
                 color: scope.row.userScore >= scope.row.passedScore ? '#67C23A' : '#F56C6C',
