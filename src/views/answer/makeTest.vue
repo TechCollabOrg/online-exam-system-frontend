@@ -464,44 +464,30 @@ export default {
       return item && item.aiScore != null && item.aiScore !== ''
     },
 
-    runAiScore() {
+    async runAiScore() {
       if (!this.info || !this.info.examId) {
         return
       }
       this.aiScoringLoading = true
-      triggerAiScore({ examId: this.info.examId, userId: this.info.userId })
-        .then((res) => {
-          if (res.code) {
-            this.$message.success(res.msg || 'AI 阅卷已提交，正在刷新结果…')
-            this.pollAiGradingResult(0)
-          } else {
-            this.$message.error(res.msg || '提交失败')
-            this.aiScoringLoading = false
-          }
+      try {
+        const res = await triggerAiScore({
+          examId: this.info.examId,
+          userId: this.info.userId
         })
-        .catch(() => {
-          this.$message.error('AI 阅卷请求失败')
-          this.aiScoringLoading = false
-        })
-    },
-
-    pollAiGradingResult(attempt) {
-      const maxAttempts = 8
-      if (attempt >= maxAttempts) {
-        this.aiScoringLoading = false
-        this.$message.warning('AI 阅卷可能仍在进行，请稍后手动刷新页面')
-        return
-      }
-      setTimeout(async() => {
         await this.getUserAnswerDetail()
-        const hasAi = (this.waitQuList || []).some((q) => this.hasAiGrade(q))
-        if (hasAi) {
-          this.aiScoringLoading = false
-          this.$message.success('AI 阅卷结果已更新')
+        const aiCount = (this.waitQuList || []).filter((q) => this.hasAiGrade(q)).length
+        const total = (this.waitQuList || []).length
+        if (aiCount > 0) {
+          const extra = aiCount < total ? `（${aiCount}/${total} 题，未成功的题请稍后重试）` : ''
+          this.$message.success((res.msg || `AI 阅卷完成，已为 ${aiCount} 题填入建议分数`) + extra)
         } else {
-          this.pollAiGradingResult(attempt + 1)
+          this.$message.warning(res.msg || '阅卷已完成，但未生成 AI 分数，请检查考生是否作答')
         }
-      }, attempt === 0 ? 4000 : 5000)
+      } catch (e) {
+        // 错误文案由 request 拦截器统一提示
+      } finally {
+        this.aiScoringLoading = false
+      }
     },
 
     backToAnswerList() {

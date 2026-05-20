@@ -32,12 +32,13 @@ export function correct(data) {
   })
 }
 
-/** 触发指定考生的主观题 AI 阅卷（异步） */
+/** 同步执行 AI 阅卷（逐题评分，题多时耗时长） */
 export function triggerAiScore(params) {
   return request({
     url: 'answers/ai-score',
     method: 'post',
-    params
+    params,
+    timeout: 600000
   })
 }
 
