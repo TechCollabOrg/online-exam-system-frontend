@@ -174,6 +174,75 @@
                   <el-divider />
                 </div>
               </template>
+              <!-- 复合题（教师预览试卷） -->
+              <template v-for="(item, cidx) in data">
+                <div v-if="item.quType === 5" :key="'compound-' + cidx" :class="'index' + cidx">
+                  <el-row :gutter="24">
+                    <el-col :span="20" style="text-align: left">
+                      <div class="qu_content" style="font-weight: 600; margin-bottom: 8px">
+                        {{ cidx + 1 }}、
+                        <el-tag size="mini" type="info" style="margin-left: 8px">复合题</el-tag>
+                      </div>
+                      <compound-stem-block
+                        :stem-content="questionStemDisplay(item)"
+                        :stem-image="item.image"
+                      />
+                      <div
+                        v-for="(sub, sidx) in item.subItemList || []"
+                        :key="'sub-' + cidx + '-' + sidx"
+                        style="margin: 14px 0; padding-bottom: 12px; border-bottom: 1px dashed #ebeef5"
+                      >
+                        <div v-if="sub.content" style="margin-bottom: 8px">
+                          <span style="font-weight: 600">({{ sidx + 1 }})</span>
+                          <rich-html-content :html="sub.content" />
+                        </div>
+                        <div v-if="sub.quType === 1 || sub.quType === 2 || sub.quType === 3">
+                          <el-radio-group class="qu_choose_group" disabled>
+                            <el-radio
+                              v-for="(opt, oidx) in sub.options || []"
+                              :key="'copt-' + sidx + '-' + oidx"
+                              :label="opt.content"
+                              border
+                              class="qu_choose"
+                              :class="{ isRight: opt.isRight === 1 || opt.isRight === true }"
+                            >
+                              <div class="qu_choose_tag">
+                                <div class="qu_choose_tag_type">
+                                  {{ numberToLetter(oidx) }}、{{ opt.content }}
+                                </div>
+                              </div>
+                            </el-radio>
+                          </el-radio-group>
+                          <div style="margin-top: 8px; color: #606266">
+                            <span>正确答案：</span>
+                            <span>{{ formatSubRightAnswer(sub) }}</span>
+                          </div>
+                        </div>
+                        <div v-else-if="sub.quType === 4">
+                          <div
+                            v-for="(opt, oidx) in sub.options || []"
+                            :key="'cref-' + sidx + '-' + oidx"
+                            style="margin-top: 8px"
+                          >
+                            <span>参考答案（空{{ oidx + 1 }}）：</span>
+                            <rich-html-content :html="opt.content || ''" />
+                          </div>
+                        </div>
+                      </div>
+                      <div class="qu_analysis">
+                        <el-card>
+                          <analysis-rich-block
+                            :html="item.analyse"
+                            label="试题解析："
+                            variant="question"
+                          />
+                        </el-card>
+                      </div>
+                    </el-col>
+                  </el-row>
+                  <el-divider />
+                </div>
+              </template>
             </div>
             <el-divider />
           </el-card>
@@ -299,6 +368,14 @@ export default {
     },
     saqRefDisplay(row) {
       return saqReferenceDisplayHtml(row.option && row.option[0])
+    },
+    formatSubRightAnswer(sub) {
+      if (!sub || !sub.options || !sub.options.length) return '—'
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+      const rights = sub.options
+        .map((opt, oidx) => ((opt.isRight === 1 || opt.isRight === true) ? letters[oidx] || oidx : null))
+        .filter(Boolean)
+      return rights.length ? rights.join('、') : '—'
     },
     resolveExamIdFromRouteOrStorage() {
       const q = this.$route.query || {}

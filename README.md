@@ -115,7 +115,7 @@ online-exam-system-frontend/
 | `/start-exam` | 答题（全屏） | 学生 |
 | `/exam-management` | 考试管理 | 教师、管理员 |
 | `/exam-details/exam-details` | 考试详情（试卷预览 + 缺考名单） | 教师、管理员 |
-| `/exam-add` | 创建考试 | 教师、管理员 |
+| `/exam-add` | 创建考试（含「随机抽题」预览与改分） | 教师、管理员 |
 | `/questions-management` | 试题管理 | 教师、管理员 |
 | `/repo-management` | 题库管理 | 教师、管理员 |
 | `/answer-manage` | 阅卷管理 | 教师、管理员 |

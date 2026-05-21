@@ -92,6 +92,15 @@ export function saveData(data) {
   })
 }
 
+/** 随机组卷预览：按规则抽题，返回题目列表供确认与微调 */
+export function randomPreview(data) {
+  return request({
+    url: 'exams/random-preview',
+    method: 'post',
+    data
+  })
+}
+
 export function examCheat(examId) {
   return request({
     url: `exams/cheat/${examId}`,

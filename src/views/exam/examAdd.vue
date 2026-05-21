@@ -135,6 +135,34 @@
               </template>
             </el-table-column>
           </el-table>
+
+          <div style="margin-top: 16px">
+            <el-button
+              type="primary"
+              icon="el-icon-magic-stick"
+              :loading="randomPreviewLoading"
+              @click="handleRandomPreview"
+            >
+              生成试卷题目
+            </el-button>
+            <el-button
+              v-if="randomSelectedRows.length"
+              type="default"
+              :loading="randomPreviewLoading"
+              @click="handleRandomPreview"
+            >
+              重新随机抽题
+            </el-button>
+          </div>
+
+          <random-question-preview
+            v-if="randomSelectedRows.length"
+            :rows="randomSelectedRows"
+            :score-config="randomScoreConfig"
+            :repo-ids="randomRepoIds"
+            @update:rows="onRandomRowsUpdate"
+            @change="onRandomRowsUpdate"
+          />
         </div>
         <!-- </el-card> -->
       </el-tab-pane>
@@ -237,14 +265,16 @@
 import RepoSelect from '@/components/RepoSelect'
 import ClassSelect from '@/components/ClassSelect'
 import CertificateSelect from '@/components/CertificateSelect'
-import { saveData } from '@/api/exam'
+import { saveData, randomPreview } from '@/api/exam'
 import ChooseQuestion from '@/components/ExamComponents/ChooseQuestion'
+import RandomQuestionPreview from '@/components/ExamComponents/RandomQuestionPreview'
 export default {
   name: 'ExamDetail',
 
   components: {
     RepoSelect,
     ChooseQuestion,
+    RandomQuestionPreview,
     ClassSelect,
     CertificateSelect
   },
@@ -294,6 +324,8 @@ export default {
         compoundScore: 0
       },
       manualSelectedRows: [],
+      randomSelectedRows: [],
+      randomPreviewLoading: false,
       postForm: {
         start: [],
         // 总分数
@@ -331,6 +363,14 @@ export default {
           }
         ]
       }
+    }
+  },
+
+  computed: {
+    randomRepoIds() {
+      return (this.repoList || [])
+        .map((row) => this.normalizeRepoId(row.repoId))
+        .filter((id) => id != null)
     }
   },
 
@@ -372,7 +412,20 @@ export default {
     randomScoreConfig: {
       handler() {
         if (this.activeName === 'second') {
-          this.postForm.totalScore = this.calcTotalScore(this.repoList)
+          if (this.randomSelectedRows.length) {
+            this.applyRandomScoreDefaults()
+            this.postForm.totalScore = this.calcRandomSelectedTotalScore()
+          } else {
+            this.postForm.totalScore = this.calcTotalScore(this.repoList)
+          }
+        }
+      },
+      deep: true
+    },
+    randomSelectedRows: {
+      handler() {
+        if (this.activeName === 'second' && this.randomSelectedRows.length) {
+          this.postForm.totalScore = this.calcRandomSelectedTotalScore()
         }
       },
       deep: true
@@ -416,7 +469,122 @@ export default {
     handleClick(tab, event) {
       this.$refs.questionSelector.clearSelection()
       this.repoList = [this.createRepoRow(String(tab.index))]
+      this.randomSelectedRows = []
       console.log(tab, event)
+    },
+    calcRandomSelectedTotalScore() {
+      return (this.randomSelectedRows || []).reduce((sum, row) => {
+        const s = Number(row.assignScore)
+        return sum + (Number.isFinite(s) && s > 0 ? s : 0)
+      }, 0)
+    },
+    defaultRandomScoreByType(quType) {
+      const cfg = this.randomScoreConfig || {}
+      if (quType === 1) return Number(cfg.radioScore) || 0
+      if (quType === 2) return Number(cfg.multiScore) || 0
+      if (quType === 3) return Number(cfg.judgeScore) || 0
+      if (quType === 4) return Number(cfg.saqScore) || 0
+      if (quType === 5) return Number(cfg.compoundScore) || 0
+      return 0
+    },
+    applyRandomScoreDefaults() {
+      this.randomSelectedRows = (this.randomSelectedRows || []).map((row) => {
+        if (row.scoreCustomized) return row
+        return {
+          ...row,
+          assignScore: this.defaultRandomScoreByType(row.quType)
+        }
+      })
+    },
+    onRandomRowsUpdate(rows) {
+      this.randomSelectedRows = rows || []
+      this.postForm.totalScore = this.calcRandomSelectedTotalScore()
+    },
+    buildRandomPreviewParams() {
+      const effectiveRepoList = (this.repoList || []).filter((item) => !this.isRepoIdEmpty(item.repoId))
+      const normalizedRepoIds = effectiveRepoList
+        .map((item) => this.normalizeRepoId(item.repoId))
+        .filter((id) => id !== null)
+      return {
+        repoId: normalizedRepoIds.join(','),
+        radioCount: effectiveRepoList.map((item) => Number(item.radioCount || 0)).join(','),
+        radioScore: effectiveRepoList.map(() => Number(this.randomScoreConfig.radioScore || 0)).join(','),
+        multiCount: effectiveRepoList.map((item) => Number(item.multiCount || 0)).join(','),
+        multiScore: effectiveRepoList.map(() => Number(this.randomScoreConfig.multiScore || 0)).join(','),
+        judgeCount: effectiveRepoList.map((item) => Number(item.judgeCount || 0)).join(','),
+        judgeScore: effectiveRepoList.map(() => Number(this.randomScoreConfig.judgeScore || 0)).join(','),
+        saqCount: effectiveRepoList.map((item) => Number(item.saqCount || 0)).join(','),
+        saqScore: effectiveRepoList.map(() => Number(this.randomScoreConfig.saqScore || 0)).join(','),
+        compoundCount: effectiveRepoList.map((item) => Number(item.compoundCount || 0)).join(','),
+        compoundScore: effectiveRepoList.map(() => Number(this.randomScoreConfig.compoundScore || 0)).join(',')
+      }
+    },
+    async handleRandomPreview() {
+      const effectiveRepoList = (this.repoList || []).filter((item) => !this.isRepoIdEmpty(item.repoId))
+      if (!effectiveRepoList.length) {
+        this.$notify({ title: '提示', message: '请至少添加并选择一个题库', type: 'warning', duration: 2000 })
+        return
+      }
+      const totalCount = effectiveRepoList.reduce(
+        (sum, item) =>
+          sum +
+          Number(item.radioCount || 0) +
+          Number(item.multiCount || 0) +
+          Number(item.judgeCount || 0) +
+          Number(item.saqCount || 0) +
+          Number(item.compoundCount || 0),
+        0
+      )
+      if (totalCount <= 0) {
+        this.$notify({ title: '提示', message: '请至少配置一种题型的抽题数量', type: 'warning', duration: 2000 })
+        return
+      }
+      const totalRadio = effectiveRepoList.reduce((s, i) => s + Number(i.radioCount || 0), 0)
+      const totalMulti = effectiveRepoList.reduce((s, i) => s + Number(i.multiCount || 0), 0)
+      const totalJudge = effectiveRepoList.reduce((s, i) => s + Number(i.judgeCount || 0), 0)
+      const totalSaq = effectiveRepoList.reduce((s, i) => s + Number(i.saqCount || 0), 0)
+      const totalCompound = effectiveRepoList.reduce((s, i) => s + Number(i.compoundCount || 0), 0)
+      if (
+        (totalRadio > 0 && Number(this.randomScoreConfig.radioScore) <= 0) ||
+        (totalMulti > 0 && Number(this.randomScoreConfig.multiScore) <= 0) ||
+        (totalJudge > 0 && Number(this.randomScoreConfig.judgeScore) <= 0) ||
+        (totalSaq > 0 && Number(this.randomScoreConfig.saqScore) <= 0) ||
+        (totalCompound > 0 && Number(this.randomScoreConfig.compoundScore) <= 0)
+      ) {
+        this.$notify({
+          title: '提示',
+          message: '有题量的题型须设置大于 0 的统一分值',
+          type: 'warning',
+          duration: 2500
+        })
+        return
+      }
+      this.randomPreviewLoading = true
+      try {
+        const res = await randomPreview(this.buildRandomPreviewParams())
+        if (!res.code) {
+          this.$notify({ title: '失败', message: res.msg || '抽题预览失败', type: 'error', duration: 2500 })
+          return
+        }
+        const list = res.data || []
+        this.randomSelectedRows = list.map((item) => ({
+          id: item.id,
+          quType: item.quType,
+          content: item.content,
+          image: item.image,
+          repoId: item.repoId,
+          repoTitle: item.repoTitle,
+          createTime: item.createTime,
+          assignScore: Number(item.assignScore) || this.defaultRandomScoreByType(item.quType) || 1,
+          scoreCustomized: false
+        }))
+        this.postForm.totalScore = this.calcRandomSelectedTotalScore()
+        this.$message.success(`已抽取 ${this.randomSelectedRows.length} 道题，可在下方调整`)
+      } catch (e) {
+        console.error('random preview failed', e)
+      } finally {
+        this.randomPreviewLoading = false
+      }
     },
     /** 服务端可能返回 radioNum / radioCount 等，统一成各题型可用题量上限（无则 null，不限制输入也不误 clamp 成 0） */
     readRepoTypeTotals(repo) {
@@ -627,6 +795,32 @@ export default {
             }
           }
 
+          if (isRandomMode) {
+            const randomRows = this.randomSelectedRows || []
+            if (!randomRows.length) {
+              this.$notify({
+                title: '提示信息',
+                message: '请先点击「生成试卷题目」预览随机结果，确认后再保存',
+                type: 'warning',
+                duration: 2500
+              })
+              return
+            }
+            const invalidRandom = randomRows.find((row) => {
+              const s = Number(row.assignScore)
+              return !Number.isFinite(s) || s <= 0
+            })
+            if (invalidRandom) {
+              this.$notify({
+                title: '提示信息',
+                message: '请为每道已抽题目设置大于 0 的分值',
+                type: 'warning',
+                duration: 2500
+              })
+              return
+            }
+          }
+
           if (!isRandomMode) {
             const manualRows = this.manualSelectedRows || []
             if (manualRows.length === 0) {
@@ -747,10 +941,12 @@ export default {
         certificateId: cerTemp,
         addQuype: isRandomMode ? '1' : firstRepo.addQuType,
         quIds: isRandomMode
-          ? ''
+          ? (this.randomSelectedRows || []).map((row) => row.id).join(',')
           : (this.manualSelectedRows || []).map((row) => row.id).join(','),
         quScores: isRandomMode
-          ? ''
+          ? (this.randomSelectedRows || [])
+            .map((row) => Number(row.assignScore || 0))
+            .join(',')
           : (this.manualSelectedRows || [])
             .map((row) => Number(row.assignScore || 0))
             .join(','),
