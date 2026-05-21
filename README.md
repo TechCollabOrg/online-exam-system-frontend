@@ -114,10 +114,14 @@ online-exam-system-frontend/
 | `/prepare-exam` | 准备考试 | 学生 |
 | `/start-exam` | 答题（全屏） | 学生 |
 | `/exam-management` | 考试管理 | 教师、管理员 |
+| `/exam-details/exam-details` | 考试详情（试卷预览 + 缺考名单） | 教师、管理员 |
 | `/exam-add` | 创建考试 | 教师、管理员 |
 | `/questions-management` | 试题管理 | 教师、管理员 |
 | `/repo-management` | 题库管理 | 教师、管理员 |
 | `/answer-manage` | 阅卷管理 | 教师、管理员 |
+| `/answer-show` | 待批阅 / 缺考名单 | 教师、管理员 |
+| `/exam-record` | 考试记录（交卷后可见，含待批改） | 学生 |
+| `/exam-record-detail` | 考试记录详情（每题得分） | 学生、教师 |
 | `/score-analysis` | 成绩分析 | 教师、管理员 |
 | `/exercise-center` | 刷题中心 | 学生 |
 | `/wrong-book` | 错题本 | 学生 |
@@ -182,4 +186,4 @@ Vue 2 · Element UI · Vuex · axios · vue-quill-editor · ECharts · Electron
 
 ---
 
-*最后更新：2026-05-19*
+*最后更新：2026-05-21*

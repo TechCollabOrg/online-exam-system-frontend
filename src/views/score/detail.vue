@@ -273,7 +273,7 @@ export default {
       return true
     },
     cleanLegacyStorageKeys() {
-      ;['examId', 'gradeId'].forEach((key) => {
+      ['examId', 'gradeId'].forEach((key) => {
         if (localStorage.getItem(key) === 'null') {
           localStorage.removeItem(key)
         }

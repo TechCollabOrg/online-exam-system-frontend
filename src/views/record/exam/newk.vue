@@ -71,6 +71,7 @@
                       <div v-if="index.quType !== 5 && questionStemDisplay(index)" style="margin: 8px 0 12px">
                         <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">
                           {{ indexx + 1 }}、
+                          <span class="qu-score-badge">{{ formatQuScore(index) }}</span>
                         </div>
                         <rich-html-content :html="questionStemDisplay(index)" />
                       </div>
@@ -169,7 +170,10 @@
                         :stem-image="index.image"
                       />
                       <div v-if="index.quType !== 5 && questionStemDisplay(index)" style="margin: 8px 0 12px">
-                        <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">题干</div>
+                        <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">
+                          题干
+                          <span class="qu-score-badge">{{ formatQuScore(index) }}</span>
+                        </div>
                         <rich-html-content :html="questionStemDisplay(index)" />
                       </div>
 
@@ -236,6 +240,7 @@
                       <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">
                         {{ indexx + 1 }}、
                         <el-tag size="mini" type="info" style="margin-left: 8px">复合题</el-tag>
+                        <span class="qu-score-badge">{{ formatQuScore(item) }}</span>
                       </div>
                       <compound-stem-block
                         :stem-content="questionStemDisplay(item)"
@@ -372,6 +377,26 @@ export default {
     },
     questionStemDisplay(row) {
       return questionStemDisplayHtml(row || {})
+    },
+    formatQuScore(row) {
+      if (!row) return ''
+      if (row.scoreLabel === '待批改') {
+        return '（待批改）'
+      }
+      if (row.scoreLabel === 'AI 建议分' && row.quScore != null) {
+        const full = row.totalScore != null ? ` / ${row.totalScore}` : ''
+        return `（AI 建议 ${row.quScore}${full} 分）`
+      }
+      if (row.quScore != null && row.totalScore != null) {
+        return `（${row.quScore} / ${row.totalScore} 分）`
+      }
+      if (row.quScore != null) {
+        return `（${row.quScore} 分）`
+      }
+      if (row.totalScore != null) {
+        return `（满分 ${row.totalScore} 分）`
+      }
+      return ''
     },
     parseSaqStudentAnswer(sub) {
       if (!sub) return []
@@ -537,6 +562,12 @@ export default {
 }
 .ai-review-actions {
   margin-top: 12px;
+}
+.qu-score-badge {
+  margin-left: 10px;
+  font-size: 13px;
+  font-weight: normal;
+  color: #409eff;
 }
 .type_tag {
   margin-right: 5px;

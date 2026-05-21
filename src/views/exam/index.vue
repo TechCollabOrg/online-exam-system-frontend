@@ -291,7 +291,7 @@ export default {
       /** 本场考试是否曾进入过全屏（用于区分「尚未全屏」与「ESC 退出全屏」） */
       examHadFullscreen: false,
       skipFullscreenExitCheat: false,
-      _cheatReporting: false,
+      cheatReporting: false,
       showPrevious: false,
       showNext: true,
       loading: false,
@@ -491,8 +491,8 @@ export default {
     },
     /** 记录切屏；退出全屏（含 ESC）与窗口失焦均会调用 */
     reportExamCheat() {
-      if (this._cheatReporting || !this.examId) return
-      this._cheatReporting = true
+      if (this.cheatReporting || !this.examId) return
+      this.cheatReporting = true
       examCheat(this.examId)
         .then((res) => {
           if (res.code) {
@@ -510,7 +510,7 @@ export default {
         })
         .finally(() => {
           setTimeout(() => {
-            this._cheatReporting = false
+            this.cheatReporting = false
           }, 800)
         })
     },
@@ -575,7 +575,7 @@ export default {
 
     // 交卷
     doHandler(isAutomatic = false) {
-      const performSubmit = async () => {
+      const performSubmit = async() => {
         if (this.handExamSubmitting) return
         this.handExamSubmitting = true
         this.handleText = isAutomatic ? '时间到，正在自动交卷...' : '正在交卷，请等待...'

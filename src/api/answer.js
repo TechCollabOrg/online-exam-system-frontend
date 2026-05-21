@@ -16,6 +16,14 @@ export function answerUserPging(params) {
   })
 }
 
+export function answerAbsentPaging(params) {
+  return request({
+    url: 'answers/exam/absent',
+    method: 'get',
+    params
+  })
+}
+
 export function answerDetail(params) {
   return request({
     url: 'answers/detail',
