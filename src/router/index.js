@@ -93,6 +93,22 @@ export const constantRoutes = [
   },
 
   {
+    path: '/invite-code',
+    component: Layout,
+    children: [{
+      path: '/invite-code',
+      name: 'invite-code',
+      component: () => import('@/views/invite-code/index'),
+      meta: {
+        title: '邀请码管理',
+        icon: 'el-icon-key',
+        visible: true,
+        roles: ['admin']
+      }
+    }]
+  },
+
+  {
     path: '/user-management',
     component: Layout,
     children: [{

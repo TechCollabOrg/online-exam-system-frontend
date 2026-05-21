@@ -110,6 +110,8 @@ online-exam-system-frontend/
 | 路径 | 页面 | 角色 |
 |------|------|------|
 | `/login` | 登录 | 全部 |
+| `/register` | 注册（可选学生/教师/管理员；后两者须邀请码） | 匿名 |
+| `/invite-code` | 邀请码管理 | 管理员 |
 | `/text-center` | 试卷中心 | 学生 |
 | `/prepare-exam` | 准备考试 | 学生 |
 | `/start-exam` | 答题（全屏） | 学生 |

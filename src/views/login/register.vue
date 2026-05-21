@@ -48,6 +48,36 @@
           auto-complete="on"
         />
       </el-form-item>
+
+      <el-form-item prop="roleId" label-width="0">
+        <span class="svg-container">
+          <svg-icon icon-class="user" />
+        </span>
+        <el-select
+          v-model="registerForm.roleId"
+          class="role-select"
+          placeholder="注册身份"
+          tabindex="3"
+        >
+          <el-option label="学生" :value="1" />
+          <el-option label="教师" :value="2" />
+          <el-option label="管理员" :value="3" />
+        </el-select>
+      </el-form-item>
+
+      <el-form-item v-if="needInviteCode" prop="inviteCode">
+        <span class="svg-container">
+          <svg-icon icon-class="password" />
+        </span>
+        <el-input
+          v-model="registerForm.inviteCode"
+          placeholder="邀请码（教师/管理员必填）"
+          name="inviteCode"
+          type="text"
+          tabindex="4"
+          auto-complete="off"
+        />
+      </el-form-item>
       <el-form-item prop="password">
         <span class="svg-container">
           <svg-icon icon-class="password" />
@@ -59,7 +89,7 @@
           :type="passwordType"
           placeholder="密码"
           name="password"
-          tabindex="3"
+          tabindex="5"
           auto-complete="on"
         />
         <span class="show-pwd" @click="showPwd">
@@ -78,7 +108,7 @@
           :type="checkedPasswordType"
           placeholder="确认密码"
           name="checkedPassword"
-          tabindex="4"
+          tabindex="6"
           auto-complete="on"
         />
         <span class="show-pwd" @click="showPwd2">
@@ -100,7 +130,7 @@
             placeholder="验证码"
             name="code"
             type="text"
-            tabindex="5"
+            tabindex="7"
             auto-complete="off"
             spellcheck="false"
             autocorrect="off"
@@ -186,6 +216,23 @@ export default {
         callback()
       }
     }
+    const validateRoleId = (rule, value, callback) => {
+      if (!value) {
+        callback(new Error('请选择注册身份'))
+      } else {
+        callback()
+      }
+    }
+    const validateInviteCode = (rule, value, callback) => {
+      const roleId = this.registerForm.roleId
+      if (roleId === 2 || roleId === 3) {
+        if (!value || !String(value).trim()) {
+          callback(new Error('教师或管理员注册须填写邀请码'))
+          return
+        }
+      }
+      callback()
+    }
     return {
       icpNumber: process.env.VUE_APP_ICP_NUMBER,
       icpLink: process.env.VUE_APP_ICP_LINK,
@@ -193,6 +240,8 @@ export default {
         userName: '',
         password: '',
         realName: '',
+        roleId: 1,
+        inviteCode: '',
         checkedPassword: '',
         code: ''
       },
@@ -200,6 +249,8 @@ export default {
         userName: [{ required: true, trigger: 'blur', validator: validateUsername }],
         password: [{ required: true, trigger: 'blur', validator: validatePassword }],
         realName: [{ required: true, trigger: 'blur', validator: validateRealName }],
+        roleId: [{ required: true, trigger: 'change', validator: validateRoleId }],
+        inviteCode: [{ validator: validateInviteCode, trigger: 'blur' }],
         checkedPassword: [{ required: true, trigger: 'blur', validator: validateCheckedPassword }],
         code: [{ required: true, trigger: 'blur', validator: validateCode }]
       },
@@ -212,12 +263,25 @@ export default {
       captchaLoading: false
     }
   },
+  computed: {
+    needInviteCode() {
+      return this.registerForm.roleId === 2 || this.registerForm.roleId === 3
+    }
+  },
   watch: {
     $route: {
       handler: function(route) {
         this.redirect = route.query && route.query.redirect
       },
       immediate: true
+    },
+    'registerForm.roleId'() {
+      if (!this.needInviteCode) {
+        this.registerForm.inviteCode = ''
+      }
+      if (this.$refs.registerForm) {
+        this.$refs.registerForm.clearValidate('inviteCode')
+      }
     }
   },
   created() {
@@ -232,9 +296,13 @@ export default {
               const registerData = {
                 userName: this.registerForm.userName,
                 realName: this.registerForm.realName,
+                roleId: this.registerForm.roleId,
                 password: Encrypt(this.registerForm.password),
                 checkedPassword: Encrypt(this.registerForm.checkedPassword),
                 captchaId: this.captchaId
+              }
+              if (this.needInviteCode) {
+                registerData.inviteCode = String(this.registerForm.inviteCode).trim().toUpperCase()
               }
               register(registerData).then((res2) => {
                 if (res2.code) {
