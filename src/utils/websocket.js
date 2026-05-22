@@ -3,6 +3,7 @@
  * 开发环境默认经 devServer 代理到后端；生产/Electron 使用 VUE_APP_WS_URL。
  */
 import { getUserId, getGradeId, getRole } from './auth'
+import { getWsUrl } from './runtimeConfig'
 import { Notification, Message } from 'element-ui'
 import Vue from 'vue'
 
@@ -17,6 +18,10 @@ const pendingMessages = []
 const EventBus = new Vue()
 
 function resolveSocketBaseUrl() {
+  const fromRuntime = getWsUrl()
+  if (fromRuntime) {
+    return fromRuntime
+  }
   if (process.env.VUE_APP_WS_URL) {
     return process.env.VUE_APP_WS_URL.replace(/\/$/, '')
   }

@@ -7,6 +7,8 @@ const { contextBridge, ipcRenderer } = require('electron')
 contextBridge.exposeInMainWorld('electronAPI', {
   /** 查询当前是否为考试 kiosk 模式（供前端决定是否加强提示） */
   getAppMode: () => ipcRenderer.invoke('app:get-mode'),
+  /** Electron 生产包：读取 app-config.json 中的 API / WebSocket 地址 */
+  getRuntimeConfig: () => ipcRenderer.invoke('app:get-runtime-config'),
   /** 系统级窗口全屏（.exe 内不依赖浏览器 requestFullscreen 手势） */
   setWindowFullscreen: (flag) => ipcRenderer.invoke('window:set-fullscreen', flag),
   isWindowFullscreen: () => ipcRenderer.invoke('window:is-fullscreen'),

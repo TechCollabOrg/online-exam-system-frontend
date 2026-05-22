@@ -12,6 +12,7 @@
  */
 const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('path')
+const { loadAppConfig } = require('./loadConfig')
 
 /** 是否启用类似机考的全屏无边框（kiosk），由命令行 --exam-kiosk 或环境变量开启 */
 function useExamKiosk() {
@@ -100,6 +101,24 @@ ipcMain.handle('app:get-mode', () => ({
   isElectron: true,
   kiosk: useExamKiosk()
 }))
+
+/**
+ * 生产包：返回 exe 同目录 app-config.json（每次调用重新读盘，改配置后刷新页面即可）。
+ * 开发 electron:dev：返回 null，渲染进程继续用 .env + devServer 代理。
+ */
+ipcMain.handle('app:get-runtime-config', () => {
+  if (process.env.ELECTRON_START_URL) {
+    return null
+  }
+  const cfg = loadAppConfig()
+  return {
+    apiBaseUrl: cfg.apiBaseUrl,
+    wsUrl: cfg.wsUrl,
+    minioBaseUrl: cfg.minioBaseUrl,
+    configPath: cfg.configPath || null,
+    searchedPaths: cfg.searchedPaths || null
+  }
+})
 
 /**
  * 渲染进程在「开始考试」等时机请求系统级窗口全屏（不依赖浏览器 Fullscreen API 的手势限制）。

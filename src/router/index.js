@@ -45,6 +45,12 @@ export const constantRoutes = [
     component: () => import('@/views/login/register'),
     hidden: true
   },
+  {
+    path: '/student-client',
+    component: () => import('@/views/student-client/index'),
+    hidden: true,
+    meta: { title: '学生端下载' }
+  },
 
   {
     path: '/',
