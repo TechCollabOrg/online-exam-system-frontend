@@ -1,6 +1,31 @@
 // 登录 / 注册页共用样式（亮色卡片 + 柔和渐变背景）
 
 .login-container {
+  .login-client-link {
+    position: fixed;
+    top: 16px;
+    right: 20px;
+    z-index: 10;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #2563eb;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
+    transition: background 0.2s, color 0.2s;
+
+    &:hover {
+      color: #1d4ed8;
+      background: #eff6ff;
+    }
+  }
+
   min-height: 100vh;
   width: 100%;
   display: flex;

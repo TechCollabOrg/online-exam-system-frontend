@@ -1,0 +1,21 @@
+{
+  "title": "学生端桌面客户端",
+  "files": [
+    {
+      "id": "client-exe",
+      "path": "downloads/student-client.exe",
+      "fileName": "校园在线考试学生端.exe",
+      "label": "下载 Windows 安装包",
+      "buttonType": "primary",
+      "required": true
+    },
+    {
+      "id": "app-config",
+      "path": "downloads/app-config.json",
+      "fileName": "app-config.json",
+      "label": "下载配置文件",
+      "buttonType": "default",
+      "required": true
+    }
+  ]
+}

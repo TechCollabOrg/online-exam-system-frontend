@@ -30,6 +30,8 @@ import 'quill/dist/quill.core.css' // 引入样式
 import 'quill/dist/quill.snow.css' // snow theme
 import 'quill/dist/quill.bubble.css' // bubble theme
 import { connectWebSocket, sendMessage } from '@/utils/websocket'
+import { initRuntimeConfig } from '@/utils/runtimeConfig'
+import { configureRequestBaseUrl } from '@/utils/request'
 
 // 如果是开发环境，关闭一些提示
 if (process.env.NODE_ENV === 'development') {
@@ -42,7 +44,7 @@ if (process.env.NODE_ENV === 'development') {
 
 // 定义白名单
 Vue.prototype.$echarts = echarts
-const whiteList = ['/login', '/register']
+const whiteList = ['/login', '/register', '/student-client']
 
 // 判断是否有 token（记住我→Cookie / file 下 localStorage；否则 sessionStorage），无则进登录页
 router.beforeEach((to, from, next) => {
@@ -108,9 +110,15 @@ Vue.config.productionTip = false
 Vue.prototype.$connectWebSocket = connectWebSocket
 Vue.prototype.$sendMessage = sendMessage
 
-new Vue({
-  el: '#app',
-  router,
-  store,
-  render: h => h(App)
-})
+async function bootstrap() {
+  await initRuntimeConfig()
+  configureRequestBaseUrl()
+  new Vue({
+    el: '#app',
+    router,
+    store,
+    render: h => h(App)
+  })
+}
+
+bootstrap()

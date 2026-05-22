@@ -10,6 +10,16 @@
       <breadcrumb class="breadcrumb-container" />
 
       <div class="right-menu">
+        <el-button
+          type="primary"
+          plain
+          size="small"
+          class="client-download-btn"
+          @click="goStudentClient"
+        >
+          <i class="el-icon-download" />
+          学生端下载
+        </el-button>
         <el-dropdown class="avatar-container" trigger="click">
           <div class="avatar-wrapper">
             <img v-if="navbarAvatar" :src="navbarAvatar" class="user-avatar" alt="">
@@ -103,6 +113,9 @@ export default {
     },
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
+    },
+    goStudentClient() {
+      this.$router.push('/student-client')
     },
     async logout() {
       try {
@@ -233,6 +246,10 @@ export default {
           background: rgba(59, 130, 246, 0.1);
         }
       }
+    }
+
+    .client-download-btn {
+      margin-right: 12px;
     }
 
     .avatar-container {

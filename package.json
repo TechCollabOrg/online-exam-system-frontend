@@ -10,7 +10,8 @@
     "build:electron": "vue-cli-service build --mode electron",
     "electron:dev": "concurrently -k \"cross-env BROWSER=none npm run dev\" \"wait-on http://127.0.0.1:9527 && cross-env ELECTRON_START_URL=http://127.0.0.1:9527 electron .\"",
     "electron:pack": "npm run build:electron && electron-builder --dir",
-    "electron:dist": "npm run build:electron && electron-builder",
+    "electron:dist": "npm run build:electron && electron-builder && node scripts/copy-portable-config.js",
+    "sync:client-downloads": "node scripts/copy-portable-config.js",
     "build:stage": "vue-cli-service build --mode staging",
     "preview": "node build/index.js --preview",
     "svgo": "svgo -f src/icons/svg --config=src/icons/svgo.yml",
@@ -74,7 +75,13 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
-    }
+    },
+    "extraFiles": [
+      {
+        "from": "electron/app-config.example.json",
+        "to": "app-config.json"
+      }
+    ]
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "4.4.4",

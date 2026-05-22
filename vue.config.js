@@ -46,6 +46,14 @@ module.exports = {
         ws: true,
         changeOrigin: true
       },
+      /** 题库 MinIO 题图：库中多为 http://127.0.0.1:9000/桶/文件，开发时改走代理避免跨域 */
+      '/minio-media': {
+        target: 'http://127.0.0.1:9000',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/minio-media': ''
+        }
+      },
       '/api': {
         target: 'http://127.0.0.1:8080',
         changeOrigin: true,

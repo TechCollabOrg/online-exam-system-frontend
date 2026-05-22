@@ -8,6 +8,7 @@
 
 <script>
 import { sanitizeRichHtml } from '@/utils/richHtml'
+import { rewriteRichHtmlMediaUrls } from '@/utils/resolveMediaUrl'
 
 export default {
   name: 'RichHtmlContent',
@@ -26,7 +27,7 @@ export default {
     sanitized() {
       const raw = this.html
       if (raw == null || String(raw).trim() === '') return ''
-      return sanitizeRichHtml(raw)
+      return rewriteRichHtmlMediaUrls(sanitizeRichHtml(raw))
     }
   }
 }

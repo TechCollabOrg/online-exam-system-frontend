@@ -75,7 +75,7 @@ npx cross-env EXAM_KIOSK=1 npm run electron:dev
 | `.env.example` | 浏览器开发模板（复制为 `.env.development.local`，已被 gitignore） |
 | `.env.electron.example` | Electron 打包模板（复制为 `.env.electron`） |
 
-打包学生端前编辑 `.env.electron`：
+打包学生端前编辑 `.env.electron`（主要为加密密钥；API 默认地址也可在此设置）：
 
 ```env
 VUE_APP_BASE_API=http://你的服务器IP:8080/api
@@ -83,6 +83,12 @@ VUE_APP_WS_URL=ws://你的服务器IP:8080/websocket
 VUE_APP_CRYPTO_KEY=与后端 EXAM_AES_KEY 一致
 VUE_APP_CRYPTO_IV=与后端 EXAM_AES_IV 一致
 ```
+
+**已安装 exe 后**：优先改安装目录下的 `app-config.json`，不必为改 IP/端口重新 `electron:dist`。
+
+**Web 登录页一键下载**：`npm run electron:dist` 会同步 `public/downloads/student-client.exe` 与 `app-config.json`；再 `npm run build:prod` 部署后，登录页一个按钮会**依次下载两个文件**（非 zip）。仅更新安装包可执行 `npm run sync:client-downloads`。
+
+**部署目录**：`dist/downloads/`（本仓库 `deploy/dist/downloads/`）。详见 `public/downloads/README.md`。
 
 ---
 
@@ -148,11 +154,29 @@ online-exam-system-frontend/
 
 ```bash
 copy .env.electron.example .env.electron
-# 编辑 .env.electron 中的 API、WS、加密密钥
+# 编辑 .env.electron 中的加密密钥等（API 地址也可在此写默认值）
 npm run electron:dist
 ```
 
-产物在 `release/`：`*.exe` 不含 Java 后端，学生机需能访问你配置的后端地址。
+产物在 `release/`：
+
+| 文件 | 说明 |
+|------|------|
+| `*.exe` / `win-unpacked/` | 桌面客户端（**不含** Java 后端） |
+| **`app-config.json`**（与 exe 同目录） | **部署后改这个即可**，无需重新打包 |
+
+**portable 单文件 `.exe` 特别说明**：运行时真实进程在临时目录，`app-config.json` 必须放在**你双击的那个 exe 所在文件夹**（electron-builder 通过 `PORTABLE_EXECUTABLE_DIR` 定位）。`electron:dist` 后 `release/` 下也会生成一份示例 `app-config.json` 供复制。
+
+`app-config.json` 示例（模板见 `electron/app-config.example.json`）：
+
+```json
+{
+  "apiBaseUrl": "http://127.0.0.1:8080/api",
+  "wsUrl": "ws://127.0.0.1:8080/websocket"
+}
+```
+
+改完保存后**刷新客户端页面**（或重启 exe）。仍须先启动后端，并保证学生机能访问上述地址。
 
 ---
 
@@ -188,4 +212,4 @@ Vue 2 · Element UI · Vuex · axios · vue-quill-editor · ECharts · Electron
 
 ---
 
-*最后更新：2026-05-21*
+*最后更新：2026-05-22*
