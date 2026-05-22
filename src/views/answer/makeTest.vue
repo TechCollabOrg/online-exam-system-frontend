@@ -482,10 +482,12 @@ export default {
         })
         await this.getUserAnswerDetail()
         const aiCount = (this.waitQuList || []).filter((q) => this.hasAiGrade(q)).length
+        const total = (this.waitQuList || []).length
         if (aiCount > 0) {
-          this.$message.success(res.msg || `AI 阅卷完成，已为 ${aiCount} 题填入建议分数，请核对后提交批改`)
+          const extra = aiCount < total ? `（${aiCount}/${total} 题，未成功的题请稍后重试）` : ''
+          this.$message.success((res.msg || `AI 阅卷完成，已为 ${aiCount} 题填入建议分数，请核对后提交批改`) + extra)
         } else {
-          this.$message.warning(res.msg || '阅卷已完成，但未生成 AI 分数，请检查考生是否作答简答题')
+          this.$message.warning(res.msg || '阅卷已完成，但未生成 AI 分数，请检查考生是否作答')
         }
       } catch (e) {
         // 错误文案由 request 拦截器统一提示
