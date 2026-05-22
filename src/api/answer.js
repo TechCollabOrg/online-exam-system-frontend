@@ -40,13 +40,13 @@ export function correct(data) {
   })
 }
 
-/** 同步执行 AI 阅卷，完成后返回（可能耗时较长） */
+/** 同步执行 AI 阅卷（逐题评分，题多时耗时长） */
 export function triggerAiScore(params) {
   return request({
     url: 'answers/ai-score',
     method: 'post',
     params,
-    timeout: 180000
+    timeout: 600000
   })
 }
 
