@@ -84,7 +84,7 @@ export default {
   created() {
     this.messages = loadChatMessages(getUserId())
     this.$nextTick(() => this.scrollToBottom())
-    getAiConfigStatus().then(res => {
+    getAiConfigStatus('assistant').then(res => {
       const d = res.data || {}
       this.configured = d.configured !== false
       this.configModel = d.modelName || ''
