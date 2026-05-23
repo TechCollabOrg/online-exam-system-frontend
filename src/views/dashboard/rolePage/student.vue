@@ -2,7 +2,7 @@
   <div class="app-container">
     <div class="left">
       <el-card class="box-card">
-        <span>登录时长</span>
+        <span>在线时长（近 15 天，按分钟统计）</span>
         <div ref="charts" class="chart-div" />
       </el-card>
     </div>
@@ -54,18 +54,24 @@ export default {
       noticePage: { records: [] },
       dateArray: [],
       formattedData: [],
+      /** 按日期保存后端返回的秒数，tooltip 必须按秒换算，避免与图表分钟值混淆 */
+      rawSecondsByDate: {},
       option: {
-        // title: { text: '登录时长' },
-        tooltip: {},
-        xAxis: {
-          data: [] // 初始化为空，稍后用dateArray填充
+        tooltip: {
+          trigger: 'axis'
         },
-        yAxis: {},
+        xAxis: {
+          data: []
+        },
+        yAxis: {
+          name: '分钟',
+          minInterval: 1
+        },
         series: [
           {
-            name: '登录时长(分钟)', // 更新系列名称以匹配单位变更
+            name: '在线时长',
             type: 'bar',
-            data: [] // 初始化为空，稍后用转换后的分钟数据填充
+            data: []
           }
         ]
       },
@@ -91,37 +97,56 @@ export default {
     }
   },
   methods: {
-    // 获取登录时长
+    localDateStr(date) {
+      const y = date.getFullYear()
+      const m = String(date.getMonth() + 1).padStart(2, '0')
+      const d = String(date.getDate()).padStart(2, '0')
+      return `${y}-${m}-${d}`
+    },
+    /** 后端 totalSeconds 为秒，格式化为可读时长 */
+    formatDurationFromSeconds(seconds) {
+      const total = Math.max(0, Math.floor(Number(seconds) || 0))
+      if (total < 60) return '不足 1 分钟'
+      const minutes = Math.floor(total / 60)
+      if (minutes < 60) return `${minutes} 分钟`
+      const hours = Math.floor(minutes / 60)
+      const restMin = minutes % 60
+      return restMin > 0 ? `${hours} 小时 ${restMin} 分钟` : `${hours} 小时`
+    },
+    // 获取每日在线时长（后端单位为秒）
     getDailyFun() {
       getDaily().then((res) => {
         if (res.code === 1) {
+          this.dateArray = []
           const currentDate = new Date()
-          // 生成从今天往回15天的日期数组
-          for (let i = 0; i <= 14; i++) {
-            const date = new Date(
-              currentDate.getTime() - i * 24 * 60 * 60 * 1000
-            )
-            this.dateArray.push(date.toISOString().split('T')[0])
+          for (let i = 14; i >= 0; i--) {
+            const date = new Date(currentDate)
+            date.setDate(currentDate.getDate() - i)
+            this.dateArray.push(this.localDateStr(date))
           }
-          // 确保dateArray是倒序的
-          this.dateArray.reverse()
 
-          // 整理原始数据，确保每个日期都有记录，没有的补0
-          const dataMap = res.data.reduce((acc, item) => {
-            acc[item.loginDate] = item.totalSeconds
+          const maxDaySeconds = 24 * 60 * 60
+          const dataMap = (res.data || []).reduce((acc, item) => {
+            const key = typeof item.loginDate === 'string'
+              ? item.loginDate
+              : this.localDateStr(new Date(item.loginDate))
+            const sec = Math.min(maxDaySeconds, Number(item.totalSeconds) || 0)
+            acc[key] = sec
             return acc
           }, {})
+          this.rawSecondsByDate = dataMap
 
+          const maxDayMinutes = 24 * 60
           this.formattedData = this.dateArray.map((date) => {
             const secondsOnDate = dataMap[date] || 0
-            return secondsOnDate / 60 // 转换秒为分钟
+            const minutes = secondsOnDate / 60
+            return Math.min(maxDayMinutes, Math.round(minutes * 10) / 10)
           })
 
-          // 更新图表配置
           this.option.xAxis.data = this.dateArray
           this.option.series[0].data = this.formattedData
           this.$nextTick(() => {
-            this.initCharts() // 确保DOM已更新后再初始化图表
+            this.initCharts()
           })
         }
       })
@@ -139,8 +164,28 @@ export default {
       // this.transformData(res);
     },
     initCharts() {
-      this.myChart = echarts.init(this.$refs.charts)
-      this.myChart.setOption(this.option)
+      const formatDurationFromSeconds = this.formatDurationFromSeconds
+      const rawSecondsByDate = this.rawSecondsByDate
+      const chartOption = {
+        ...this.option,
+        yAxis: {
+          ...this.option.yAxis,
+          max: 24 * 60
+        },
+        tooltip: {
+          trigger: 'axis',
+          formatter(params) {
+            const p = params && params[0]
+            if (!p) return ''
+            const seconds = rawSecondsByDate[p.name] != null ? rawSecondsByDate[p.name] : 0
+            return `${p.name}<br/>${p.seriesName}：${formatDurationFromSeconds(seconds)}`
+          }
+        }
+      }
+      if (!this.myChart) {
+        this.myChart = echarts.init(this.$refs.charts)
+      }
+      this.myChart.setOption(chartOption)
     },
     resizeChart() {
       if (this.myChart) {

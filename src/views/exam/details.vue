@@ -1,8 +1,22 @@
 <template>
-  <el-container style="height: 100vh; border: 1px solid #eee">
+  <el-container style="min-height: 100vh; border: 1px solid #eee">
     <el-container>
       <el-main class="right">
-        <el-col>
+        <el-card v-if="examInfo.title" class="exam-summary" shadow="never">
+          <div class="exam-summary-title">{{ examInfo.title }}</div>
+          <div class="exam-summary-meta">
+            <span>考试时长：{{ examInfo.examDuration }} 分钟</span>
+            <span>总分：{{ examInfo.grossScore }}</span>
+            <span>及格分：{{ examInfo.passedScore }}</span>
+          </div>
+        </el-card>
+
+        <el-tabs v-model="activeTab" class="exam-detail-tabs">
+          <el-tab-pane label="试卷题目" name="questions" />
+          <el-tab-pane label="缺考名单" name="absent" />
+        </el-tabs>
+
+        <el-col v-show="activeTab === 'questions'">
           <el-card class="qu_list">
             <div>
               <!-- eslint-disable-next-line vue/no-template-shadow -->
@@ -160,27 +174,148 @@
                   <el-divider />
                 </div>
               </template>
+              <!-- 复合题（教师预览试卷） -->
+              <template v-for="(item, cidx) in data">
+                <div v-if="item.quType === 5" :key="'compound-' + cidx" :class="'index' + cidx">
+                  <el-row :gutter="24">
+                    <el-col :span="20" style="text-align: left">
+                      <div class="qu_content" style="font-weight: 600; margin-bottom: 8px">
+                        {{ cidx + 1 }}、
+                        <el-tag size="mini" type="info" style="margin-left: 8px">复合题</el-tag>
+                      </div>
+                      <compound-stem-block
+                        :stem-content="questionStemDisplay(item)"
+                        :stem-image="item.image"
+                      />
+                      <div
+                        v-for="(sub, sidx) in item.subItemList || []"
+                        :key="'sub-' + cidx + '-' + sidx"
+                        style="margin: 14px 0; padding-bottom: 12px; border-bottom: 1px dashed #ebeef5"
+                      >
+                        <div v-if="sub.content" style="margin-bottom: 8px">
+                          <span style="font-weight: 600">({{ sidx + 1 }})</span>
+                          <rich-html-content :html="sub.content" />
+                        </div>
+                        <div v-if="sub.quType === 1 || sub.quType === 2 || sub.quType === 3">
+                          <el-radio-group class="qu_choose_group" disabled>
+                            <el-radio
+                              v-for="(opt, oidx) in sub.options || []"
+                              :key="'copt-' + sidx + '-' + oidx"
+                              :label="opt.content"
+                              border
+                              class="qu_choose"
+                              :class="{ isRight: opt.isRight === 1 || opt.isRight === true }"
+                            >
+                              <div class="qu_choose_tag">
+                                <div class="qu_choose_tag_type">
+                                  {{ numberToLetter(oidx) }}、{{ opt.content }}
+                                </div>
+                              </div>
+                            </el-radio>
+                          </el-radio-group>
+                          <div style="margin-top: 8px; color: #606266">
+                            <span>正确答案：</span>
+                            <span>{{ formatSubRightAnswer(sub) }}</span>
+                          </div>
+                        </div>
+                        <div v-else-if="sub.quType === 4">
+                          <div
+                            v-for="(opt, oidx) in sub.options || []"
+                            :key="'cref-' + sidx + '-' + oidx"
+                            style="margin-top: 8px"
+                          >
+                            <span>参考答案（空{{ oidx + 1 }}）：</span>
+                            <rich-html-content :html="opt.content || ''" />
+                          </div>
+                        </div>
+                      </div>
+                      <div class="qu_analysis">
+                        <el-card>
+                          <analysis-rich-block
+                            :html="item.analyse"
+                            label="试题解析："
+                            variant="question"
+                          />
+                        </el-card>
+                      </div>
+                    </el-col>
+                  </el-row>
+                  <el-divider />
+                </div>
+              </template>
             </div>
             <el-divider />
           </el-card>
         </el-col>
+
+        <div v-show="activeTab === 'absent'" class="absent-panel">
+          <el-form :inline="true" class="demo-form-inline">
+            <el-form-item label="姓名">
+              <el-input v-model="absentRealName" placeholder="输入姓名" clearable />
+            </el-form-item>
+            <el-form-item label="班级">
+              <ClassSelect v-model="absentGradeId" clearable placeholder="全部班级" style="width: 200px" />
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="searchAbsent">查询</el-button>
+            </el-form-item>
+          </el-form>
+          <el-alert
+            type="info"
+            :closable="false"
+            show-icon
+            title="以下为该考试关联班级中尚未交卷的学生（可按班级筛选）。"
+            style="margin-bottom: 12px"
+          />
+          <el-table
+            :data="absentData.records"
+            border
+            fit
+            highlight-current-row
+            :header-cell-style="tableHeaderStyle"
+          >
+            <el-table-column label="序号" align="center" width="80">
+              <template slot-scope="scope">{{ (absentPageNum - 1) * absentPageSize + scope.$index + 1 }}</template>
+            </el-table-column>
+            <el-table-column prop="userName" label="姓名" align="center" />
+            <el-table-column prop="gradeName" label="班级" align="center" />
+            <el-table-column label="状态" align="center" width="100">
+              <template>
+                <el-tag type="info" size="small">未参加</el-tag>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div class="pagination-container">
+            <el-pagination
+              :current-page="absentPageNum"
+              :page-sizes="[10, 20, 30, 40]"
+              :page-size="absentPageSize"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="absentData.total"
+              @size-change="handleAbsentSizeChange"
+              @current-change="handleAbsentCurrentChange"
+            />
+          </div>
+        </div>
       </el-main>
     </el-container>
   </el-container>
 </template>
 
 <script>
-import { details } from '@/api/exam'
+import { details, getExamDetail } from '@/api/exam'
+import { answerAbsentPaging } from '@/api/answer'
 import imageUrlsMixin from '@/mixins/imageUrlsMixin'
 import RichHtmlContent from '@/components/RichHtmlContent'
 import AnalysisRichBlock from '@/components/AnalysisRichBlock'
 import CompoundStemBlock from '@/components/CompoundStemBlock'
+import ClassSelect from '@/components/ClassSelect'
 import { saqReferenceDisplayHtml } from '@/utils/saqAnswerHtml'
 import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
 
 export default {
   name: 'ExamProcess',
-  components: { RichHtmlContent, AnalysisRichBlock, CompoundStemBlock },
+  components: { RichHtmlContent, AnalysisRichBlock, CompoundStemBlock, ClassSelect },
   mixins: [imageUrlsMixin],
   data() {
     return {
@@ -188,7 +323,20 @@ export default {
       quIndex: -1,
       examId: '',
       data: [],
+      examInfo: {},
+      activeTab: 'questions',
       userId: null,
+      absentPageNum: 1,
+      absentPageSize: 10,
+      absentData: { records: [], total: 0 },
+      absentGradeId: '',
+      absentRealName: '',
+      tableHeaderStyle: {
+        background: '#f2f3f4',
+        color: '#555',
+        'font-weight': 'bold',
+        'line-height': '32px'
+      },
       index: {
         quType: 4 // 确保这里有一个值
       }
@@ -197,11 +345,21 @@ export default {
   watch: {
     '$route'() {
       this.resolveExamIdFromRouteOrStorage()
+      this.loadExamInfo()
       this.ExamDetail()
+      if (this.activeTab === 'absent') {
+        this.loadAbsent()
+      }
+    },
+    activeTab(val) {
+      if (val === 'absent') {
+        this.loadAbsent()
+      }
     }
   },
   created() {
     this.resolveExamIdFromRouteOrStorage()
+    this.loadExamInfo()
     this.ExamDetail()
   },
   methods: {
@@ -210,6 +368,14 @@ export default {
     },
     saqRefDisplay(row) {
       return saqReferenceDisplayHtml(row.option && row.option[0])
+    },
+    formatSubRightAnswer(sub) {
+      if (!sub || !sub.options || !sub.options.length) return '—'
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+      const rights = sub.options
+        .map((opt, oidx) => ((opt.isRight === 1 || opt.isRight === true) ? letters[oidx] || oidx : null))
+        .filter(Boolean)
+      return rights.length ? rights.join('、') : '—'
     },
     resolveExamIdFromRouteOrStorage() {
       const q = this.$route.query || {}
@@ -260,7 +426,52 @@ export default {
         return '' // 输入不符合预期，返回空字符串或根据需要处理
       }
     },
-    // 分页查询
+    async loadExamInfo() {
+      if (!this.examId) {
+        this.examInfo = {}
+        return
+      }
+      try {
+        const res = await getExamDetail(this.examId)
+        this.examInfo = res.data || {}
+      } catch (e) {
+        this.examInfo = {}
+      }
+    },
+    searchAbsent() {
+      this.absentPageNum = 1
+      this.loadAbsent()
+    },
+    async loadAbsent() {
+      if (!this.examId) {
+        this.absentData = { records: [], total: 0 }
+        return
+      }
+      const params = {
+        pageNum: this.absentPageNum,
+        pageSize: this.absentPageSize,
+        examId: this.examId,
+        realName: this.absentRealName || undefined
+      }
+      if (this.absentGradeId) {
+        params.gradeId = this.absentGradeId
+      }
+      try {
+        const res = await answerAbsentPaging(params)
+        this.absentData = res.data || { records: [], total: 0 }
+      } catch (e) {
+        this.absentData = { records: [], total: 0 }
+      }
+    },
+    handleAbsentSizeChange(val) {
+      this.absentPageSize = val
+      this.loadAbsent()
+    },
+    handleAbsentCurrentChange(val) {
+      this.absentPageNum = val
+      this.loadAbsent()
+    },
+    // 加载试卷题目（教师预览，无学生作答）
     async ExamDetail() {
       if (!this.examId) {
         this.data = []
@@ -272,6 +483,7 @@ export default {
         this.data = Array.isArray(res.data) ? res.data : []
       } catch (e) {
         this.data = []
+        this.$message.error(e && e.message ? e.message : '加载试卷题目失败')
       }
     },
     // 点击答题卡题号, 右侧题目滑动
@@ -287,6 +499,29 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.exam-summary {
+  margin-bottom: 12px;
+  .exam-summary-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .exam-summary-meta span {
+    margin-right: 20px;
+    color: #606266;
+    font-size: 13px;
+  }
+}
+.exam-detail-tabs {
+  margin-bottom: 8px;
+}
+.absent-panel {
+  padding: 0 4px 16px;
+}
+.pagination-container {
+  margin-top: 16px;
+  text-align: right;
+}
 .content {
   width: 97%;
   height: 60px;

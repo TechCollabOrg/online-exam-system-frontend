@@ -71,6 +71,7 @@
                       <div v-if="index.quType !== 5 && questionStemDisplay(index)" style="margin: 8px 0 12px">
                         <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">
                           {{ indexx + 1 }}、
+                          <span class="qu-score-badge">{{ formatQuScore(index) }}</span>
                         </div>
                         <rich-html-content :html="questionStemDisplay(index)" />
                       </div>
@@ -142,13 +143,22 @@
                           />
                         </el-card>
                       </div>
+                      <div class="ai-review-actions">
+                        <el-button
+                          type="primary"
+                          plain
+                          size="small"
+                          icon="el-icon-cpu"
+                          @click="openAiReview(index, indexx + 1)"
+                        >AI 解析本题</el-button>
+                      </div>
                     </el-col>
                   </el-row>
                   <el-divider />
                 </div>
               </template>
               <!-- eslint-disable-next-line vue/no-template-shadow -->
-              <template v-for="index in data">
+              <template v-for="(index, indexx) in data">
                 <!-- eslint-disable-next-line vue/require-v-for-key -->
                 <div v-if="index.quType === 4" :class="'index' + index">
                   <el-row :gutter="24">
@@ -160,7 +170,10 @@
                         :stem-image="index.image"
                       />
                       <div v-if="index.quType !== 5 && questionStemDisplay(index)" style="margin: 8px 0 12px">
-                        <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">题干</div>
+                        <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">
+                          题干
+                          <span class="qu-score-badge">{{ formatQuScore(index) }}</span>
+                        </div>
                         <rich-html-content :html="questionStemDisplay(index)" />
                       </div>
 
@@ -206,6 +219,15 @@
                           />
                         </el-card>
                       </div>
+                      <div class="ai-review-actions">
+                        <el-button
+                          type="primary"
+                          plain
+                          size="small"
+                          icon="el-icon-cpu"
+                          @click="openAiReview(index, indexx + 1)"
+                        >AI 解析本题</el-button>
+                      </div>
                     </el-col>
                   </el-row>
                   <el-divider />
@@ -218,6 +240,7 @@
                       <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">
                         {{ indexx + 1 }}、
                         <el-tag size="mini" type="info" style="margin-left: 8px">复合题</el-tag>
+                        <span class="qu-score-badge">{{ formatQuScore(item) }}</span>
                       </div>
                       <compound-stem-block
                         :stem-content="questionStemDisplay(item)"
@@ -265,6 +288,15 @@
                           />
                         </el-card>
                       </div>
+                      <div class="ai-review-actions">
+                        <el-button
+                          type="primary"
+                          plain
+                          size="small"
+                          icon="el-icon-cpu"
+                          @click="openAiReview(item, indexx + 1)"
+                        >AI 解析本题</el-button>
+                      </div>
                     </el-col>
                   </el-row>
                   <el-divider />
@@ -276,6 +308,14 @@
         </el-col>
       </el-main>
     </el-container>
+    <question-ai-review-dialog
+      :visible.sync="aiReviewVisible"
+      :exam-id="examId"
+      :qu-id="aiReviewQuId"
+      :user-id="userId"
+      :question-no="aiReviewQuestionNo"
+      :sub-index="aiReviewSubIndex"
+    />
   </el-container>
 </template>
 
@@ -285,12 +325,13 @@ import imageUrlsMixin from '@/mixins/imageUrlsMixin'
 import RichHtmlContent from '@/components/RichHtmlContent'
 import AnalysisRichBlock from '@/components/AnalysisRichBlock'
 import CompoundStemBlock from '@/components/CompoundStemBlock'
+import QuestionAiReviewDialog from '@/components/QuestionAiReviewDialog'
 import { saqReferenceDisplayHtml } from '@/utils/saqAnswerHtml'
 import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
 
 export default {
   name: 'ExamProcess',
-  components: { RichHtmlContent, AnalysisRichBlock, CompoundStemBlock },
+  components: { RichHtmlContent, AnalysisRichBlock, CompoundStemBlock, QuestionAiReviewDialog },
   mixins: [imageUrlsMixin],
   data() {
     return {
@@ -301,7 +342,11 @@ export default {
       userId: null,
       index: {
         quType: 4 // 确保这里有一个值
-      }
+      },
+      aiReviewVisible: false,
+      aiReviewQuId: null,
+      aiReviewQuestionNo: '',
+      aiReviewSubIndex: null
     }
   },
   watch: {
@@ -332,6 +377,26 @@ export default {
     },
     questionStemDisplay(row) {
       return questionStemDisplayHtml(row || {})
+    },
+    formatQuScore(row) {
+      if (!row) return ''
+      if (row.scoreLabel === '待批改') {
+        return '（待批改）'
+      }
+      if (row.scoreLabel === 'AI 建议分' && row.quScore != null) {
+        const full = row.totalScore != null ? ` / ${row.totalScore}` : ''
+        return `（AI 建议 ${row.quScore}${full} 分）`
+      }
+      if (row.quScore != null && row.totalScore != null) {
+        return `（${row.quScore} / ${row.totalScore} 分）`
+      }
+      if (row.quScore != null) {
+        return `（${row.quScore} 分）`
+      }
+      if (row.totalScore != null) {
+        return `（满分 ${row.totalScore} 分）`
+      }
+      return ''
     },
     parseSaqStudentAnswer(sub) {
       if (!sub) return []
@@ -425,6 +490,16 @@ export default {
       }
     },
     // 点击答题卡题号, 右侧题目滑动
+    openAiReview(question, questionNo, subIndex = null) {
+      if (!question || question.quId == null) {
+        this.$message.warning('题目信息不完整，请刷新页面后重试')
+        return
+      }
+      this.aiReviewQuId = question.quId
+      this.aiReviewQuestionNo = questionNo
+      this.aiReviewSubIndex = subIndex
+      this.aiReviewVisible = true
+    },
     handleTag(index) {
       // 高亮选中的题目index标签
       this.quIndex = index
@@ -484,6 +559,15 @@ export default {
   height: 1px;
   width: 95%;
   margin: 24px 0;
+}
+.ai-review-actions {
+  margin-top: 12px;
+}
+.qu-score-badge {
+  margin-left: 10px;
+  font-size: 13px;
+  font-weight: normal;
+  color: #409eff;
 }
 .type_tag {
   margin-right: 5px;

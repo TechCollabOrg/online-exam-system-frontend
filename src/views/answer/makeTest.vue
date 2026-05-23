@@ -209,7 +209,9 @@
 
                             type="number"
 
-                            class="score-input"
+                            class="score-input score-input-no-wheel"
+
+                            @wheel.native.prevent
                           />
 
                           <el-tag
@@ -448,15 +450,19 @@ export default {
       if (page) page.scrollIntoView()
     },
 
+    mapGradingRows(rows) {
+      return (rows || []).map((row) => ({
+        ...row,
+        correctScore: row.aiScore != null && row.aiScore !== '' ? row.aiScore : (row.correctScore != null ? row.correctScore : '')
+      }))
+    },
+
     async getUserAnswerDetail() {
       const params = { userId: this.info.userId, examId: this.info.examId }
 
       const res = await answerDetail(params)
 
-      this.waitQuList = (res.data || []).map((row) => ({
-        ...row,
-        correctScore: row.aiScore != null ? row.aiScore : ''
-      }))
+      this.waitQuList = this.mapGradingRows(res.data)
       this.objectiveOnlyHint = !this.waitQuList.length
     },
 
@@ -746,6 +752,16 @@ export default {
 
 .score-input {
   width: 100px;
+}
+
+/* 禁止滚轮误改分数；隐藏 number 输入框上下箭头 */
+.score-input-no-wheel ::v-deep input[type="number"] {
+  -moz-appearance: textfield;
+}
+.score-input-no-wheel ::v-deep input[type="number"]::-webkit-outer-spin-button,
+.score-input-no-wheel ::v-deep input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .score-warn {

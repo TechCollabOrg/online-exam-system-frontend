@@ -26,7 +26,7 @@ export default {
         return ''
       }
       const html = marked.parse(raw)
-      return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } })
+      return DOMPurify.sanitize(html, { USE_PROFILES: { html: true }})
     }
   }
 }

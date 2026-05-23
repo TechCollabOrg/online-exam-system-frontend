@@ -53,7 +53,7 @@ export function getInfo() {
 
 export function logout() {
   return request({
-    url: '/auths/logout',
+    url: 'auths/logout',
     method: 'delete'
   })
 }

@@ -291,7 +291,7 @@ export default {
       /** 本场考试是否曾进入过全屏（用于区分「尚未全屏」与「ESC 退出全屏」） */
       examHadFullscreen: false,
       skipFullscreenExitCheat: false,
-      _cheatReporting: false,
+      cheatReporting: false,
       showPrevious: false,
       showNext: true,
       loading: false,
@@ -334,7 +334,8 @@ export default {
       recordData: null,
       //
       submittedAnswers: {},
-      handExamPreLoading: false
+      handExamPreLoading: false,
+      handExamSubmitting: false
     }
   },
   created() {
@@ -490,8 +491,8 @@ export default {
     },
     /** 记录切屏；退出全屏（含 ESC）与窗口失焦均会调用 */
     reportExamCheat() {
-      if (this._cheatReporting || !this.examId) return
-      this._cheatReporting = true
+      if (this.cheatReporting || !this.examId) return
+      this.cheatReporting = true
       examCheat(this.examId)
         .then((res) => {
           if (res.code) {
@@ -509,7 +510,7 @@ export default {
         })
         .finally(() => {
           setTimeout(() => {
-            this._cheatReporting = false
+            this.cheatReporting = false
           }, 800)
         })
     },
@@ -574,16 +575,20 @@ export default {
 
     // 交卷
     doHandler(isAutomatic = false) {
-      const performSubmit = () => {
+      const performSubmit = async() => {
+        if (this.handExamSubmitting) return
+        this.handExamSubmitting = true
         this.handleText = isAutomatic ? '时间到，正在自动交卷...' : '正在交卷，请等待...'
         this.loading = true
-        // 删除当前标签页
-        this.$store.commit('menu/REMOVE_TAG', {
-          title: this.$route.meta.title,
-          path: this.$route.path,
-          name: this.$route.name
-        })
-        handExam(this.examId).then(() => {
+        try {
+          await this.persistCurrentAnswer()
+          // 删除当前标签页
+          this.$store.commit('menu/REMOVE_TAG', {
+            title: this.$route.meta.title,
+            path: this.$route.path,
+            name: this.$route.name
+          })
+          await handExam(this.examId)
           exitExamDisplayMode().catch(() => {})
           this.$message({
             message: isAutomatic ? '考试时间到，试卷已自动提交！' : '试卷提交成功！',
@@ -591,15 +596,27 @@ export default {
           })
           this.clearSessionStorageByPrefix('exam_')
           this.$router.push({ name: 'text-center', params: { id: this.paperId }})
-        }).catch((error) => {
+        } catch (error) {
           this.loading = false
           this.handleText = '交卷'
-          this.$message({
-            type: 'error',
-            message: (isAutomatic ? '自动' : '') + '交卷失败，请联系管理员！'
-          })
+          const detail = (error && error.message) || ''
+          const isTimeout = error && error.code === 'ECONNABORTED'
+          const isNetwork = !error || !error.response
+          let tip = (isAutomatic ? '自动' : '') + '交卷失败'
+          if (isTimeout) {
+            tip += '：请求超时，请确认后端已启动后重试（勿重复点击交卷）'
+          } else if (isNetwork) {
+            tip += '：无法连接服务器，请确认后端地址与网络'
+          } else if (detail && detail !== '错误') {
+            tip += '：' + detail
+          } else {
+            tip += '，请稍后重试或联系管理员'
+          }
+          this.$message({ type: 'error', message: tip, duration: 8000 })
           console.error((isAutomatic ? '自动' : '') + '交卷失败:', error)
-        })
+        } finally {
+          this.handExamSubmitting = false
+        }
       }
 
       if (isAutomatic) {

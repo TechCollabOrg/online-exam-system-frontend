@@ -3,7 +3,7 @@
     <!-- 隐藏的文件上传input -->
     <el-upload
       class="avatar-uploader"
-      :action="uploadUrl"
+      :action="effectiveUploadUrl"
       :accept="acceptTypes"
       :show-file-list="false"
       :headers="headers"
@@ -35,6 +35,7 @@ import 'quill/dist/quill.core.css'
 import 'quill/dist/quill.snow.css'
 import 'quill/dist/quill.bubble.css'
 import { getToken } from '@/utils/auth'
+import { getApiBaseUrl } from '@/utils/runtimeConfig'
 
 export default {
   name: 'RichTextEditor',
@@ -60,7 +61,7 @@ export default {
     },
     uploadUrl: {
       type: String,
-      default: process.env.VUE_APP_BASE_API + '/upload/image'
+      default: ''
     },
     acceptTypes: {
       type: String,
@@ -101,6 +102,9 @@ export default {
     }
   },
   computed: {
+    effectiveUploadUrl() {
+      return this.uploadUrl || `${getApiBaseUrl()}/upload/image`
+    },
     content: {
       get() {
         return this.value

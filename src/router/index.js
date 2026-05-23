@@ -45,6 +45,12 @@ export const constantRoutes = [
     component: () => import('@/views/login/register'),
     hidden: true
   },
+  {
+    path: '/student-client',
+    component: () => import('@/views/student-client/index'),
+    hidden: true,
+    meta: { title: '学生端下载' }
+  },
 
   {
     path: '/',
@@ -102,6 +108,22 @@ export const constantRoutes = [
       meta: {
         title: 'AI 知识库',
         icon: 'el-icon-notebook-2',
+        visible: true,
+        roles: ['admin']
+      }
+    }]
+  },
+
+  {
+    path: '/invite-code',
+    component: Layout,
+    children: [{
+      path: '/invite-code',
+      name: 'invite-code',
+      component: () => import('@/views/invite-code/index'),
+      meta: {
+        title: '邀请码管理',
+        icon: 'el-icon-key',
         visible: true,
         roles: ['admin']
       }

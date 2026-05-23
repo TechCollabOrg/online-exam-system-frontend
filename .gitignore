@@ -1,6 +1,9 @@
 .DS_Store
 node_modules/
 dist/
+public/downloads/student-client.exe
+public/downloads/student-client.zip
+release/
 
 # 本地环境（可能含内网地址或密钥，勿提交）
 .env.local

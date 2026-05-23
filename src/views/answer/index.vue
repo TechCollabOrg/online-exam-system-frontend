@@ -39,6 +39,11 @@
       <el-table-column prop="examTitle" label="考试名称" align="center" />
       <el-table-column prop="classSize" label="总人数" align="center" />
       <el-table-column prop="numberOfApplicants" label="实际参考人数" align="center" />
+      <el-table-column label="缺考人数" align="center">
+        <template slot-scope="{ row }">
+          {{ absentCount(row) }}
+        </template>
+      </el-table-column>
       <el-table-column prop="correctedPaper" label="已阅卷人数" align="center" />
       <el-table-column fixed="right" label="操作" align="center">
         <template slot-scope="{ row }">
@@ -46,9 +51,14 @@
             type="text"
             size="small"
             style="font-size: 14px"
-            :disabled="row.numberOfApplicants <= row.correctedPaper"
-            @click="screenInfo(row)"
-          >查看详情</el-button>
+            @click="screenInfo(row, 'pending')"
+          >待批阅</el-button>
+          <el-button
+            type="text"
+            size="small"
+            style="font-size: 14px"
+            @click="screenInfo(row, 'absent')"
+          >缺考名单</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -160,9 +170,15 @@ export default {
       this.pageNum = val
       this.getAnswerPage(val, this.pageSize, this.searchTitle)
     },
-    screenInfo(row) {
+    absentCount(row) {
+      const total = row.classSize != null ? Number(row.classSize) : 0
+      const attend = row.numberOfApplicants != null ? Number(row.numberOfApplicants) : 0
+      const n = total - attend
+      return n > 0 ? n : 0
+    },
+    screenInfo(row, tab) {
       localStorage.setItem('answer_examId', row.examId)
-      this.$router.push({ name: 'answer-show', query: { zhi: row }})
+      this.$router.push({ name: 'answer-show', query: { tab: tab || 'pending' }})
     }
     // open(index) {
     //   this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {

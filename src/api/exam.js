@@ -78,13 +78,24 @@ export function quDetail(params) {
 export function handExam(examId) {
   return request({
     url: 'exams/hand-exam/' + examId,
-    method: 'get'
+    method: 'get',
+    // 交卷需汇总判分、补录未答题，题量大时可能超过默认 30s
+    timeout: 120000
   })
 }
 
 export function saveData(data) {
   return request({
     url: 'exams',
+    method: 'post',
+    data
+  })
+}
+
+/** 随机组卷预览：按规则抽题，返回题目列表供确认与微调 */
+export function randomPreview(data) {
+  return request({
+    url: 'exams/random-preview',
     method: 'post',
     data
   })
@@ -101,7 +112,8 @@ export function examCheat(examId) {
 export function examCollect(examId) {
   return request({
     url: `exams/collect/${examId}`,
-    method: 'get'
+    method: 'get',
+    timeout: 120000
   })
 }
 

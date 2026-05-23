@@ -1,0 +1,5 @@
+{
+  "apiBaseUrl": "http://10.8.174.165:8080/api",
+  "wsUrl": "ws://10.8.174.165:8080/websocket",
+  "minioBaseUrl": "http://10.8.174.165:9000"
+}

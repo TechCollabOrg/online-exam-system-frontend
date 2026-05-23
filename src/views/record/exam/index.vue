@@ -171,6 +171,9 @@ export default {
         return
       }
       localStorage.setItem('record_exam_examId', String(row.id))
+      if (row.whetherMark != null) {
+        localStorage.setItem('record_exam_whetherMark', String(row.whetherMark))
+      }
       this.$router.push({ name: 'exam-record-detail', query: { examId: row.id }})
     },
 

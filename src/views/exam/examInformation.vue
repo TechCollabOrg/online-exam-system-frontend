@@ -71,7 +71,12 @@
       <div style="padding: 15px 0 0 50px; letter-spacing: 0.1em">
         <span style="font-size: 14px">简答题数量:</span>
         <span style="margin-left: 5px; font-size: 14px">{{ data.saqCount }}</span>
-        <span style="margin-left: 5px; font-size: 14px">({{ data.saqScore }})</span>
+        <span style="margin-left: 5px; font-size: 14px">({{ data.saqScore }}分)</span>
+      </div>
+      <div v-if="data.compoundCount > 0" style="padding: 15px 0 0 50px; letter-spacing: 0.1em">
+        <span style="font-size: 14px">复合题数量:</span>
+        <span style="margin-left: 5px; font-size: 14px">{{ data.compoundCount }}</span>
+        <span style="margin-left: 5px; font-size: 14px">({{ data.compoundScore }}分)</span>
       </div>
     </div>
     <!-- 按钮 -->

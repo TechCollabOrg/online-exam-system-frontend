@@ -1,6 +1,6 @@
 /**
  * 全局 Axios 实例：所有 src/api 下的请求共用本实例。
- * - baseURL：开发为 /api（走 vue.config 代理）；Electron 生产构建为 .env.electron 中的完整域名。
+ * - baseURL：开发为 /api（走 vue.config 代理）；Electron 生产包优先读 exe 同目录 app-config.json。
  * - 响应头中的 authorization：后端可下发新 JWT，此处写入 Cookie 与 Vuex，支撑需求 5.2「考试期间令牌刷新」。
  */
 import axios from 'axios'
@@ -8,14 +8,20 @@ import { Message } from 'element-ui'
 import store from '@/store'
 import { getToken, setToken } from '@/utils/auth'
 import router from '@/router'
+import { getApiBaseUrl, getBackendHint, getConfigPath } from '@/utils/runtimeConfig'
 
 // 创建带统一超时、Cookie、baseURL 的 Axios 实例（各业务 API 均 import 本实例）
 const service = axios.create({
-  baseURL: process.env.VUE_APP_BASE_API, // 开发一般为 /api，经 vue.config 代理到后端
+  baseURL: getApiBaseUrl(), // 开发 /api；Electron 生产包可由 app-config.json 覆盖
   withCredentials: true, // 跨域时携带 Cookie（与后端 Session/Redis 会话配合）
   timeout: 30000, // 请求超时毫秒数
   crossDomain: true
 })
+
+/** 在 main.js 中 initRuntimeConfig 之后调用，使 Electron 配置文件生效 */
+export function configureRequestBaseUrl() {
+  service.defaults.baseURL = getApiBaseUrl()
+}
 
 /** 登录/注册/验证码等匿名接口不应带旧 JWT，否则过滤器与会话状态可能异常（Electron 下更明显） */
 function shouldSkipAuthHeader(url) {
@@ -125,10 +131,13 @@ service.interceptors.response.use(
       }
     } else {
       // 通常是：后端没启动 / 端口不通 / 代理失败 / 网络断开
+      const cfgHint = getConfigPath()
+        ? `当前配置：${getConfigPath()}`
+        : '未找到 app-config.json（portable 单 exe 请放在 exe 同目录）'
       Message({
-        message: '连接后端失败：请确认后端已启动并监听 127.0.0.1:8080（再刷新页面）',
+        message: `连接后端失败：请确认后端已启动（${getBackendHint()}）。${cfgHint}，改完后刷新页面`,
         type: 'error',
-        duration: 5 * 1000
+        duration: 6 * 1000
       })
     }
     return Promise.reject(error)

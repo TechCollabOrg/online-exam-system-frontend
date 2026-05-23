@@ -8,6 +8,13 @@
 -->
 <template>
   <div class="login-container">
+    <router-link
+      class="login-client-link"
+      to="/student-client"
+    >
+      <i class="el-icon-download" />
+      学生端下载
+    </router-link>
     <el-form
       ref="loginForm"
       :model="loginForm"
@@ -99,6 +106,7 @@
       <div v-if="enableRegister" class="auth-alt-row">
         <router-link class="auth-alt-link" to="/register">立即注册</router-link>
       </div>
+
       <el-form-item>
         <el-button
           :loading="loading"

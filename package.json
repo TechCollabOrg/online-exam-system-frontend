@@ -10,7 +10,8 @@
     "build:electron": "vue-cli-service build --mode electron",
     "electron:dev": "concurrently -k \"cross-env BROWSER=none npm run dev\" \"wait-on http://127.0.0.1:9527 && cross-env ELECTRON_START_URL=http://127.0.0.1:9527 electron .\"",
     "electron:pack": "npm run build:electron && electron-builder --dir",
-    "electron:dist": "npm run build:electron && electron-builder",
+    "electron:dist": "npm run build:electron && electron-builder && node scripts/copy-portable-config.js",
+    "sync:client-downloads": "node scripts/copy-portable-config.js",
     "build:stage": "vue-cli-service build --mode staging",
     "preview": "node build/index.js --preview",
     "svgo": "svgo -f src/icons/svg --config=src/icons/svgo.yml",
@@ -23,7 +24,7 @@
     "axios": "0.18.1",
     "core-js": "^3.37.1",
     "crypto-js": "^4.2.0",
-    "dompurify": "^2.4.7",
+    "dompurify": "^2.5.9",
     "echarts": "^4.9.0",
     "element-ui": "2.13.2",
     "html2canvas": "^1.4.1",
@@ -74,7 +75,13 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
-    }
+    },
+    "extraFiles": [
+      {
+        "from": "electron/app-config.deploy.json",
+        "to": "app-config.json"
+      }
+    ]
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "4.4.4",
@@ -82,6 +89,7 @@
     "@vue/cli-plugin-unit-jest": "4.4.4",
     "@vue/cli-service": "4.4.4",
     "@vue/test-utils": "1.0.0-beta.29",
+    "archiver": "^7.0.1",
     "autoprefixer": "9.5.1",
     "babel-eslint": "10.1.0",
     "babel-jest": "23.6.0",

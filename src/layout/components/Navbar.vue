@@ -10,6 +10,16 @@
       <breadcrumb class="breadcrumb-container" />
 
       <div class="right-menu">
+        <el-button
+          type="primary"
+          plain
+          size="small"
+          class="client-download-btn"
+          @click="goStudentClient"
+        >
+          <i class="el-icon-download" />
+          学生端下载
+        </el-button>
         <el-dropdown class="avatar-container" trigger="click">
           <div class="avatar-wrapper">
             <img v-if="navbarAvatar" :src="navbarAvatar" class="user-avatar" alt="">
@@ -59,6 +69,7 @@ import Hamburger from '@/components/Hamburger'
 import { getToken } from '@/utils/auth'
 import { parseJwt } from '@/utils/jwtUtils'
 import { resolveMediaUrl } from '@/utils/resolveMediaUrl'
+import { disconnectWebSocket } from '@/utils/websocket'
 export default {
   components: {
     Breadcrumb,
@@ -103,10 +114,20 @@ export default {
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
     },
+    goStudentClient() {
+      this.$router.push('/student-client')
+    },
     async logout() {
-      this.$store.dispatch('logoutUser')
-      await this.$store.dispatch('user/logout')
-      this.$router.push(`/login`)
+      try {
+        await this.$store.dispatch('user/logout')
+      } catch (e) {
+        // 后端登出失败时仍清理本地会话，避免卡在已登录态
+        await this.$store.dispatch('user/resetToken')
+        this.$store.dispatch('logoutUser')
+        disconnectWebSocket()
+      } finally {
+        this.$router.push('/login')
+      }
     }
   }
 }
@@ -225,6 +246,10 @@ export default {
           background: rgba(59, 130, 246, 0.1);
         }
       }
+    }
+
+    .client-download-btn {
+      margin-right: 12px;
     }
 
     .avatar-container {

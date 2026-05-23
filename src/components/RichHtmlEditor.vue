@@ -33,6 +33,11 @@ export default {
       default: '选填：该选项解析（可分段、可插入多张图片）'
     }
   },
+  data() {
+    return {
+      quill: null
+    }
+  },
   computed: {
     editorOption() {
       return {
@@ -50,11 +55,6 @@ export default {
           }
         }
       }
-    }
-  },
-  data() {
-    return {
-      quill: null
     }
   },
   methods: {
