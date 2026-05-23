@@ -93,6 +93,22 @@ export const constantRoutes = [
   },
 
   {
+    path: '/ai-knowledge',
+    component: Layout,
+    children: [{
+      path: '/ai-knowledge',
+      name: 'ai-knowledge',
+      component: () => import('@/views/ai-knowledge/index'),
+      meta: {
+        title: 'AI 知识库',
+        icon: 'el-icon-notebook-2',
+        visible: true,
+        roles: ['admin']
+      }
+    }]
+  },
+
+  {
     path: '/user-management',
     component: Layout,
     children: [{
