@@ -1,11 +1,18 @@
 import { checkPublicAssetExists, resolvePublicAssetUrl } from '@/utils/staticDownload'
 
+export const DEFAULT_CLIENT_BUNDLE = {
+  id: 'client-zip',
+  path: 'downloads/student-client.zip',
+  fileName: '校园在线考试学生端.zip',
+  label: '下载压缩包（推荐）'
+}
+
 export const DEFAULT_CLIENT_FILES = [
   {
     id: 'client-exe',
     path: 'downloads/student-client.exe',
     fileName: '校园在线考试学生端.exe',
-    label: '下载 Windows 安装包',
+    label: '下载安装包',
     buttonType: 'primary',
     required: true
   },
@@ -25,8 +32,12 @@ export async function loadStudentClientManifest() {
     const res = await fetch(href, { credentials: 'same-origin' })
     if (res.ok) {
       const data = await res.json()
-      if (data && Array.isArray(data.files) && data.files.length) {
-        return data
+      if (data && (data.bundle || (Array.isArray(data.files) && data.files.length))) {
+        return {
+          title: data.title || '学生端桌面客户端',
+          bundle: data.bundle || DEFAULT_CLIENT_BUNDLE,
+          files: data.files && data.files.length ? data.files : DEFAULT_CLIENT_FILES
+        }
       }
     }
   } catch (e) {
@@ -34,23 +45,23 @@ export async function loadStudentClientManifest() {
   }
   return {
     title: '学生端桌面客户端',
+    bundle: DEFAULT_CLIENT_BUNDLE,
     files: DEFAULT_CLIENT_FILES
   }
 }
 
-export async function probeStudentClientFiles(files) {
-  const list = files || DEFAULT_CLIENT_FILES
+export async function probeStudentClientDownloads(manifest) {
+  const m = manifest || {}
   const availability = {}
+  const bundle = m.bundle || DEFAULT_CLIENT_BUNDLE
+  if (bundle && bundle.path) {
+    availability[bundle.id] = await checkPublicAssetExists(bundle.path)
+  }
+  const files = m.files || DEFAULT_CLIENT_FILES
   await Promise.all(
-    list.map(async (item) => {
+    files.map(async (item) => {
       availability[item.id] = await checkPublicAssetExists(item.path)
     })
   )
   return availability
-}
-
-export function canDownloadStudentClient(files, availability) {
-  return (files || DEFAULT_CLIENT_FILES)
-    .filter((f) => f.required !== false)
-    .every((f) => availability[f.id])
 }

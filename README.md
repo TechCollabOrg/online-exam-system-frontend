@@ -86,7 +86,7 @@ VUE_APP_CRYPTO_IV=与后端 EXAM_AES_IV 一致
 
 **已安装 exe 后**：优先改安装目录下的 `app-config.json`，不必为改 IP/端口重新 `electron:dist`。
 
-**Web 登录页一键下载**：`npm run electron:dist` 会同步 `public/downloads/student-client.exe` 与 `app-config.json`；再 `npm run build:prod` 部署后，登录页一个按钮会**依次下载两个文件**（非 zip）。仅更新安装包可执行 `npm run sync:client-downloads`。
+**Web 学生端下载**：预置配置写在 `electron/app-config.deploy.json`；`npm run electron:dist` 会同步 exe、json 与 zip 到 `public/downloads/`（需已 `npm install` 含 archiver）。仅同步可执行 `npm run sync:client-downloads`。
 
 **部署目录**：`dist/downloads/`（本仓库 `deploy/dist/downloads/`）。详见 `public/downloads/README.md`。
 
