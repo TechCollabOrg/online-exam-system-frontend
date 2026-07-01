@@ -51,7 +51,7 @@
       <el-table-column prop="saqCount" label="简答题数量" align="center" width="100px"/> -->
       <el-table-column prop="startTime" label="开始时间" align="center" width="170px" />
       <el-table-column prop="endTime" label="结束时间" align="center" width="170px" />
-      <el-table-column fixed="right" label="操作" align="center" width="170px">
+      <el-table-column fixed="right" label="操作" align="center" width="240px">
         <template slot-scope="{ row }">
           <el-button
             type="text"
@@ -59,6 +59,13 @@
             style="color:cornflowerblue; font-size: 14px"
             @click="showExam(row)"
           >查看详情</el-button>
+          <el-button
+            v-if="row.proctorEnabled === 1"
+            type="text"
+            size="small"
+            style="color:#67c23a; font-size: 14px"
+            @click="openProctor(row)"
+          >监考</el-button>
           <el-button
             type="text"
             size="small"
@@ -358,6 +365,9 @@ export default {
     showExam(row) {
       localStorage.setItem('exam-details-examId', row.id)
       this.$router.push({ name: 'exam-details', query: { examId: row.id }})
+    },
+    openProctor(row) {
+      this.$router.push({ name: 'exam-proctor', query: { examId: row.id }})
     },
     updateExam() {
       const data = {

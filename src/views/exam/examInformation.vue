@@ -21,6 +21,7 @@
         "
       >
         点击「开始考试」后将自动全屏（浏览器为网页全屏；学生端 .exe 为窗口全屏）并开始考试，请诚信作答！
+        <span v-if="data.proctorEnabled === 1" style="margin-left: 8px">本场启用摄像头监考，请允许浏览器使用摄像头。</span>
       </div>
     </div>
     <!-- 内容 -->

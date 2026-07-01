@@ -243,6 +243,7 @@
         <p class="exam-fullscreen-gate__desc">退出全屏（含按 ESC）将记为切屏。浏览器请允许全屏；学生端 .exe 一般会自动窗口全屏。</p>
       </div>
     </div>
+    <exam-proctor-student v-if="examId" :exam-id="examId" />
   </div>
 </template>
 
@@ -268,6 +269,7 @@ import {
 } from '@/utils/fullscreen'
 import imageUrlsMixin from '@/mixins/imageUrlsMixin'
 import RichHtmlContent from '@/components/RichHtmlContent'
+import ExamProctorStudent from '@/components/ExamProctorStudent'
 import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
 
 export default {
@@ -278,7 +280,8 @@ export default {
     ExamSummaryDialog,
     CompoundStemBlock,
     CompoundQuestionDisplay,
-    RichHtmlContent
+    RichHtmlContent,
+    ExamProctorStudent
   },
   mixins: [imageUrlsMixin],
   data() {

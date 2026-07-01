@@ -348,6 +348,17 @@ export const constantRoutes = [
     }]
   },
   {
+    path: '/exam-proctor',
+    component: Layout,
+    children: [{
+      path: '/exam-proctor',
+      name: 'exam-proctor',
+      hidden: true,
+      component: () => import('@/views/exam/proctor/index'),
+      meta: { title: '考试监考', visible: true, roles: ['teacher', 'admin'], icon: 'el-icon-view' }
+    }]
+  },
+  {
     path: '/exam-add',
     component: Layout,
     children: [{

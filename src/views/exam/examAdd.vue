@@ -199,6 +199,20 @@
         <el-form-item label="最多切屏次数" prop="maxCount">
           <el-input-number v-model="postForm.maxCount" />
         </el-form-item>
+        <el-form-item label="摄像头监考">
+          <el-switch v-model="postForm.proctorEnabled" :active-value="1" :inactive-value="0" />
+          <span class="form-hint">开启后学生开考需授权摄像头，教师可实时查看</span>
+        </el-form-item>
+        <el-form-item v-if="postForm.proctorEnabled === 1" label="允许暂离">
+          <el-switch v-model="postForm.allowLeave" :active-value="1" :inactive-value="0" />
+        </el-form-item>
+        <el-form-item v-if="postForm.proctorEnabled === 1 && postForm.allowLeave === 1" label="暂离规则">
+          <span>单次最长 </span>
+          <el-input-number v-model="postForm.leaveMaxMinutes" :min="1" :max="30" size="small" />
+          <span> 分钟，整场最多 </span>
+          <el-input-number v-model="postForm.leaveMaxCount" :min="1" :max="5" size="small" />
+          <span> 次</span>
+        </el-form-item>
         <el-form-item label="证书" prop="maxCount">
           <CertificateSelect
             v-model="postForm.certificateId"
@@ -328,6 +342,10 @@ export default {
       randomPreviewLoading: false,
       postForm: {
         start: [],
+        proctorEnabled: 0,
+        allowLeave: 0,
+        leaveMaxMinutes: 5,
+        leaveMaxCount: 1,
         // 总分数
         totalScore: 0,
         // 题库列表
@@ -931,6 +949,10 @@ export default {
         // content: this.postForm.content, // 添加考试描述字段
         examDuration: this.postForm.examDuration,
         maxCount: this.postForm.maxCount,
+        proctorEnabled: this.postForm.proctorEnabled || 0,
+        allowLeave: this.postForm.allowLeave || 0,
+        leaveMaxMinutes: this.postForm.leaveMaxMinutes || 5,
+        leaveMaxCount: this.postForm.leaveMaxCount || 1,
         passedScore: this.postForm.passedScore,
         startTime: this.formatDateToISOString(this.postForm.start[0]),
         endTime: this.formatDateToISOString(this.postForm.start[1]),
