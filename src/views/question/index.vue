@@ -9,8 +9,25 @@
       <el-form-item label="所目题库">
         <repo-select
           v-model="selectedRepoSingleSearch"
-          @change="handleRepoChangeSingle"
+          @change="handleRepoSearchChange"
         />
+      </el-form-item>
+      <el-form-item label="知识点">
+        <el-select
+          v-model="selectedKnowledgePointPath"
+          :placeholder="knowledgePointPlaceholder"
+          clearable
+          filterable
+          :disabled="!selectedRepoSingleSearch"
+          style="min-width: 220px"
+        >
+          <el-option
+            v-for="item in knowledgePointOptions"
+            :key="item.path"
+            :label="formatKnowledgePointLabel(item)"
+            :value="item.path"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="题库类型">
         <el-select v-model="selValue" placeholder="请选择">
@@ -173,6 +190,7 @@
 
 <script>
 import { quPaging, quDel, quUpdate, importQue } from '@/api/question'
+import { getRepoKnowledgePoints } from '@/api/repo'
 import RepoSelect from '@/components/RepoSelect'
 import { questionStemPlainSummary } from '@/utils/questionStemHtml'
 
@@ -219,6 +237,8 @@ export default {
 
       selectedRepoSingle: '',
       selectedRepoSingleSearch: '',
+      selectedKnowledgePointPath: '',
+      knowledgePointOptions: [],
       input: '',
       input1: '',
       formInline: {
@@ -243,6 +263,15 @@ export default {
     }
   },
   computed: {
+    knowledgePointPlaceholder() {
+      if (!this.selectedRepoSingleSearch) {
+        return '请先选择题库'
+      }
+      if (!this.knowledgePointOptions.length) {
+        return '请先在题库管理生成知识树'
+      }
+      return '选择知识点'
+    }
     // tables() {
     //   //在你的数据表格中定义tabels
     //   const input = this.input;
@@ -270,6 +299,9 @@ export default {
   },
   created() {
     this.restoreListState()
+    if (this.selectedRepoSingleSearch) {
+      this.loadKnowledgePointOptions(this.selectedRepoSingleSearch)
+    }
     this.fetchList()
   },
   methods: {
@@ -282,7 +314,8 @@ export default {
         pageSize: this.pageSize,
         searchName: this.searchName,
         selectedRepoSingleSearch: this.selectedRepoSingleSearch,
-        selValue: this.selValue
+        selValue: this.selValue,
+        selectedKnowledgePointPath: this.selectedKnowledgePointPath
       }))
     },
     restoreListState() {
@@ -297,6 +330,9 @@ export default {
           this.selectedRepoSingleSearch = state.selectedRepoSingleSearch
         }
         if (state.selValue !== undefined) this.selValue = state.selValue
+        if (state.selectedKnowledgePointPath != null) {
+          this.selectedKnowledgePointPath = state.selectedKnowledgePointPath
+        }
       } catch (e) {
         sessionStorage.removeItem(LIST_STATE_KEY)
       }
@@ -307,8 +343,37 @@ export default {
         this.pageSize,
         this.searchName || null,
         this.selectedRepoSingleSearch || null,
-        this.selValue || null
+        this.selValue || null,
+        this.selectedKnowledgePointPath || null
       )
+    },
+    formatKnowledgePointLabel(item) {
+      const count = item.questionCount != null ? item.questionCount : 0
+      return `${item.label}（${count} 题）`
+    },
+    async loadKnowledgePointOptions(repoId) {
+      if (!repoId) {
+        this.knowledgePointOptions = []
+        return
+      }
+      try {
+        const res = await getRepoKnowledgePoints(repoId)
+        if (res && res.code) {
+          this.knowledgePointOptions = res.data || []
+        } else {
+          this.knowledgePointOptions = []
+        }
+      } catch (e) {
+        this.knowledgePointOptions = []
+      }
+    },
+    handleRepoSearchChange(repo) {
+      this.selectedKnowledgePointPath = ''
+      if (!repo || repo.id == null) {
+        this.knowledgePointOptions = []
+        return
+      }
+      this.loadKnowledgePointOptions(repo.id)
     },
     questionStemListLabel(row) {
       return questionStemPlainSummary(row)
@@ -351,7 +416,6 @@ export default {
     },
     handleRepoChangeSingle(repo) {
       ('单选题库变化:', repo)
-      // 这里可以进一步处理repo对象，比如更新UI或发送网络请求等
     },
     updateRow(row) {
       this.saveListState()
@@ -408,13 +472,16 @@ export default {
       }
     },
     // 分页查询
-    async getQuPage(pageNum, pageSize, content = null, repoId = null, type = null) {
+    async getQuPage(pageNum, pageSize, content = null, repoId = null, type = null, knowledgePointPath = null) {
       const params = {
         pageNum: pageNum,
         pageSize: pageSize,
         content: content,
         repoId: repoId,
         type: type
+      }
+      if (knowledgePointPath) {
+        params.knowledgePointPath = knowledgePointPath
       }
       const res = await quPaging(params)
       this.data = res.data
@@ -432,7 +499,8 @@ export default {
               this.pageSize,
               this.searchName,
               this.selectedRepoSingleSearch,
-              this.selValue
+              this.selValue,
+              this.selectedKnowledgePointPath
             )
             this.dialogFormVisible = false
             this.$message({
@@ -469,7 +537,8 @@ export default {
                 this.pageSize,
                 this.searchName,
                 this.selectedRepoSingleSearch,
-                this.selValue
+                this.selValue,
+                this.selectedKnowledgePointPath
               )
               // this.tableData.splice(index, 1)
               // this.getQuPage(1);
@@ -499,7 +568,8 @@ export default {
         this.pageSize,
         this.searchName,
         this.selectedRepoSingleSearch,
-        this.selValue
+        this.selValue,
+        this.selectedKnowledgePointPath
       )
     },
 
@@ -512,13 +582,15 @@ export default {
       this.pageSize = val
       this.getQuPage(this.pageNum, val, this.searchName,
         this.selectedRepoSingleSearch,
-        this.selValue)
+        this.selValue,
+        this.selectedKnowledgePointPath)
     },
     handleCurrentChange(val) {
       this.pageNum = val
       this.getQuPage(val, this.pageSize, this.searchName,
         this.selectedRepoSingleSearch,
-        this.selValue)
+        this.selValue,
+        this.selectedKnowledgePointPath)
     },
     /**
      * 下载导入模板：public/template 下的文件。

@@ -12,7 +12,7 @@
 
     <el-card v-loading="loading" shadow="never" class="chart-card">
       <div slot="header" class="clearfix">
-        <span>成绩分布（及格线以下 2 档，及格及以上 3 档）</span>
+        <span>成绩分布（五档 A/B/C/D/E）</span>
         <span v-if="fullScore > 0" class="sub">满分 {{ fullScore }} 分</span>
         <span v-if="passScore > 0" class="sub pass">及格分 {{ formatIntervalEdge(passScore) }} 分{{ passScoreIsDefault ? '（试卷未设时按满分 60%）' : '（试卷设置）' }}</span>
       </div>
@@ -20,12 +20,12 @@
         <el-col :xs="24" :md="12">
           <div class="pie-heading">
             <div class="pie-title">成绩分段人数</div>
-            <div class="pie-sub">A/B/C 为及格及以上，D/E 为不及格（及格分见卡片标题旁）</div>
+            <div class="pie-sub">A/B/C/D 为及格及以上，E 为不及格（及格分见卡片标题旁）</div>
           </div>
           <div ref="pieChart" class="pie-wrap" />
         </el-col>
         <el-col :xs="24" :md="12">
-          <p class="hint">等级：A、B、C 为及格及以上（分数越高档越高），D、E 为不及格。低于及格分按半条及格线均分两段（E、D），及格及以上在剩余分数上三等分（C、B、A）。</p>
+          <p class="hint">等级：A、B、C、D 为及格及以上（分数越高档越高），E 为不及格及以下。低于及格分归入 E 档；及格分至满分在剩余分数上四等分（D、C、B、A）。</p>
           <el-table :data="gradeTableRows" border size="small" max-height="280">
             <el-table-column prop="gradeLabel" label="等级" width="120" align="center" />
             <el-table-column prop="range" label="分数区间" min-width="140" />
@@ -114,15 +114,15 @@ import {
   saveBriefingText
 } from '@/utils/pagePersist'
 
-const BELOW_PASS_BUCKETS = 2
-const ABOVE_PASS_BUCKETS = 3
+const BELOW_PASS_BUCKETS = 1
+const ABOVE_PASS_BUCKETS = 4
 const BUCKET_COUNT = BELOW_PASS_BUCKETS + ABOVE_PASS_BUCKETS
 
-/** 分数从低到高对应 E→D→C→B→A；A/B/C 及格及以上，D/E 不及格 */
+/** 分数从低到高对应 E→D→C→B→A；E 不及格及以下，D/C/B/A 为及格及以上四档 */
 const GRADE_BUCKETS = [
   { letter: 'E', tier: '不及格' },
-  { letter: 'D', tier: '不及格' },
-  { letter: 'C', tier: '及格' },
+  { letter: 'D', tier: '及格' },
+  { letter: 'C', tier: '中等' },
   { letter: 'B', tier: '良好' },
   { letter: 'A', tier: '优良' }
 ]

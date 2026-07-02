@@ -59,7 +59,7 @@ export async function probeStudentClientDownloads(manifest) {
   }
   const files = m.files || DEFAULT_CLIENT_FILES
   await Promise.all(
-    files.map(async (item) => {
+    files.map(async(item) => {
       availability[item.id] = await checkPublicAssetExists(item.path)
     })
   )

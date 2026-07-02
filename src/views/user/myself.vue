@@ -40,6 +40,10 @@
             <span>班级:</span>
             <span> {{ data.gradeName?data.gradeName:"暂未加入班级" }} </span>
           </div>
+          <div v-if="!isAdmin">
+            <span>专业:</span>
+            <span> {{ data.major || "暂未填写" }} </span>
+          </div>
         </div>
         <el-dialog
           width="400px"

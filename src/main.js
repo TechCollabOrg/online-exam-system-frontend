@@ -23,7 +23,8 @@ import router from './router'
 import '@/icons' // icon
 import '@/permission' // permission control
 import axios from 'axios'
-import { getToken } from './utils/auth'
+import { getToken, removeToken } from './utils/auth'
+import { isTokenValid } from '@/utils/jwtUtils'
 // 富文本编辑器
 import VueQuillEditor from 'vue-quill-editor'
 import 'quill/dist/quill.core.css' // 引入样式
@@ -48,7 +49,15 @@ const whiteList = ['/login', '/register', '/student-client']
 
 // 判断是否有 token（记住我→Cookie / file 下 localStorage；否则 sessionStorage），无则进登录页
 router.beforeEach((to, from, next) => {
-  const token = getToken()
+  let token = getToken()
+  // 过期/损坏的 JWT 视为未登录，避免带着旧令牌进首页后接口 403/401
+  if (token && !isTokenValid(token)) {
+    removeToken()
+    try {
+      window.localStorage.removeItem('roles')
+    } catch (e) { /* ignore */ }
+    token = null
+  }
 
   // 检查当前访问的路由是否在白名单内
   if (whiteList.includes(to.path)) {

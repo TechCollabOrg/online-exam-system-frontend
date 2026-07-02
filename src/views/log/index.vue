@@ -18,7 +18,11 @@
         align="center"
         width="250px"
       />
-      <el-table-column prop="place" label="登录地点" align="center" />
+      <el-table-column prop="place" label="登录地点" align="center">
+        <template slot-scope="{ row }">
+          {{ formatPlace(row.place) }}
+        </template>
+      </el-table-column>
       <el-table-column prop="device" label="登录设备" align="center" />
       <el-table-column prop="behavior" label="操作行为" align="center">
         <template slot-scope="{ row }">
@@ -63,6 +67,34 @@ export default {
     this.getLogPageFun()
   },
   methods: {
+  // 兼容旧数据：将 ip2region 原始串或 Reserved 等无效值格式化为可读地点
+    formatPlace(place) {
+      if (!place) {
+        return '暂无信息'
+      }
+      const normalized = String(place).trim()
+      if (/^reserved/i.test(normalized) || normalized.startsWith('内网IP')) {
+        return '本机/内网'
+      }
+      if (!place.includes('|')) {
+        return place
+      }
+      const segments = []
+      place.split('|').forEach((part) => {
+        const value = (part || '').trim()
+        if (!value || value === '0' || segments.includes(value)) {
+          return
+        }
+        if (value.length === 2 && value === value.toUpperCase() && /^[A-Z]+$/.test(value)) {
+          return
+        }
+        segments.push(value)
+      })
+      if (segments.length === 0 || (segments.length === 1 && segments[0] === '内网IP')) {
+        return '内网IP'
+      }
+      return segments.join(' ')
+    },
     // 获取不同类型的颜色
     getBehaviorColor(behavior) {
       if (behavior === '设备登录') {

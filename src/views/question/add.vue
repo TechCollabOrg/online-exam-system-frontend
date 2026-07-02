@@ -47,6 +47,13 @@
           <file-upload v-model="postForm.image" accept=".jpg,.jpeg,.png" :limit="500" />
         </el-form-item>
 
+        <el-form-item label="试题音频" style="margin-left: 7px">
+          <audio-upload v-model="postForm.audio" />
+          <p style="margin: 8px 0 0; font-size: 12px; color: #909399; line-height: 1.5">
+            用于英语听力等场景；学生答题时可播放。与题干文字、图片可同时使用。
+          </p>
+        </el-form-item>
+
         <el-form-item label="整题解析" prop="oriPrice" style="margin-left: 7px">
           <rich-html-editor
             v-model="postForm.analysis"
@@ -223,6 +230,7 @@
 import { fetchDetail, quAdd, quDetail, quUpdate } from '@/api/question'
 import RepoSelect from '@/components/RepoSelect'
 import FileUpload from '@/components/FileUpload'
+import AudioUpload from '@/components/AudioUpload'
 import RichHtmlEditor from '@/components/RichHtmlEditor'
 import { mergeLegacySaqOptionImageIntoContent } from '@/utils/saqAnswerHtml'
 import { mergeLegacyQuestionImageIntoContent, questionStemHasMeaningfulContent } from '@/utils/questionStemHtml'
@@ -249,7 +257,7 @@ function defaultSubItem(quType = 1) {
 
 export default {
   name: 'QuDetail',
-  components: { FileUpload, RepoSelect, RichHtmlEditor },
+  components: { FileUpload, AudioUpload, RepoSelect, RichHtmlEditor },
   data() {
     return {
       quId: '',
@@ -267,6 +275,7 @@ export default {
         repoId: '',
         content: '',
         image: '',
+        audio: '',
         options: [],
         subItems: []
       },

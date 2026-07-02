@@ -1,7 +1,8 @@
 <template>
-  <div v-if="stemContent" class="compound-stem-block">
+  <div v-if="stemContent || stemAudio || (stemImage && parseImageUrls(stemImage).length)" class="compound-stem-block">
     <el-tag size="mini" type="info" style="margin-bottom: 8px">共用材料</el-tag>
     <rich-html-content :html="stemContent" />
+    <question-audio-player v-if="stemAudio" :audio="stemAudio" />
     <div v-if="stemImage && parseImageUrls(stemImage).length" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px">
       <el-image
         v-for="(img, idx) in parseImageUrls(stemImage)"
@@ -17,15 +18,17 @@
 
 <script>
 import RichHtmlContent from '@/components/RichHtmlContent'
+import QuestionAudioPlayer from '@/components/QuestionAudioPlayer'
 import imageUrlsMixin from '@/mixins/imageUrlsMixin'
 
 export default {
   name: 'CompoundStemBlock',
-  components: { RichHtmlContent },
+  components: { RichHtmlContent, QuestionAudioPlayer },
   mixins: [imageUrlsMixin],
   props: {
     stemContent: { type: String, default: '' },
-    stemImage: { type: String, default: '' }
+    stemImage: { type: String, default: '' },
+    stemAudio: { type: String, default: '' }
   }
 }
 </script>

@@ -21,15 +21,15 @@
           <div style="margin-top: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
             <span style="font-size: 13px; color: #606266">统一题型分值：</span>
             <span>单选</span>
-            <el-input-number v-model="randomScoreConfig.radioScore" :min="0" :controls="false" style="width: 80px" />
+            <el-input-number v-model="randomScoreConfig.radioScore" :min="0" :precision="2" :step="0.1" :controls="false" style="width: 88px" />
             <span>多选</span>
-            <el-input-number v-model="randomScoreConfig.multiScore" :min="0" :controls="false" style="width: 80px" />
+            <el-input-number v-model="randomScoreConfig.multiScore" :min="0" :precision="2" :step="0.1" :controls="false" style="width: 88px" />
             <span>判断</span>
-            <el-input-number v-model="randomScoreConfig.judgeScore" :min="0" :controls="false" style="width: 80px" />
+            <el-input-number v-model="randomScoreConfig.judgeScore" :min="0" :precision="2" :step="0.1" :controls="false" style="width: 88px" />
             <span>简答</span>
-            <el-input-number v-model="randomScoreConfig.saqScore" :min="0" :controls="false" style="width: 80px" />
+            <el-input-number v-model="randomScoreConfig.saqScore" :min="0" :precision="2" :step="0.1" :controls="false" style="width: 88px" />
             <span>复合题</span>
-            <el-input-number v-model="randomScoreConfig.compoundScore" :min="0" :controls="false" style="width: 80px" />
+            <el-input-number v-model="randomScoreConfig.compoundScore" :min="0" :precision="2" :step="0.1" :controls="false" style="width: 88px" />
           </div>
 
           <el-table
@@ -186,13 +186,16 @@
         </el-form-item> -->
 
         <el-form-item label="总分数" prop="totalScore">
-          <el-input-number v-model="postForm.totalScore" disabled />
+          <el-input-number v-model="postForm.totalScore" :precision="2" :step="0.1" disabled />
         </el-form-item>
 
         <el-form-item label="及格分" prop="passedScore">
           <el-input-number
             v-model="postForm.passedScore"
+            :min="0.01"
             :max="postForm.totalScore"
+            :precision="2"
+            :step="0.1"
           />
         </el-form-item>
 
@@ -239,8 +242,15 @@
         </el-form-item> -->
         <h3>权限配置</h3>
         <el-card style="margin-top: 20px">
-          <div style="display: flex">
-            <div style="margin-left: 10px; width: 100%">
+          <div style="margin-left: 10px; width: 100%">
+            <el-form-item label="发布范围">
+              <el-radio-group v-model="postForm.targetType" @change="onTargetTypeChange">
+                <el-radio :label="1">按班级</el-radio>
+                <el-radio :label="2">按学生</el-radio>
+              </el-radio-group>
+            </el-form-item>
+
+            <template v-if="postForm.targetType === 1">
               <el-form-item label="考试班级" prop="classIds">
                 <ClassSelect
                   v-model="postForm.classIds"
@@ -248,7 +258,68 @@
                   @change="onClassChange"
                 />
               </el-form-item>
-            </div>
+            </template>
+
+            <template v-else>
+              <el-form-item label="筛选班级">
+                <ClassSelect
+                  v-model="studentFilter.gradeId"
+                  :is-multiple="false"
+                  clearable
+                  placeholder="全部班级"
+                  @change="onStudentGradeChange"
+                />
+              </el-form-item>
+              <el-form-item label="学生姓名">
+                <el-input
+                  v-model="studentFilter.realName"
+                  placeholder="输入姓名筛选"
+                  clearable
+                  style="width: 200px; margin-right: 8px"
+                  @keyup.enter.native="onStudentQuery"
+                />
+                <el-button type="primary" size="small" @click="onStudentQuery">查询</el-button>
+              </el-form-item>
+              <el-table
+                ref="studentTable"
+                v-loading="studentLoading"
+                :data="studentPage.records"
+                border
+                row-key="id"
+                max-height="320"
+                @selection-change="onStudentTableSelectionChange"
+              >
+                <el-table-column type="selection" width="48" reserve-selection />
+                <el-table-column prop="realName" label="姓名" align="center" />
+                <el-table-column prop="userName" label="用户名" align="center" />
+                <el-table-column prop="gradeName" label="班级" align="center" />
+                <el-table-column prop="major" label="专业" align="center" />
+              </el-table>
+              <div class="pagination-container" style="margin-top: 12px">
+                <el-pagination
+                  background
+                  layout="total, prev, pager, next"
+                  :total="studentPage.total"
+                  :page-size="studentPage.size"
+                  :current-page.sync="studentPage.current"
+                  @current-change="onStudentPageChange"
+                />
+              </div>
+              <div v-if="selectedStudents.length" class="selected-students-panel">
+                <div class="selected-students-title">已选 {{ selectedStudents.length }} 人（可跨班级）：</div>
+                <el-tag
+                  v-for="item in selectedStudents"
+                  :key="item.id"
+                  closable
+                  size="small"
+                  style="margin: 4px 6px 0 0"
+                  @close="removeSelectedStudent(item)"
+                >
+                  {{ item.realName }}（{{ item.gradeName || '未分班' }}）
+                </el-tag>
+              </div>
+              <div v-else class="selected-students-hint">请勾选要参加考试的学生，可先按班级筛选再跨班勾选。</div>
+            </template>
           </div>
         </el-card>
       </el-form>
@@ -266,6 +337,7 @@ import RepoSelect from '@/components/RepoSelect'
 import ClassSelect from '@/components/ClassSelect'
 import CertificateSelect from '@/components/CertificateSelect'
 import { saveData, randomPreview } from '@/api/exam'
+import { userPaging } from '@/api/user'
 import ChooseQuestion from '@/components/ExamComponents/ChooseQuestion'
 import RandomQuestionPreview from '@/components/ExamComponents/RandomQuestionPreview'
 export default {
@@ -326,6 +398,19 @@ export default {
       manualSelectedRows: [],
       randomSelectedRows: [],
       randomPreviewLoading: false,
+      studentFilter: {
+        gradeId: '',
+        realName: ''
+      },
+      studentLoading: false,
+      studentPage: {
+        records: [],
+        total: 0,
+        size: 10,
+        current: 1
+      },
+      selectedStudents: [],
+      syncingStudentSelection: false,
       postForm: {
         start: [],
         // 总分数
@@ -334,6 +419,7 @@ export default {
         repoList: [],
         // 开放类型
         openType: 1,
+        targetType: 1,
         // 考试班级列表
         departIds: [],
         // 初始化班级列表
@@ -356,10 +442,18 @@ export default {
         maxCount: [{ required: false, message: '最多切屏次数' }],
         classIds: [
           {
-            required: true,
-            message: '请选择考试班级！',
-            type: 'array',
-            min: 1
+            validator: (rule, value, callback) => {
+              if (this.postForm.targetType !== 1) {
+                callback()
+                return
+              }
+              if (!value || value.length === 0) {
+                callback(new Error('请选择考试班级！'))
+                return
+              }
+              callback()
+            },
+            trigger: 'change'
           }
         ]
       }
@@ -431,6 +525,13 @@ export default {
       deep: true
     }
   },
+
+  created() {
+    if (this.postForm.targetType === 2) {
+      this.loadStudentPage()
+    }
+  },
+
   methods: {
     calcManualTotalScore(rows = []) {
       let total = 0
@@ -708,11 +809,21 @@ export default {
             return
           }
 
-          // 验证班级是否选择
-          if (!this.postForm.classIds || this.postForm.classIds.length === 0) {
+          // 验证发布范围
+          if (this.postForm.targetType === 1) {
+            if (!this.postForm.classIds || this.postForm.classIds.length === 0) {
+              this.$notify({
+                title: '提示信息',
+                message: '请选择考试班级！',
+                type: 'warning',
+                duration: 2000
+              })
+              return
+            }
+          } else if (!this.selectedStudents.length) {
             this.$notify({
               title: '提示信息',
-              message: '请选择考试班级！',
+              message: '请至少选择一名学生！',
               type: 'warning',
               duration: 2000
             })
@@ -908,6 +1019,51 @@ export default {
         cerTemp = certIds.join(',')
       }
       this.postForm.repoList = this.repoList
+      const isStudentMode = this.postForm.targetType === 2
+      let normalizedClassIds = []
+      let normalizedUserIds = []
+      if (isStudentMode) {
+        normalizedUserIds = Array.from(
+          new Set(
+            (this.selectedStudents || [])
+              .map((item) => Number(item.id))
+              .filter((id) => Number.isInteger(id) && id > 0)
+          )
+        )
+        if (!normalizedUserIds.length) {
+          this.$notify({
+            title: '提示信息',
+            message: '请至少选择一名有效学生！',
+            type: 'warning',
+            duration: 2000
+          })
+          return
+        }
+        normalizedClassIds = Array.from(
+          new Set(
+            (this.selectedStudents || [])
+              .map((item) => Number(item.gradeId))
+              .filter((id) => Number.isInteger(id) && id > 0)
+          )
+        )
+      } else {
+        normalizedClassIds = Array.from(
+          new Set(
+            (this.postForm.classIds || [])
+              .map((id) => Number(id))
+              .filter((id) => Number.isInteger(id) && id > 0)
+          )
+        )
+        if (!normalizedClassIds.length) {
+          this.$notify({
+            title: '提示信息',
+            message: '请选择有效的考试班级！',
+            type: 'warning',
+            duration: 2000
+          })
+          return
+        }
+      }
       const isRandomMode = this.activeName === 'second'
       const effectiveRepoList = isRandomMode
         ? this.postForm.repoList.filter((item) => !this.isRepoIdEmpty(item.repoId))
@@ -934,7 +1090,9 @@ export default {
         passedScore: this.postForm.passedScore,
         startTime: this.formatDateToISOString(this.postForm.start[0]),
         endTime: this.formatDateToISOString(this.postForm.start[1]),
-        gradeIds: this.postForm.classIds.join(','),
+        targetType: this.postForm.targetType,
+        gradeIds: normalizedClassIds.join(','),
+        userIds: isStudentMode ? normalizedUserIds.join(',') : '',
         repoId: isRandomMode
           ? normalizedRepoIds.join(',')
           : this.normalizeRepoId(firstRepo.repoId),
@@ -1019,7 +1177,102 @@ export default {
     onCertificateChange() {
       // 方法实现...
     },
+    onTargetTypeChange(type) {
+      if (type === 2) {
+        this.onStudentQuery()
+      }
+    },
     onClassChange() {},
+    onStudentGradeChange() {
+      this.studentPage.current = 1
+      this.loadStudentPage()
+    },
+    onStudentQuery() {
+      this.studentPage.current = 1
+      this.loadStudentPage()
+    },
+    onStudentPageChange(pageNum) {
+      const normalized = this.normalizeStudentPageNum(pageNum)
+      if (normalized == null) {
+        return
+      }
+      this.studentPage.current = normalized
+      this.loadStudentPage()
+    },
+    normalizeStudentPageNum(pageNum) {
+      const n = Number(pageNum)
+      if (!Number.isFinite(n) || n < 1) {
+        return null
+      }
+      return Math.floor(n)
+    },
+    async loadStudentPage() {
+      if (this.postForm.targetType !== 2) {
+        return
+      }
+      const pageNum = this.normalizeStudentPageNum(this.studentPage.current) || 1
+      this.studentPage.current = pageNum
+      this.studentLoading = true
+      try {
+        const params = {
+          pageNum,
+          pageSize: this.studentPage.size,
+          realName: this.studentFilter.realName || undefined
+        }
+        const gradeId = this.studentFilter.gradeId
+        if (gradeId !== '' && gradeId != null && !Number.isNaN(Number(gradeId))) {
+          params.gradeId = Number(gradeId)
+        }
+        const res = await userPaging(params)
+        const page = res.data || {}
+        this.studentPage.records = page.records || []
+        this.studentPage.total = page.total || 0
+        this.studentPage.size = page.size || this.studentPage.size
+        this.studentPage.current = page.current || this.studentPage.current
+        this.$nextTick(() => this.syncStudentTableSelection())
+      } catch (e) {
+        this.studentPage.records = []
+        this.studentPage.total = 0
+      } finally {
+        this.studentLoading = false
+      }
+    },
+    onStudentTableSelectionChange(rows) {
+      if (this.syncingStudentSelection) {
+        return
+      }
+      const currentPageIds = new Set((this.studentPage.records || []).map((item) => item.id))
+      const kept = (this.selectedStudents || []).filter((item) => !currentPageIds.has(item.id))
+      const merged = [...kept, ...(rows || [])]
+      const map = new Map()
+      merged.forEach((item) => {
+        if (item && item.id != null) {
+          map.set(item.id, item)
+        }
+      })
+      this.selectedStudents = Array.from(map.values())
+    },
+    syncStudentTableSelection() {
+      const table = this.$refs.studentTable
+      if (!table) {
+        return
+      }
+      this.syncingStudentSelection = true
+      table.clearSelection()
+      const selectedIds = new Set((this.selectedStudents || []).map((item) => item.id))
+      ;(this.studentPage.records || []).forEach((row) => {
+        if (selectedIds.has(row.id)) {
+          table.toggleRowSelection(row, true)
+        }
+      })
+      this.$nextTick(() => {
+        this.syncingStudentSelection = false
+      })
+    },
+    removeSelectedStudent(student) {
+      this.selectedStudents = (this.selectedStudents || []).filter((item) => item.id !== student.id)
+      this.syncStudentTableSelection()
+    },
     repoChange(e, row) {
       if (e !== null && e !== undefined) {
         const repoId = this.normalizeRepoId(e.id)
@@ -1061,3 +1314,22 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.selected-students-panel {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: #f5f7fa;
+  border-radius: 4px;
+}
+.selected-students-title {
+  font-size: 13px;
+  color: #606266;
+  margin-bottom: 4px;
+}
+.selected-students-hint {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #909399;
+}
+</style>

@@ -16,11 +16,16 @@ export function classAdd(data) {
   })
 }
 
-export function login(data) {
+export function login(data, clientPublicIp) {
+  const headers = {}
+  if (clientPublicIp) {
+    headers['X-Client-Public-Ip'] = clientPublicIp
+  }
   return request({
     url: 'auths/login',
     method: 'post',
-    data
+    data,
+    headers
   })
 }
 /** 拉取图形验证码（JSON，与校验共用 axios 会话，避免 img 与接口 Session 不一致） */
@@ -85,6 +90,15 @@ export function userImport(data) {
 export function changePassword(data) {
   return request({
     url: 'user',
+    method: 'put',
+    data
+  })
+}
+
+/** 管理员维护学生班级与专业 */
+export function userUpdateProfile(id, data) {
+  return request({
+    url: 'user/' + id + '/profile',
     method: 'put',
     data
   })

@@ -103,9 +103,11 @@
             v-if="detailQuestion.quType === 5"
             :stem-content="questionStemDisplay(detailQuestion)"
             :stem-image="detailQuestion.image"
+            :stem-audio="detailQuestion.audio"
           />
           <div v-if="detailQuestion.quType !== 5 && questionStemDisplay(detailQuestion)" style="margin-bottom: 14px">
             <rich-html-content :html="questionStemDisplay(detailQuestion)" />
+            <question-audio-player :audio="detailQuestion.audio" />
           </div>
           <div v-if="detailQuestion.quType === 5 && detailQuestion.subItems && detailQuestion.subItems.length">
             <div
@@ -153,7 +155,14 @@
             <span>{{ quTypeLabel(scoreEditRow.quType) }}</span>
           </el-form-item>
           <el-form-item label="本题分值">
-            <el-input-number v-model="scoreEditValue" :min="1" :max="999" style="width: 160px" />
+            <el-input-number
+              v-model="scoreEditValue"
+              :min="0.01"
+              :max="999"
+              :precision="2"
+              :step="0.1"
+              style="width: 160px"
+            />
           </el-form-item>
         </el-form>
       </div>
@@ -169,11 +178,12 @@
 import { quPaging, quDetail } from '@/api/question'
 import CompoundStemBlock from '@/components/CompoundStemBlock'
 import RichHtmlContent from '@/components/RichHtmlContent'
+import QuestionAudioPlayer from '@/components/QuestionAudioPlayer'
 import { questionStemPlainSummary, questionStemDisplayHtml } from '@/utils/questionStemHtml'
 
 export default {
   name: 'RandomQuestionPreview',
-  components: { CompoundStemBlock, RichHtmlContent },
+  components: { CompoundStemBlock, RichHtmlContent, QuestionAudioPlayer },
   props: {
     rows: {
       type: Array,

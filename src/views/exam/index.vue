@@ -90,11 +90,13 @@
             v-if="quData.quType === 5"
             :stem-content="questionStemDisplay(quData)"
             :stem-image="quData.image"
+            :stem-audio="quData.audio"
           />
           <!-- 题干（非复合题） -->
           <div v-if="quData.quType !== 5 && questionStemDisplay(quData)" style="margin: 10px 0 14px">
             <div style="font-weight: 600; margin-bottom: 6px">{{ quData.sort + 1 }}.</div>
             <rich-html-content :html="questionStemDisplay(quData)" />
+            <question-audio-player :audio="quData.audio" />
           </div>
 
           <!-- 单选和判断题选项区域 -->
@@ -268,6 +270,7 @@ import {
 } from '@/utils/fullscreen'
 import imageUrlsMixin from '@/mixins/imageUrlsMixin'
 import RichHtmlContent from '@/components/RichHtmlContent'
+import QuestionAudioPlayer from '@/components/QuestionAudioPlayer'
 import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
 
 export default {
@@ -278,7 +281,8 @@ export default {
     ExamSummaryDialog,
     CompoundStemBlock,
     CompoundQuestionDisplay,
-    RichHtmlContent
+    RichHtmlContent,
+    QuestionAudioPlayer
   },
   mixins: [imageUrlsMixin],
   data() {

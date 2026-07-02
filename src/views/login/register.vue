@@ -65,6 +65,20 @@
         </el-select>
       </el-form-item>
 
+      <el-form-item v-if="registerForm.roleId === 1" prop="major">
+        <span class="svg-container">
+          <svg-icon icon-class="user" />
+        </span>
+        <el-input
+          v-model="registerForm.major"
+          placeholder="专业"
+          name="major"
+          type="text"
+          tabindex="4"
+          auto-complete="on"
+        />
+      </el-form-item>
+
       <el-form-item v-if="needInviteCode" prop="inviteCode">
         <span class="svg-container">
           <svg-icon icon-class="password" />
@@ -233,6 +247,17 @@ export default {
       }
       callback()
     }
+    const validateMajor = (rule, value, callback) => {
+      if (this.registerForm.roleId !== 1) {
+        callback()
+        return
+      }
+      if (!value || !String(value).trim()) {
+        callback(new Error('学生注册须填写专业'))
+        return
+      }
+      callback()
+    }
     return {
       icpNumber: process.env.VUE_APP_ICP_NUMBER,
       icpLink: process.env.VUE_APP_ICP_LINK,
@@ -241,6 +266,7 @@ export default {
         password: '',
         realName: '',
         roleId: 1,
+        major: '',
         inviteCode: '',
         checkedPassword: '',
         code: ''
@@ -250,6 +276,7 @@ export default {
         password: [{ required: true, trigger: 'blur', validator: validatePassword }],
         realName: [{ required: true, trigger: 'blur', validator: validateRealName }],
         roleId: [{ required: true, trigger: 'change', validator: validateRoleId }],
+        major: [{ validator: validateMajor, trigger: 'blur' }],
         inviteCode: [{ validator: validateInviteCode, trigger: 'blur' }],
         checkedPassword: [{ required: true, trigger: 'blur', validator: validateCheckedPassword }],
         code: [{ required: true, trigger: 'blur', validator: validateCode }]
@@ -279,8 +306,11 @@ export default {
       if (!this.needInviteCode) {
         this.registerForm.inviteCode = ''
       }
+      if (this.registerForm.roleId !== 1) {
+        this.registerForm.major = ''
+      }
       if (this.$refs.registerForm) {
-        this.$refs.registerForm.clearValidate('inviteCode')
+        this.$refs.registerForm.clearValidate(['inviteCode', 'major'])
       }
     }
   },
@@ -297,6 +327,7 @@ export default {
                 userName: this.registerForm.userName,
                 realName: this.registerForm.realName,
                 roleId: this.registerForm.roleId,
+                major: this.registerForm.roleId === 1 ? String(this.registerForm.major).trim() : undefined,
                 password: Encrypt(this.registerForm.password),
                 checkedPassword: Encrypt(this.registerForm.checkedPassword),
                 captchaId: this.captchaId

@@ -116,16 +116,17 @@ online-exam-system-frontend/
 | 路径 | 页面 | 角色 |
 |------|------|------|
 | `/login` | 登录 | 全部 |
-| `/register` | 注册（可选学生/教师/管理员；后两者须邀请码） | 匿名 |
+| `/register` | 注册（可选学生/教师/管理员；学生须填专业；后两者须邀请码） | 匿名 |
 | `/invite-code` | 邀请码管理 | 管理员 |
+| `/user-management` | 用户管理（管理员可编辑学生班级与专业） | 教师、管理员 |
 | `/text-center` | 试卷中心 | 学生 |
 | `/prepare-exam` | 准备考试 | 学生 |
 | `/start-exam` | 答题（全屏） | 学生 |
 | `/exam-management` | 考试管理 | 教师、管理员 |
 | `/exam-details/exam-details` | 考试详情（试卷预览 + 缺考名单） | 教师、管理员 |
-| `/exam-add` | 创建考试（含「随机抽题」预览与改分） | 教师、管理员 |
-| `/questions-management` | 试题管理 | 教师、管理员 |
-| `/repo-management` | 题库管理 | 教师、管理员 |
+| `/exam-add` | 创建考试（含「随机抽题」预览与改分；发布范围可选按班级/按学生跨班勾选；分值输入支持两位小数） | 教师、管理员 |
+| `/questions-management` | 试题管理（可按题库知识树筛选知识点；新增/编辑页支持上传**试题音频**） | 教师、管理员 |
+| `/repo-management` | 题库管理（含「知识树」：AI 归纳知识点层级） | 教师、管理员 |
 | `/answer-manage` | 阅卷管理 | 教师、管理员 |
 | `/answer-show` | 待批阅 / 缺考名单 | 教师、管理员 |
 | `/exam-record` | 考试记录（交卷后可见，含待批改） | 学生 |
@@ -204,6 +205,12 @@ npm run electron:dist
 
 确认代理中 `cookieDomainRewrite` 已启用并重启前端；见根 README「让同学在同一局域网访问」。
 
+### 登录后进首页报 403
+
+1. 按 `F12` → `Console` 查看 `[HTTP 403]` 的 `url`。
+2. 若是 `/api/notices/new` 等首页接口：清除本站 **Cookie、sessionStorage、localStorage** 后重新登录（避免 `roles` 与 JWT 角色不一致）。
+3. 过期 JWT 会在进入系统前被路由守卫清除；若仍异常，硬刷新（Ctrl+F5）后再试。
+
 ---
 
 ## 技术栈
@@ -212,4 +219,4 @@ Vue 2 · Element UI · Vuex · axios · vue-quill-editor · ECharts · Electron
 
 ---
 
-*最后更新：2026-05-22*
+*最后更新：2026-07-02*

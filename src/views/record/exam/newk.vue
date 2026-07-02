@@ -67,6 +67,7 @@
                         v-if="index.quType === 5"
                         :stem-content="questionStemDisplay(index)"
                         :stem-image="index.image"
+                        :stem-audio="index.audio"
                       />
                       <div v-if="index.quType !== 5 && questionStemDisplay(index)" style="margin: 8px 0 12px">
                         <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">
@@ -74,6 +75,7 @@
                           <span class="qu-score-badge">{{ formatQuScore(index) }}</span>
                         </div>
                         <rich-html-content :html="questionStemDisplay(index)" />
+                        <question-audio-player :audio="index.audio" />
                       </div>
 
                       <!-- 选项 -->
@@ -168,6 +170,7 @@
                         v-if="index.quType === 5"
                         :stem-content="questionStemDisplay(index)"
                         :stem-image="index.image"
+                        :stem-audio="index.audio"
                       />
                       <div v-if="index.quType !== 5 && questionStemDisplay(index)" style="margin: 8px 0 12px">
                         <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">
@@ -175,6 +178,7 @@
                           <span class="qu-score-badge">{{ formatQuScore(index) }}</span>
                         </div>
                         <rich-html-content :html="questionStemDisplay(index)" />
+                        <question-audio-player :audio="index.audio" />
                       </div>
 
                       <!-- 选项 -->
@@ -245,6 +249,7 @@
                       <compound-stem-block
                         :stem-content="questionStemDisplay(item)"
                         :stem-image="item.image"
+                        :stem-audio="item.audio"
                       />
                       <div
                         v-for="(sub, sidx) in item.subItemList || []"
@@ -323,6 +328,7 @@
 import { recordExamDetail } from '@/api/record'
 import imageUrlsMixin from '@/mixins/imageUrlsMixin'
 import RichHtmlContent from '@/components/RichHtmlContent'
+import QuestionAudioPlayer from '@/components/QuestionAudioPlayer'
 import AnalysisRichBlock from '@/components/AnalysisRichBlock'
 import CompoundStemBlock from '@/components/CompoundStemBlock'
 import QuestionAiReviewDialog from '@/components/QuestionAiReviewDialog'
@@ -331,7 +337,7 @@ import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
 
 export default {
   name: 'ExamProcess',
-  components: { RichHtmlContent, AnalysisRichBlock, CompoundStemBlock, QuestionAiReviewDialog },
+  components: { RichHtmlContent, QuestionAudioPlayer, AnalysisRichBlock, CompoundStemBlock, QuestionAiReviewDialog },
   mixins: [imageUrlsMixin],
   data() {
     return {

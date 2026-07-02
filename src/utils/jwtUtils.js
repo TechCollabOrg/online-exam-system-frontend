@@ -59,3 +59,19 @@ export function getRole(tokenOverride) {
   return JSON.parse(decodedToken.userInfo)['roleId']
 }
 
+/** JWT 是否存在且未过期（用于路由守卫，避免过期令牌仍被当作已登录） */
+export function isTokenValid(token) {
+  if (!token || typeof token !== 'string') {
+    return false
+  }
+  try {
+    const decoded = jwtDecode(token)
+    if (!decoded.exp) {
+      return false
+    }
+    return decoded.exp * 1000 > Date.now()
+  } catch {
+    return false
+  }
+}
+
