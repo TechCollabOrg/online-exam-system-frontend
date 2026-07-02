@@ -280,9 +280,18 @@ export default {
       })
     },
     updateRow(row) {
-      row.type = 1
-      localStorage.setItem('record_exam_examId', row.examId)
-      this.$router.push({ name: 'exam-record-detail', query: { data: row }})
+      if (!row || row.examId == null) {
+        this.$message.error('无法查看：缺少试卷编号')
+        return
+      }
+      localStorage.setItem('record_exam_examId', String(row.examId))
+      this.$router.push({
+        name: 'exam-record-detail',
+        query: {
+          examId: String(row.examId),
+          userId: row.userId != null ? String(row.userId) : undefined
+        }
+      })
     },
     async generateAiBriefing() {
       if (!this.examId || !this.gradeId) {

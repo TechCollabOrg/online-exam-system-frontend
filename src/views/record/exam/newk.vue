@@ -358,20 +358,47 @@ export default {
   watch: {
     '$route'() {
       this.resolveExamIdFromRouteOrStorage()
+      this.resolveUserIdFromRoute()
       this.ExamDetail()
     }
   },
   created() {
-    if (this.$route.query?.data?.type === 1) {
-      this.userId = this.$route.query.data.userId
-    }
     this.resolveExamIdFromRouteOrStorage()
+    this.resolveUserIdFromRoute()
     this.ExamDetail()
   },
   methods: {
+    parseRouteData(query) {
+      const raw = query && query.data
+      if (raw == null || raw === '') return null
+      if (typeof raw === 'object') return raw
+      if (typeof raw === 'string') {
+        try {
+          return JSON.parse(raw)
+        } catch (e) {
+          return null
+        }
+      }
+      return null
+    },
+    resolveUserIdFromRoute() {
+      const q = this.$route.query || {}
+      if (q.userId != null && q.userId !== '') {
+        this.userId = Number(q.userId)
+        return
+      }
+      const data = this.parseRouteData(q)
+      if (data && (data.type === 1 || data.type === '1') && data.userId != null) {
+        this.userId = Number(data.userId)
+      }
+    },
     resolveExamIdFromRouteOrStorage() {
       const q = this.$route.query || {}
-      const fromRoute = q.examId ?? q.id
+      let fromRoute = q.examId ?? q.id
+      if (fromRoute == null || fromRoute === '') {
+        const data = this.parseRouteData(q)
+        fromRoute = data && (data.examId ?? data.id)
+      }
       const id =
         fromRoute != null && fromRoute !== ''
           ? String(fromRoute)

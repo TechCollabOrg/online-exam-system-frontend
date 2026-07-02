@@ -272,6 +272,17 @@ import imageUrlsMixin from '@/mixins/imageUrlsMixin'
 import RichHtmlContent from '@/components/RichHtmlContent'
 import QuestionAudioPlayer from '@/components/QuestionAudioPlayer'
 import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
+import { getUserId } from '@/utils/auth'
+import {
+  saveQuestionDraft,
+  getQuestionDraft,
+  hasDraftFill,
+  loadExamDraft,
+  clearExamDraft
+} from '@/utils/examLocalDraft'
+
+/** 长文题 localStorage 心跳间隔（毫秒） */
+const LONG_DRAFT_HEARTBEAT_MS = 15000
 
 export default {
   name: 'ExamProcess',
@@ -339,7 +350,8 @@ export default {
       //
       submittedAnswers: {},
       handExamPreLoading: false,
-      handExamSubmitting: false
+      handExamSubmitting: false,
+      longDraftHeartbeatTimer: null
     }
   },
   created() {
@@ -370,8 +382,13 @@ export default {
       setTimeout(() => this.syncExamFullscreenState(), 80)
       setTimeout(() => this.syncExamFullscreenState(), 400)
     })
+    this.startLongDraftHeartbeat()
+    window.addEventListener('beforeunload', this.onExamBeforeUnload)
   },
   beforeDestroy() {
+    this.stopLongDraftHeartbeat()
+    window.removeEventListener('beforeunload', this.onExamBeforeUnload)
+    this.saveCurrentLongDraftToLocal()
     this.skipFullscreenExitCheat = true
     window.removeEventListener('blur', this.onExamWindowBlur)
     document.removeEventListener('fullscreenchange', this.syncExamFullscreenState)
@@ -467,7 +484,106 @@ export default {
       if (!this.cardItem || !this.cardItem.questionId) {
         return Promise.resolve()
       }
+      this.saveCurrentLongDraftToLocal()
       return this.handSave(this.cardItem, null, { skipNavigate: true })
+    },
+
+    startLongDraftHeartbeat() {
+      this.stopLongDraftHeartbeat()
+      this.longDraftHeartbeatTimer = setInterval(() => {
+        this.saveCurrentLongDraftToLocal()
+      }, LONG_DRAFT_HEARTBEAT_MS)
+    },
+
+    stopLongDraftHeartbeat() {
+      if (this.longDraftHeartbeatTimer) {
+        clearInterval(this.longDraftHeartbeatTimer)
+        this.longDraftHeartbeatTimer = null
+      }
+    },
+
+    onExamBeforeUnload() {
+      this.saveCurrentLongDraftToLocal()
+    },
+
+    /** 将当前长文题作答写入 localStorage（简答 quType=4、复合题 quType=5） */
+    saveCurrentLongDraftToLocal() {
+      if (!this.examId || !this.cardItem || !this.cardItem.questionId || !this.quData) return
+      const quType = this.quData.quType
+      if (quType !== 4 && quType !== 5) return
+      const questionId = this.cardItem.questionId
+      const answer = quType === 4 ? this.buildSaqAnswerContent() : this.buildCompoundAnswerContent()
+      saveQuestionDraft(this.examId, getUserId(), questionId, { quType, answer })
+      if (hasDraftFill({ quType, answer })) {
+        this.updateQuestionStatus(questionId, 1)
+      }
+    },
+
+    syncLongDraftAfterServerSave(questionId, quType, answerContent) {
+      if (quType !== 4 && quType !== 5) return
+      saveQuestionDraft(this.examId, getUserId(), questionId, {
+        quType,
+        answer: answerContent
+      })
+    },
+
+    refreshAnswerCardFromLocalDrafts() {
+      if (!this.examId) return
+      const draft = loadExamDraft(this.examId, getUserId())
+      const answers = draft.answers || {}
+      Object.keys(answers).forEach((qid) => {
+        const entry = answers[qid]
+        if (hasDraftFill(entry)) {
+          this.updateQuestionStatus(Number(qid), 1)
+        }
+      })
+    },
+
+    applyLocalDraftToCurrentQuestion() {
+      if (!this.examId || !this.cardItem || !this.cardItem.questionId || !this.quData) return
+      const quType = this.quData.quType
+      if (quType !== 4 && quType !== 5) return
+      const questionId = this.cardItem.questionId
+      const entry = getQuestionDraft(this.examId, getUserId(), questionId)
+      if (!entry || !hasDraftFill(entry)) return
+      const serverAnswer = quType === 4 ? this.buildSaqAnswerContent() : this.buildCompoundAnswerContent()
+      if (entry.answer === serverAnswer) return
+      if (quType === 4) {
+        this.applySaqDraft(entry.answer)
+      } else {
+        this.applyCompoundDraft(entry.answer)
+      }
+      if (hasDraftFill(entry)) {
+        this.updateQuestionStatus(questionId, 1)
+      }
+    },
+
+    applySaqDraft(answer) {
+      const text = answer == null ? '' : String(answer)
+      if (this.saqMultiSlot && this.saqMultiInputs && this.saqMultiInputs.length > 1) {
+        try {
+          const arr = JSON.parse(text)
+          if (Array.isArray(arr)) {
+            this.saqMultiInputs = this.saqMultiInputs.map((slot, idx) => {
+              const v = arr[idx]
+              return v != null ? String(v) : slot
+            })
+            return
+          }
+        } catch (e) { /* 单空文本 */ }
+      }
+      this.saqTextarea = text
+    },
+
+    applyCompoundDraft(answer) {
+      try {
+        const parsed = JSON.parse(answer)
+        if (parsed && typeof parsed === 'object') {
+          this.compoundAnswers = { ...this.compoundAnswers, ...parsed }
+        }
+      } catch (e) {
+        console.warn('复合题本地草稿解析失败', e)
+      }
     },
 
     // 交卷前预览：先保存当前题作答，再拉取汇总（避免答案未落库、汇总弹窗因空项报错）
@@ -599,6 +715,7 @@ export default {
             type: 'success'
           })
           this.clearSessionStorageByPrefix('exam_')
+          clearExamDraft(this.examId, getUserId())
           this.$router.push({ name: 'text-center', params: { id: this.paperId }})
         } catch (error) {
           this.loading = false
@@ -739,6 +856,8 @@ export default {
       // 判断题目类型
       const currentQuType = this.quData.quType
 
+      this.saveCurrentLongDraftToLocal()
+
       // 准备答案数据
       let answerContent = ''
       if (currentQuType === 5) {
@@ -815,6 +934,7 @@ export default {
           console.log(`Question ${questionId}: Save successful.`)
           // 更新已提交答案记录
           this.submittedAnswers[questionId] = answerContent
+          this.syncLongDraftAfterServerSave(questionId, currentQuType, answerContent)
           // 更新 sessionStorage 标记
           sessionStorage.setItem('exam_' + questionId, '1')
           // 更新答题卡状态
@@ -949,6 +1069,7 @@ export default {
         saveLoading.close()
         if (res.code) {
           this.submittedAnswers[questionId] = answerContent
+          this.syncLongDraftAfterServerSave(questionId, currentQuType, answerContent)
           sessionStorage.setItem('exam_' + questionId, '1')
           this.updateQuestionStatus(questionId, 1)
           this.$message({
@@ -1005,11 +1126,7 @@ export default {
           this.multiValue = response.data.answerList?.filter(opt => opt.checkout).map(opt => opt.id) || []
         }
 
-        // 更新已保存答案的本地副本 (如果 quDetail 返回了最新的答案)
-        // 这一步可能不需要，因为 handSave 已经维护了 this.submittedAnswers
-        // 但如果 quDetail 能确保返回最新已保存答案，可以在这里同步一下
-        // const latestAnswerFromServer = ... // (需要从 response.data 解析出答案)
-        // this.submittedAnswers[item.questionId] = latestAnswerFromServer;
+        this.applyLocalDraftToCurrentQuestion()
 
         // 关闭加载提示
         loading.close()
@@ -1033,6 +1150,8 @@ export default {
 
         // 合并所有题目到allItem数组
         this.mergeAllQuestions()
+
+        this.refreshAnswerCardFromLocalDrafts()
 
         // 获得第一题内容
         this.setFirstQuestion()
