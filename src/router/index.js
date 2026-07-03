@@ -163,7 +163,7 @@ export const constantRoutes = [
       path: 'discussion-management',
       name: 'discussion-management',
       component: () => import('@/views/discuss/index.vue'),
-      meta: { title: '讨论管理', visible: true, roles: ['teacher', 'student'], icon: 'el-icon-chat-dot-square' }
+      meta: { title: '讨论管理', visible: true, roles: ['teacher', 'student', 'admin'], icon: 'el-icon-chat-dot-square' }
     }]
   },
   {
@@ -174,7 +174,7 @@ export const constantRoutes = [
       hidden: true,
       name: 'discussion-detail',
       component: () => import('@/views/discuss/detail.vue'),
-      meta: { title: '讨论详情', visible: true, roles: ['teacher', 'student'], icon: 'el-icon-takeaway-box' }
+      meta: { title: '讨论详情', visible: true, roles: ['teacher', 'student', 'admin'], icon: 'el-icon-takeaway-box' }
     }]
   },
   {

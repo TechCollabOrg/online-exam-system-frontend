@@ -313,20 +313,26 @@ export default {
       this.loadAddPage()
     },
     async loadAddPage() {
-      const repoId = this.repoIds && this.repoIds.length === 1 ? this.repoIds[0] : null
-      const res = await quPaging({
+      const params = {
         pageNum: this.addPageNum,
         pageSize: this.addPageSize,
-        content: this.addSearchName || null,
-        repoId,
-        type: this.addSelType
-      })
-      let records = (res.data && res.data.records) || []
-      if (this.repoIds && this.repoIds.length > 1) {
-        const idSet = new Set(this.repoIds.map((id) => Number(id)))
-        records = records.filter((r) => idSet.has(Number(r.repoId)))
+        content: this.addSearchName || undefined,
+        type: this.addSelType || undefined
       }
-      this.addPageData = { ...(res.data || {}), records }
+      const ids = (this.repoIds || [])
+        .map((id) => Number(id))
+        .filter((id) => Number.isInteger(id) && id > 0)
+      if (ids.length === 1) {
+        params.repoId = ids[0]
+      } else if (ids.length > 1) {
+        params.repoIds = ids.join(',')
+      }
+      try {
+        const res = await quPaging(params)
+        this.addPageData = res.data || { records: [], total: 0 }
+      } catch (e) {
+        this.addPageData = { records: [], total: 0 }
+      }
     },
     searchAddQu() {
       this.addPageNum = 1

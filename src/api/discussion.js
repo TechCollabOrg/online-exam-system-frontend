@@ -38,6 +38,14 @@ export function discussionpageStudent(params) {
     params
   })
 }
+
+export function discussionpageAdmin(params) {
+  return request({
+    url: `/discussion/query/page/admin`,
+    method: 'get',
+    params
+  })
+}
 export function getDiscussionRely(id, orderBy) {
   return request({
     url: `reply/query/${orderBy}/${id}`,

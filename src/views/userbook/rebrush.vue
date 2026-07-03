@@ -347,9 +347,66 @@ export default {
           })
         })
     },
+    buildCurrentAnswer() {
+      if (this.quData.quType === 2) {
+        return this.multiValue.join(',')
+      }
+      if (this.quData.quType === 1 || this.quData.quType === 3) {
+        return this.radioValue
+      }
+      if (this.quData.quType === 4) {
+        return this.saqTextarea
+      }
+      if (this.quData.quType === 5) {
+        return this.buildCompoundAnswerContent()
+      }
+      return ''
+    },
+    hasCurrentAnswer() {
+      const quType = this.quData.quType
+      if (quType === 2) return this.multiValue.length > 0
+      if (quType === 1 || quType === 3) {
+        return this.radioValue !== '' && this.radioValue !== null && this.radioValue !== undefined
+      }
+      if (quType === 4) return !!(this.saqTextarea && String(this.saqTextarea).trim())
+      if (quType === 5) return this.compoundHasAnyFill()
+      return false
+    },
+    submitAnswerForIndex(quIndex) {
+      if (quIndex < 0 || quIndex >= this.userBookList.length) {
+        return Promise.resolve(false)
+      }
+      if (!this.hasCurrentAnswer()) {
+        this.$message.warning('请先作答再提交')
+        return Promise.resolve(false)
+      }
+      const params = {
+        examId: this.examId,
+        quId: this.userBookList[quIndex].quId,
+        answer: this.buildCurrentAnswer()
+      }
+      return fullBook(params).then((res) => {
+        if (res.code) {
+          this.failQuData = res.data
+          this.$message({
+            type: res.data.correct ? 'success' : 'error',
+            message: res.msg
+          })
+          this.flag = true
+          return true
+        }
+        this.$message({
+          type: 'error',
+          message: res.msg
+        })
+        return false
+      }).catch(() => {
+        this.$message.error('答案提交失败，请稍后重试')
+        return false
+      })
+    },
     handHandExam() {
       const that = this
-      // 交卷保存答案
       const msg = '确认要提交吗？'
       that
         .$confirm(msg, '提示', {
@@ -358,12 +415,15 @@ export default {
           type: 'warning'
         })
         .then(async() => {
-          // 删除当前标签页
+          if (!that.flag) {
+            const saved = await that.submitAnswerForIndex(that.index)
+            if (!saved) return
+          }
           await exitExamDisplayMode().catch(() => {})
           this.$store.commit('menu/REMOVE_TAG', {
-            title: this.$route.meta.title, // 从路由元数据中获取标题
+            title: this.$route.meta.title,
             path: this.$route.path,
-            name: this.$route.name // 添加路由名称
+            name: this.$route.name
           })
           this.$router.push({ name: 'wrong-book' })
         })
@@ -403,10 +463,18 @@ export default {
       })
     },
     getUserBookListFun() {
+      if (!this.examId) {
+        this.$message.error('无法加载错题：缺少考试编号，请从错题本列表重新进入')
+        return
+      }
       getUserBookList(this.examId).then((res) => {
-        this.userBookList = res.data
-        this.quDataLen = res.data.length
-        this.getSingleQuFun(res.data[this.index]['quId'])
+        this.userBookList = res.data || []
+        this.quDataLen = this.userBookList.length
+        if (!this.userBookList.length) {
+          this.$message.warning('本场考试暂无错题')
+          return
+        }
+        this.getSingleQuFun(this.userBookList[this.index].quId)
         this.lastIndex = this.userBookList.length
       })
     },
@@ -459,12 +527,14 @@ export default {
       if (!this.flag) {
         this.index = this.index + 1
         this.handSave(this.index)
-      } else {
-        if (this.index >= this.lastIndex) {
-          this.handHandExam()
-        }
-        this.handSave(this.index)
+        return
       }
+      if (this.index >= this.lastIndex) {
+        this.handHandExam()
+        return
+      }
+      this.fetchQuData(this.index)
+      this.flag = false
     },
 
     /**
@@ -478,60 +548,14 @@ export default {
     handSave(index) {
       if (index - 1 >= this.lastIndex) {
         this.handHandExam()
-      } else {
-        let answer
-        if (this.quData.quType === 2) {
-          // 多选题
-          answer = this.multiValue.join(',')
-        } else if (this.quData.quType === 1 || this.quData.quType === 3) {
-          // 单选题或判断题
-          answer = this.radioValue
-        } else if (this.quData.quType === 4) {
-          answer = this.saqTextarea
-        } else if (this.quData.quType === 5) {
-          answer = this.buildCompoundAnswerContent()
-        }
-
-        const params = {
-          examId: this.examId,
-          quId: this.userBookList[index - 1]['quId'],
-          answer: answer
-        }
-
-        // this.myAnswers = params.answer;
-        if (!this.flag) {
-          fullBook(params).then((res) => {
-            if (res.code) {
-              this.failQuData = res.data
-              if (res.data.correct) {
-                this.$message({
-                  type: 'success',
-                  message: res.msg
-                })
-              } else {
-                this.$message({
-                  type: 'error',
-                  message: res.msg
-                })
-              }
-            } else {
-              this.$message({
-                type: 'error',
-                message: res.msg
-              })
-            }
-          })
-        }
-
-        if (this.flag === true) {
-          // 查找详情
-          this.fetchQuData(index)
-          this.flag = false
-        } else {
-          this.flag = true
-        }
+        return
       }
-      // });
+      if (!this.flag) {
+        this.submitAnswerForIndex(index - 1)
+        return
+      }
+      this.fetchQuData(index)
+      this.flag = false
     },
     // 试卷详情
     fetchQuData(index) {

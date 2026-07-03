@@ -2,6 +2,9 @@
 import request from '@/utils/request'
 
 export function getUserBookList(examId) {
+  if (examId == null || examId === '' || Number.isNaN(Number(examId))) {
+    return Promise.reject(new Error('无效的考试编号'))
+  }
   return request({
     url: 'userbooks/question/list/' + examId,
     method: 'get'
@@ -17,6 +20,9 @@ export function userbookPaging(params) {
 }
 
 export function getSingleQu(quId) {
+  if (quId == null || quId === '' || Number.isNaN(Number(quId))) {
+    return Promise.reject(new Error('无效的题目编号'))
+  }
   return request({
     url: 'userbooks/question/single/' + quId,
     method: 'get'

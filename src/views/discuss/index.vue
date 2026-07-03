@@ -4,7 +4,7 @@
       <el-form-item label="讨论名称">
         <el-input v-model="searchForm.searchTitle" placeholder="讨论名称" />
       </el-form-item>
-      <el-form-item v-if="currentRole === 'teacher'" label="班级">
+      <el-form-item v-if="currentRole === 'teacher' || currentRole === 'admin'" label="班级">
         <ClassSelect v-model="searchForm.gradeId" :is-multiple="false" />
       </el-form-item>
       <el-form-item>
@@ -45,6 +45,7 @@
             @click="showRow(row)"
           >查看</el-button>
           <el-button
+            v-if="currentRole === 'teacher' || currentRole === 'admin'"
             type="text"
             size="small"
             style="color: red; font-size: 14px"
@@ -107,7 +108,7 @@
 </template>
 
 <script>
-import { discussionpageOwner, discussionpageStudent, discussionAdd, discussionDel } from '@/api/discussion'
+import { discussionpageOwner, discussionpageStudent, discussionpageAdmin, discussionAdd, discussionDel } from '@/api/discussion'
 import ClassSelect from '@/components/ClassSelect'
 import { getRole } from '@/utils/auth'
 export default {
@@ -256,6 +257,11 @@ export default {
       // 教师分页获取讨论
       if (this.currentRole === 'teacher') {
         const res = await discussionpageOwner(params)
+        this.data = res.data || {}
+        this.pageNum = this.data.current || params.currentPage
+        this.pageSize = this.data.size || params.size
+      } else if (this.currentRole === 'admin') {
+        const res = await discussionpageAdmin(params)
         this.data = res.data || {}
         this.pageNum = this.data.current || params.currentPage
         this.pageSize = this.data.size || params.size

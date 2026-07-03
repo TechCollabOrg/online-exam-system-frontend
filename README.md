@@ -67,7 +67,7 @@ npx cross-env EXAM_KIOSK=1 npm run electron:dev
 - 端口默认 **9527**（可用环境变量 `port` 覆盖）
 - `/api`、`/websocket` 代理到后端 8080
 - `cookieDomainRewrite: ''`：避免局域网访问时 Cookie 因 `Domain=127.0.0.1` 丢失
-- 登录/登出前由 `src/utils/clientPublicIp.js` 多源查询浏览器公网 IP，经请求头 `X-Client-Public-Ip` 传给后端（VPN 切换后地点会随之变化）
+- 登录/登出前由 `src/utils/clientPublicIp.js` 多源查询浏览器公网 IP（国内源优先，失败时调用 `GET /api/auths/client-public-ip` 兜底），经请求头 `X-Client-Public-Ip` 传给后端
 
 ### 环境变量
 
@@ -133,6 +133,8 @@ online-exam-system-frontend/
 | `/exam-record` | 考试记录（交卷后可见，含待批改） | 学生 |
 | `/exam-record-detail` | 考试记录详情（每题得分） | 学生、教师 |
 | `/score-analysis` | 成绩分析 | 教师、管理员 |
+| `/discussion-management/discussion-management` | 讨论管理（管理员可看全站讨论） | 教师、学生、管理员 |
+| `/discussion-detail/discussion-detail` | 讨论详情 | 教师、学生、管理员 |
 | `/exercise-center` | 刷题中心 | 学生 |
 | `/wrong-book` | 错题本 | 学生 |
 
