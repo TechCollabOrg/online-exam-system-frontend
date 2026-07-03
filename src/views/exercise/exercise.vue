@@ -732,15 +732,14 @@ export default {
           return '' // 默认值，或者可以处理其他情况
       }
     },
-    change(index) {
+    async change(index) {
       this.number = index
       this.preText = '上一题'
       this.nextText = '提交答案'
       this.showAnalysis = 0
 
-      this.getQuestionList()
-
-      setTimeout(() => this.getCurrentQuDetial(), 200)
+      await this.getQuestionList()
+      await this.getCurrentQuDetial()
     },
 
     getRightAnswer() {
