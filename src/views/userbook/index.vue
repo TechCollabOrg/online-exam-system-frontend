@@ -178,7 +178,7 @@ export default {
         return
       }
       localStorage.setItem('userbook_examId', String(row.examId))
-      this.$router.push({ name: 'rebrush' })
+      this.$router.push({ name: 'rebrush', query: { examId: row.examId } })
     }
   }
 }
