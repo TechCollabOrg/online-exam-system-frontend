@@ -56,10 +56,15 @@ export function getInfo() {
   })
 }
 
-export function logout() {
+export function logout(clientPublicIp) {
+  const headers = {}
+  if (clientPublicIp) {
+    headers['X-Client-Public-Ip'] = clientPublicIp
+  }
   return request({
     url: 'auths/logout',
-    method: 'delete'
+    method: 'delete',
+    headers
   })
 }
 

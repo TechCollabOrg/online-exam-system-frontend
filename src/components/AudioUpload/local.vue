@@ -11,6 +11,8 @@
       :before-upload="beforeUpload"
       :on-remove="handleRemove"
       :on-success="handleSuccess"
+      :on-change="handleChange"
+      :on-error="handleError"
       :on-exceed="handleExceed"
       drag
       :limit="limit"
@@ -32,6 +34,7 @@
 <script>
 import { getToken } from '@/utils/auth'
 import { joinImageUrls, parseImageUrls } from '@/utils/imageUrls'
+import { getApiBaseUrl } from '@/utils/runtimeConfig'
 
 export default {
   name: 'AudioUploadLocal',
@@ -51,9 +54,14 @@ export default {
   },
   data() {
     return {
-      server: 'api/questions/uploadAudio',
       fileList: [],
       header: {}
+    }
+  },
+  computed: {
+    server() {
+      const base = (getApiBaseUrl() || '/api').replace(/\/$/, '')
+      return `${base}/questions/uploadAudio`
     }
   },
   watch: {
@@ -65,12 +73,34 @@ export default {
   },
   created() {
     this.fillValue()
-    this.header = { Authorization: getToken() }
+    this.header = this.buildAuthHeader()
   },
   methods: {
+    buildAuthHeader() {
+      const raw = getToken()
+      if (!raw) return {}
+      const token = raw.toLowerCase().startsWith('bearer ') ? raw : `Bearer ${raw}`
+      return { Authorization: token }
+    },
+    extractUrlsFromList(fileList) {
+      return (fileList || [])
+        .map(f => {
+          if (f.url && typeof f.url === 'string' && !f.url.startsWith('blob:')) return f.url
+          if (f.response && f.response.code === 1 && f.response.data) return f.response.data
+          return null
+        })
+        .filter(Boolean)
+    },
+    syncFileListFromUrls(urls) {
+      this.fileList = urls.map((url, i) => ({
+        name: `音频${i + 1}`,
+        url,
+        status: 'success'
+      }))
+    },
     fillValue() {
       const urls = parseImageUrls(this.value)
-      this.fileList = urls.map((url, i) => ({ name: `音频${i + 1}`, url }))
+      this.syncFileListFromUrls(urls)
     },
     handleExceed() {
       this.$message.warning(`最多上传 ${this.limit} 个音频`)
@@ -101,21 +131,20 @@ export default {
       }
       return false
     },
+    handleChange(file, fileList) {
+      if (file && (file.status === 'uploading' || file.status === 'ready')) {
+        this.fileList = fileList.slice()
+      }
+    },
     handleRemove(file, fileList) {
-      const urls = fileList
-        .map(f => f.url)
-        .filter(u => u && typeof u === 'string' && !u.startsWith('blob:'))
+      const urls = this.extractUrlsFromList(fileList)
+      this.syncFileListFromUrls(urls)
       this.$emit('input', joinImageUrls(urls))
     },
     handleSuccess(response, file, fileList) {
-      if (response.code === 1) {
-        const urls = fileList
-          .map(f => {
-            if (f.url && typeof f.url === 'string' && !f.url.startsWith('blob:')) return f.url
-            if (f.response && f.response.code === 1 && f.response.data) return f.response.data
-            return null
-          })
-          .filter(Boolean)
+      if (response && response.code === 1) {
+        const urls = this.extractUrlsFromList(fileList)
+        this.syncFileListFromUrls(urls)
         this.$emit('input', joinImageUrls(urls))
         this.$message({
           type: 'success',
@@ -127,6 +156,9 @@ export default {
         type: 'error',
         message: (response && response.msg) || '上传失败'
       })
+    },
+    handleError() {
+      this.$message.error('音频上传失败，请检查登录状态与后端服务')
     }
   }
 }

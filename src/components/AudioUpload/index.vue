@@ -1,6 +1,12 @@
 <template>
   <div>
-    <audio-upload-local v-model="fileUrl" :accept="accept" :tips="tips" :limit="limit" />
+    <audio-upload-local
+      :value="value"
+      :accept="accept"
+      :tips="tips"
+      :limit="limit"
+      @input="$emit('input', $event)"
+    />
   </div>
 </template>
 
@@ -22,31 +28,6 @@ export default {
     limit: {
       type: Number,
       default: 3
-    }
-  },
-  data() {
-    return {
-      fileUrl: ''
-    }
-  },
-  watch: {
-    value: {
-      handler() {
-        this.fillValue()
-      }
-    },
-    fileUrl: {
-      handler() {
-        this.$emit('input', this.fileUrl)
-      }
-    }
-  },
-  created() {
-    this.fillValue()
-  },
-  methods: {
-    fillValue() {
-      this.fileUrl = this.value
     }
   }
 }

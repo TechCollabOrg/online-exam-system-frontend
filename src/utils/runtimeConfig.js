@@ -74,3 +74,14 @@ export function getBackendHint() {
   }
   return '后端服务（请确认已启动）'
 }
+
+export function isElectronRuntime() {
+  return typeof window !== 'undefined' &&
+    window.electronAPI &&
+    typeof window.electronAPI.getRuntimeConfig === 'function'
+}
+
+/** 开发模式走 /api 代理，不需要 app-config.json */
+export function isDevProxyMode() {
+  return !/^https?:\/\//i.test(getApiBaseUrl())
+}

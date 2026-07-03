@@ -109,7 +109,7 @@
 <script>
 import { discussionpageOwner, discussionpageStudent, discussionAdd, discussionDel } from '@/api/discussion'
 import ClassSelect from '@/components/ClassSelect'
-// import {getRole} from '@/utils/auth'
+import { getRole } from '@/utils/auth'
 export default {
   components: {
     ClassSelect
@@ -133,10 +133,17 @@ export default {
     }
   },
   created() {
-    this.currentRole = localStorage.getItem('roles')
+    this.currentRole = localStorage.getItem('roles') || getRole()
     this.getDiscussionPage()
   },
   methods: {
+    normalizeGradeId(gradeId) {
+      if (gradeId === '' || gradeId == null) {
+        return undefined
+      }
+      const parsed = Number(gradeId)
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined
+    },
     // 弹出提示框
     handleDel(id) {
       this.$confirm('此操作将永久删除该讨论, 是否继续?', '提示', {
@@ -160,7 +167,12 @@ export default {
             type: 'success',
             message: res.msg
           })
-          this.getDiscussionPage(this.pageNum, this.pageSize, this.title, this.gradeId)
+          this.getDiscussionPage(
+            this.pageNum,
+            this.pageSize,
+            this.searchForm.searchTitle,
+            this.searchForm.gradeId
+          )
         } else {
           this.$message({
             type: 'info',
@@ -171,13 +183,34 @@ export default {
     },
     // 提交表单
     handleConfirm() {
-      discussionAdd(this.discussionForm).then(res => {
+      const gradeId = this.normalizeGradeId(this.discussionForm.gradeId)
+      if (!this.discussionForm.title || !this.discussionForm.content) {
+        this.$message.warning('请填写讨论标题和内容')
+        return
+      }
+      if (!gradeId) {
+        this.$message.warning('请选择班级')
+        return
+      }
+      const payload = {
+        title: this.discussionForm.title,
+        content: this.discussionForm.content,
+        gradeId
+      }
+      discussionAdd(payload).then(res => {
         if (res.code) {
           this.discussionForm.title = null
           this.discussionForm.content = null
           this.discussionForm.gradeId = null
           this.visible = false
-          this.getDiscussionPage()
+          this.pageNum = 1
+          this.searchForm.gradeId = gradeId
+          this.getDiscussionPage(
+            1,
+            this.pageSize,
+            this.searchForm.searchTitle,
+            gradeId
+          )
           this.$message({
             type: 'success',
             message: res.msg
@@ -203,22 +236,35 @@ export default {
       )
     },
     // 分页查询
-    async getDiscussionPage(pageNum, pageSize, title = null, gradeId = null) {
+    async getDiscussionPage(
+      pageNum = this.pageNum,
+      pageSize = this.pageSize,
+      title = null,
+      gradeId = null
+    ) {
       const params = {
-        currentPage: pageNum,
-        size: pageSize,
-        title: title,
-        gradeId: gradeId
+        currentPage: pageNum || 1,
+        size: pageSize || 10
+      }
+      if (title) {
+        params.title = title
+      }
+      const normalizedGradeId = this.normalizeGradeId(gradeId)
+      if (normalizedGradeId) {
+        params.gradeId = normalizedGradeId
       }
       // 教师分页获取讨论
       if (this.currentRole === 'teacher') {
         const res = await discussionpageOwner(params)
-        this.data = res.data
+        this.data = res.data || {}
+        this.pageNum = this.data.current || params.currentPage
+        this.pageSize = this.data.size || params.size
       } else if (this.currentRole === 'student') {
         // 学生分页获取讨论
-        delete params.gradeId
         const res = await discussionpageStudent(params)
-        this.data = res.data
+        this.data = res.data || {}
+        this.pageNum = this.data.current || params.currentPage
+        this.pageSize = this.data.size || params.size
       }
     },
     handleSizeChange(val) {

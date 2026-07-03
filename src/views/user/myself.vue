@@ -256,7 +256,7 @@ export default {
   padding: 30px 100px 0;
   display: flex;
   justify-content: center;
-  height: 60vh;
+  min-height: 60vh;
 }
 
 .box-card {
@@ -273,20 +273,23 @@ export default {
 }
 
 .card-body {
-  height: 29em;
   display: flex;
   justify-content: space-evenly;
+  align-items: flex-start;
+  padding-bottom: 20px;
 }
 .left {
   display: flex;
   flex-direction: column;
   width: 380px;
-  height: 100%;
   padding: 60px;
   border-right: 1px solid rgb(228, 232, 235);
   div {
     margin-bottom: 40px;
     font-size: 14px;
+    &:last-child {
+      margin-bottom: 0;
+    }
     span {
       display: inline-block;
       width: 115px;

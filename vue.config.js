@@ -70,10 +70,15 @@ module.exports = {
         onProxyReq(proxyReq, req) {
           const remote = (req.socket && req.socket.remoteAddress) || ''
           const clientIp = String(remote).replace(/^::ffff:/, '')
-          if (!clientIp) return
-          const existing = req.headers['x-forwarded-for']
-          proxyReq.setHeader('X-Real-IP', clientIp)
-          proxyReq.setHeader('X-Forwarded-For', existing ? `${existing}, ${clientIp}` : clientIp)
+          if (clientIp) {
+            const existing = req.headers['x-forwarded-for']
+            proxyReq.setHeader('X-Real-IP', clientIp)
+            proxyReq.setHeader('X-Forwarded-For', existing ? `${existing}, ${clientIp}` : clientIp)
+          }
+          const clientPublicIp = req.headers['x-client-public-ip']
+          if (clientPublicIp) {
+            proxyReq.setHeader('X-Client-Public-Ip', clientPublicIp)
+          }
         }
       }
     }

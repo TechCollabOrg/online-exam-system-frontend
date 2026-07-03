@@ -53,7 +53,8 @@ export function getRepoKnowledgeTree(repoId) {
 export function generateRepoKnowledgeTree(repoId) {
   return request({
     url: `repo/${repoId}/knowledge-tree/generate`,
-    method: 'post'
+    method: 'post',
+    timeout: 180000
   })
 }
 

@@ -112,7 +112,9 @@ const actions = {
   // 用户注销：请求后端登出，清理 Cookie、本地存储并断开 WebSocket
   logout({ commit, state, dispatch }) {
     return new Promise((resolve, reject) => {
-      logout().then(() => {
+      fetchClientPublicIp()
+        .then((clientPublicIp) => logout(clientPublicIp))
+        .then(() => {
         removeToken()
         resetRouter()
         commit('RESET_STATE')

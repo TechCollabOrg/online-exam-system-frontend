@@ -67,6 +67,7 @@ npx cross-env EXAM_KIOSK=1 npm run electron:dev
 - 端口默认 **9527**（可用环境变量 `port` 覆盖）
 - `/api`、`/websocket` 代理到后端 8080
 - `cookieDomainRewrite: ''`：避免局域网访问时 Cookie 因 `Domain=127.0.0.1` 丢失
+- 登录/登出前由 `src/utils/clientPublicIp.js` 多源查询浏览器公网 IP，经请求头 `X-Client-Public-Ip` 传给后端（VPN 切换后地点会随之变化）
 
 ### 环境变量
 
@@ -211,6 +212,16 @@ npm run electron:dist
 2. 若是 `/api/notices/new` 等首页接口：清除本站 **Cookie、sessionStorage、localStorage** 后重新登录（避免 `roles` 与 JWT 角色不一致）。
 3. 过期 JWT 会在进入系统前被路由守卫清除；若仍异常，硬刷新（Ctrl+F5）后再试。
 
+### 题库「知识树」提示连接后端失败
+
+教师端在浏览器里用 `npm run dev` 访问时**不需要** `app-config.json`（该文件仅学生端 Electron 打包用）。
+
+1. 确认后端窗口标题为 `Online Exam Backend :8080`，浏览器打开 `http://127.0.0.1:8080/api/auths/captcha` 能返回 JSON。
+2. 确认前端 dev 在 `http://localhost:9527` 运行；只开后端、未开 `npm run dev` 也会报连接失败。
+3. 首次使用知识树前，MySQL 执行 `online-exam-system-backend/sql/alter_t_repo_knowledge_tree.sql`。
+4. 点「生成知识树」会调 AI，需数十秒；若超时请刷新后看是否已生成，或查看后端窗口报错。
+5. 管理员须在「API 连接配置」中保存并启用 AI。
+
 ---
 
 ## 技术栈
@@ -219,4 +230,4 @@ Vue 2 · Element UI · Vuex · axios · vue-quill-editor · ECharts · Electron
 
 ---
 
-*最后更新：2026-07-02*
+*最后更新：2026-07-03*
