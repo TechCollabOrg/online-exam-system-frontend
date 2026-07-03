@@ -114,8 +114,11 @@ export default {
       },
       cancle() {},
       updateRow(row) {
-        localStorage.setItem('record_exercise_repoId', row.id)
-        this.$router.push({ name: 'exercise-record-detail', query: { zhi: row }})
+        localStorage.setItem('record_exercise_repoId', String(row.id))
+        this.$router.push({
+          name: 'exercise-record-detail',
+          query: { repoId: String(row.id) }
+        })
         // this.dialogFormVisible = true;
         // this.form = row;
       },
