@@ -31,6 +31,16 @@ npm run dev
 
 `vue.config.js` 已设置 `devServer.host = '0.0.0.0'`，局域网同学可用 `http://你的IP:9527` 访问（需放行防火墙 9527、8080）。
 
+### 拉取代码
+
+本目录为 Git 子模块，主分支为 **`master`**：
+
+```bash
+git checkout master && git pull origin master
+```
+
+外层仓库在根目录执行 `git submodule update --init --recursive` 与子模块指针对齐。
+
 ### 默认测试账号
 
 | 角色 | 用户名 | 密码 |
@@ -126,8 +136,11 @@ online-exam-system-frontend/
 | `/exam-management` | 考试管理 | 教师、管理员 |
 | `/exam-details/exam-details` | 考试详情（试卷预览 + 缺考名单） | 教师、管理员 |
 | `/exam-add` | 创建考试（含「随机抽题」预览与改分；发布范围可选按班级/按学生跨班勾选；分值输入支持两位小数） | 教师、管理员 |
-| `/questions-management` | 试题管理（可按题库知识树筛选知识点；新增/编辑页支持上传**试题音频**） | 教师、管理员 |
-| `/repo-management` | 题库管理（含「知识树」：AI 归纳知识点层级） | 教师、管理员 |
+| `/questions-management` | 试题管理（知识树筛选、**试题音频**、**AI 智能导入** docx/md） | 教师、管理员 |
+| `/repo-management` | 题库管理（「知识树」：AI 归纳知识点层级） | 教师、管理员 |
+| `/ai-api-config` | API 连接配置（默认 + 分功能 Tab） | 管理员 |
+| `/ai-knowledge` | AI 知识库（Markdown CRUD、本地文件导入） | 管理员 |
+| `/ai-assistant` | AI 助手（RAG + 多轮对话） | 学生、教师、管理员 |
 | `/answer-manage` | 阅卷管理 | 教师、管理员 |
 | `/answer-show` | 待批阅 / 缺考名单 | 教师、管理员 |
 | `/exam-record` | 考试记录（交卷后可见，含待批改） | 学生 |
@@ -139,6 +152,21 @@ online-exam-system-frontend/
 | `/wrong-book` | 错题本 | 学生 |
 
 完整路由表见 `src/router/index.js`。
+
+---
+
+## AI 功能（前端入口）
+
+| 页面 | 路径 | 说明 |
+|------|------|------|
+| API 连接配置 | `/ai-api-config` | 管理员：默认连接 + 五功能独立 Tab（阅卷/助手/简报/考后解析/试题导入）；可测试连接、拉取模型 |
+| AI 知识库 | `/ai-knowledge` | 管理员：维护助手 RAG 文档；支持本地 `.md/.txt` 导入 |
+| AI 助手 | `/ai-assistant` | 全员：多轮对话；切换页面前内容写入 sessionStorage |
+| AI 智能导题 | 试题管理页 | 教师/管理员：上传 `.docx`/`.md`，调用 `POST /api/questions/ai-import/{repoId}` |
+| 考后 AI 解析 | 考试记录详情 | 学生/教师：每题「AI 解析本题」弹窗 |
+| 成绩 AI 简报 | 成绩分析详情 | 教师：生成班级简报（Markdown 渲染） |
+
+启用前需管理员配置 API；后端缺 AI 表时见 [后端 README](../online-exam-system-backend/README.md)「初始化数据库」。
 
 ---
 
@@ -220,9 +248,19 @@ npm run electron:dist
 
 1. 确认后端窗口标题为 `Online Exam Backend :8080`，浏览器打开 `http://127.0.0.1:8080/api/auths/captcha` 能返回 JSON。
 2. 确认前端 dev 在 `http://localhost:9527` 运行；只开后端、未开 `npm run dev` 也会报连接失败。
-3. 首次使用知识树前，MySQL 执行 `online-exam-system-backend/sql/alter_t_repo_knowledge_tree.sql`。
+3. 首次使用知识树前，MySQL 执行 `online-exam-system-backend/sql/legacy/alter_t_repo_knowledge_tree.sql`。
 4. 点「生成知识树」会调 AI，需数十秒；若超时请刷新后看是否已生成，或查看后端窗口报错。
-5. 管理员须在「API 连接配置」中保存并启用 AI。
+5. 管理员须在 **API 连接配置**（`/ai-api-config`）中保存并启用 AI。
+
+### AI 助手 / 简报切换页面后内容丢失
+
+当前版本将 AI 助手对话与成绩简报正文写入 **sessionStorage**（按用户区分）；重新登录或清缓存后会消失。若需长期保存，请自行复制导出。
+
+### AI 智能导入失败
+
+1. 确认管理员已配置「AI 试题导入」或默认连接已启用。
+2. 单文件 ≤10MB，正文建议拆分后分批导入。
+3. 支持 `.docx`、`.md`、`.markdown`；Word 请另存为 `.docx`（非 `.doc`）。
 
 ---
 
@@ -232,4 +270,4 @@ Vue 2 · Element UI · Vuex · axios · vue-quill-editor · ECharts · Electron
 
 ---
 
-*最后更新：2026-07-03*
+*最后更新：2026-07-04（mod 合并 master；AI 配置页 / 知识库 / 智能导题）*
