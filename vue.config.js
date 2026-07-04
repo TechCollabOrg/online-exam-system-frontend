@@ -65,6 +65,20 @@ module.exports = {
         cookieDomainRewrite: '',
         pathRewrite: {
           '^/api': '/api'
+        },
+        /** 把浏览器真实 IP 传给后端，便于登录日志记录归属地 */
+        onProxyReq(proxyReq, req) {
+          const remote = (req.socket && req.socket.remoteAddress) || ''
+          const clientIp = String(remote).replace(/^::ffff:/, '')
+          if (clientIp) {
+            const existing = req.headers['x-forwarded-for']
+            proxyReq.setHeader('X-Real-IP', clientIp)
+            proxyReq.setHeader('X-Forwarded-For', existing ? `${existing}, ${clientIp}` : clientIp)
+          }
+          const clientPublicIp = req.headers['x-client-public-ip']
+          if (clientPublicIp) {
+            proxyReq.setHeader('X-Client-Public-Ip', clientPublicIp)
+          }
         }
       }
     }

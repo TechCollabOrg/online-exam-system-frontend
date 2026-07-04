@@ -114,6 +114,7 @@
                         :stem-content="compoundStemHtml(item)"
 
                         :stem-image="item.quImg"
+                        :stem-audio="item.quAudio"
                       />
 
                       <div
@@ -184,6 +185,7 @@
 
                         style="margin: 8px 0"
                       />
+                      <question-audio-player :audio="item.quAudio" />
 
                       <div class="content">
 
@@ -203,15 +205,14 @@
 
                           <span class="score-label">确认分数</span>
 
-                          <el-input
-
+                          <el-input-number
                             v-model="item.correctScore"
-
-                            type="number"
-
+                            :min="0"
+                            :max="Number(item.totalScore) || 999"
+                            :precision="2"
+                            :step="0.5"
+                            :controls="false"
                             class="score-input score-input-no-wheel"
-
-                            @wheel.native.prevent
                           />
 
                           <el-tag
@@ -341,6 +342,7 @@ import { answerDetail, correct, triggerAiScore } from '@/api/answer'
 import CompoundStemBlock from '@/components/CompoundStemBlock'
 
 import RichHtmlContent from '@/components/RichHtmlContent'
+import QuestionAudioPlayer from '@/components/QuestionAudioPlayer'
 
 import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
 
@@ -348,7 +350,7 @@ export default {
 
   name: 'ExamProcess',
 
-  components: { CompoundStemBlock, RichHtmlContent },
+  components: { CompoundStemBlock, RichHtmlContent, QuestionAudioPlayer },
 
   data() {
     return {

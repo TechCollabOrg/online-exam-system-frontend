@@ -1,27 +1,38 @@
 # 学生端下载（Web）
 
-## 管理员
+## 预置配置写在哪？
+
+**改这个文件（部署用，会打进下载与 exe 旁配置）：**
+
+`online-exam-system-frontend/electron/app-config.deploy.json`
+
+```json
+{
+  "apiBaseUrl": "http://你的服务器IP:8080/api",
+  "wsUrl": "ws://你的服务器IP:8080/websocket",
+  "minioBaseUrl": "http://你的服务器IP:9000"
+}
+```
+
+本地开发模板（不参与部署复制）：`electron/app-config.example.json`
+
+## 生成下载文件
 
 ```bash
+cd online-exam-system-frontend
+npm install          # 确保有 archiver，否则 zip 不会生成
 npm run electron:dist
 npm run build:prod
 ```
 
-部署 `dist/` → 本仓库多为 `deploy/dist/`。登录页右上角或顶栏「学生端下载」进入说明页并自动下载：
+脚本会生成：
 
-- `/downloads/student-client.exe`
-- `/downloads/app-config.json`
+- `public/downloads/app-config.json`（来自 deploy 配置）
+- `public/downloads/student-client.exe`
+- `public/downloads/student-client.zip`
 
-## app-config.json 字段
+若只有 json 没有 zip：看终端是否报 `archiver` 或 `release/` 无 exe；可单独执行 `npm run sync:client-downloads`（需已有 release 里的 exe）。
 
-| 字段 | 说明 |
-|------|------|
-| `apiBaseUrl` | 后端 API，如 `http://IP:8080/api` |
-| `wsUrl` | WebSocket |
-| `minioBaseUrl` | 题图走 MinIO 时必填，与后端 `minio.endpoint` 一致（学生机须能访问） |
+## 部署
 
-本地存储题图（`/api/upload/files/...`）可不填 MinIO，仅保证 `apiBaseUrl` 正确。
-
-## Nginx 部署题图（可选）
-
-浏览器访问且题图为 `http://内网:9000/...` 时，可在 nginx 增加 MinIO 反代，或让学生只用桌面 exe 并配置 `minioBaseUrl`。
+将 `dist/downloads/` 拷到 nginx 根目录（如 `deploy/dist/downloads/`）。

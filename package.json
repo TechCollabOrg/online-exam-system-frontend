@@ -78,7 +78,7 @@
     },
     "extraFiles": [
       {
-        "from": "electron/app-config.example.json",
+        "from": "electron/app-config.deploy.json",
         "to": "app-config.json"
       }
     ]
@@ -89,6 +89,7 @@
     "@vue/cli-plugin-unit-jest": "4.4.4",
     "@vue/cli-service": "4.4.4",
     "@vue/test-utils": "1.0.0-beta.29",
+    "archiver": "^7.0.1",
     "autoprefixer": "9.5.1",
     "babel-eslint": "10.1.0",
     "babel-jest": "23.6.0",

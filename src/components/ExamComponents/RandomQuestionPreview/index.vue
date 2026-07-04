@@ -103,9 +103,11 @@
             v-if="detailQuestion.quType === 5"
             :stem-content="questionStemDisplay(detailQuestion)"
             :stem-image="detailQuestion.image"
+            :stem-audio="detailQuestion.audio"
           />
           <div v-if="detailQuestion.quType !== 5 && questionStemDisplay(detailQuestion)" style="margin-bottom: 14px">
             <rich-html-content :html="questionStemDisplay(detailQuestion)" />
+            <question-audio-player :audio="detailQuestion.audio" />
           </div>
           <div v-if="detailQuestion.quType === 5 && detailQuestion.subItems && detailQuestion.subItems.length">
             <div
@@ -153,7 +155,14 @@
             <span>{{ quTypeLabel(scoreEditRow.quType) }}</span>
           </el-form-item>
           <el-form-item label="本题分值">
-            <el-input-number v-model="scoreEditValue" :min="1" :max="999" style="width: 160px" />
+            <el-input-number
+              v-model="scoreEditValue"
+              :min="0.01"
+              :max="999"
+              :precision="2"
+              :step="0.1"
+              style="width: 160px"
+            />
           </el-form-item>
         </el-form>
       </div>
@@ -169,11 +178,12 @@
 import { quPaging, quDetail } from '@/api/question'
 import CompoundStemBlock from '@/components/CompoundStemBlock'
 import RichHtmlContent from '@/components/RichHtmlContent'
+import QuestionAudioPlayer from '@/components/QuestionAudioPlayer'
 import { questionStemPlainSummary, questionStemDisplayHtml } from '@/utils/questionStemHtml'
 
 export default {
   name: 'RandomQuestionPreview',
-  components: { CompoundStemBlock, RichHtmlContent },
+  components: { CompoundStemBlock, RichHtmlContent, QuestionAudioPlayer },
   props: {
     rows: {
       type: Array,
@@ -303,20 +313,26 @@ export default {
       this.loadAddPage()
     },
     async loadAddPage() {
-      const repoId = this.repoIds && this.repoIds.length === 1 ? this.repoIds[0] : null
-      const res = await quPaging({
+      const params = {
         pageNum: this.addPageNum,
         pageSize: this.addPageSize,
-        content: this.addSearchName || null,
-        repoId,
-        type: this.addSelType
-      })
-      let records = (res.data && res.data.records) || []
-      if (this.repoIds && this.repoIds.length > 1) {
-        const idSet = new Set(this.repoIds.map((id) => Number(id)))
-        records = records.filter((r) => idSet.has(Number(r.repoId)))
+        content: this.addSearchName || undefined,
+        type: this.addSelType || undefined
       }
-      this.addPageData = { ...(res.data || {}), records }
+      const ids = (this.repoIds || [])
+        .map((id) => Number(id))
+        .filter((id) => Number.isInteger(id) && id > 0)
+      if (ids.length === 1) {
+        params.repoId = ids[0]
+      } else if (ids.length > 1) {
+        params.repoIds = ids.join(',')
+      }
+      try {
+        const res = await quPaging(params)
+        this.addPageData = res.data || { records: [], total: 0 }
+      } catch (e) {
+        this.addPageData = { records: [], total: 0 }
+      }
     },
     searchAddQu() {
       this.addPageNum = 1

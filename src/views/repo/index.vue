@@ -56,8 +56,9 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column fixed="right" label="操作" align="center">
+      <el-table-column fixed="right" label="操作" align="center" width="220">
         <template slot-scope="{ row }">
+          <el-button type="text" size="small" style="font-size: 14px" @click="openKnowledgeTree(row)">知识树</el-button>
           <el-button type="text" size="small" style="font-size: 14px" @click="updateRow(row)">编辑</el-button>
           <el-button type="text" size="small" style="color: red; font-size: 14px" @click="delRepo(row)">删除</el-button>
         </template>
@@ -190,14 +191,22 @@
         <el-button type="primary" @click="submitEditCategory">确定</el-button>
       </div>
     </el-dialog>
+
+    <repo-knowledge-tree-dialog
+      :visible.sync="knowledgeTreeVisible"
+      :repo-id="knowledgeTreeRepoId"
+      :repo-title="knowledgeTreeRepoTitle"
+    />
   </div>
 </template>
 
 <script>
 import { repoPaging, repoDel, repoUpdate, repoAdd } from '@/api/repo'
 import { getCategoryTree, addCategory, updateCategory, deleteCategory } from '@/api/category'
+import RepoKnowledgeTreeDialog from '@/components/RepoKnowledgeTreeDialog'
 
 export default {
+  components: { RepoKnowledgeTreeDialog },
   data() {
     return {
       pageNum: 1,
@@ -244,7 +253,10 @@ export default {
         parentId: null
       },
       categoryOptions: [],
-      categoryList: []
+      categoryList: [],
+      knowledgeTreeVisible: false,
+      knowledgeTreeRepoId: null,
+      knowledgeTreeRepoTitle: ''
     }
   },
   created() {
@@ -322,6 +334,11 @@ export default {
     },
     searchRepo() {
       this.getRepoPage(this.pageNum, this.pageSize, this.searchTitle, this.searchCategory)
+    },
+    openKnowledgeTree(row) {
+      this.knowledgeTreeRepoId = row.id
+      this.knowledgeTreeRepoTitle = row.title || ''
+      this.knowledgeTreeVisible = true
     },
     updateRow(row) {
       this.dialogFormVisible = true

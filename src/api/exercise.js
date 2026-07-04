@@ -25,6 +25,9 @@ export function getQuestion(params, repoId) {
 }
 
 export function getQuestionDetail(id) {
+  if (id == null || id === '' || Number.isNaN(Number(id))) {
+    return Promise.reject(new Error('无效的题目编号'))
+  }
   return request({
     url: `exercises/question/${id}`,
     method: 'get'

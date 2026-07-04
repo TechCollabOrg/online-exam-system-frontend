@@ -8,7 +8,31 @@ import { Message } from 'element-ui'
 import store from '@/store'
 import { getToken, setToken } from '@/utils/auth'
 import router from '@/router'
-import { getApiBaseUrl, getBackendHint, getConfigPath } from '@/utils/runtimeConfig'
+import {
+  getApiBaseUrl,
+  getBackendHint,
+  getConfigPath,
+  isDevProxyMode,
+  isElectronRuntime
+} from '@/utils/runtimeConfig'
+
+function buildNetworkErrorMessage(error) {
+  const isTimeout =
+    error.code === 'ECONNABORTED' ||
+    (error.message && String(error.message).toLowerCase().includes('timeout'))
+  if (isTimeout) {
+    return '请求超时：知识树生成、AI 阅卷等操作需等待较久，请稍后重试；若反复失败请查看后端窗口日志'
+  }
+  if (isDevProxyMode()) {
+    return '连接后端失败：浏览器开发模式请确认后端已在 http://127.0.0.1:8080 启动，且本机已运行 npm run dev（端口 9527），然后刷新页面'
+  }
+  const cfgHint = getConfigPath()
+    ? `当前配置：${getConfigPath()}`
+    : (isElectronRuntime()
+      ? '未找到 app-config.json（portable 单 exe 请放在 exe 同目录）'
+      : '请检查 VUE_APP_BASE_API 是否指向可访问的后端地址')
+  return `连接后端失败：请确认后端已启动（${getBackendHint()}）。${cfgHint}，改完后刷新页面`
+}
 
 // 创建带统一超时、Cookie、baseURL 的 Axios 实例（各业务 API 均 import 本实例）
 const service = axios.create({
@@ -130,12 +154,9 @@ service.interceptors.response.use(
           })
       }
     } else {
-      // 通常是：后端没启动 / 端口不通 / 代理失败 / 网络断开
-      const cfgHint = getConfigPath()
-        ? `当前配置：${getConfigPath()}`
-        : '未找到 app-config.json（portable 单 exe 请放在 exe 同目录）'
+      // 通常是：后端没启动 / 端口不通 / 代理失败 / 网络断开 / 请求超时
       Message({
-        message: `连接后端失败：请确认后端已启动（${getBackendHint()}）。${cfgHint}，改完后刷新页面`,
+        message: buildNetworkErrorMessage(error),
         type: 'error',
         duration: 6 * 1000
       })

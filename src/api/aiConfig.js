@@ -1,9 +1,24 @@
 import request from '@/utils/request'
 
+export function getAiConfigOverview() {
+  return request({
+    url: 'ai/config/overview',
+    method: 'get'
+  })
+}
+
 export function getAiConfig() {
   return request({
     url: 'ai/config',
     method: 'get'
+  })
+}
+
+export function saveAiFeatureConfig(featureCode, data) {
+  return request({
+    url: `ai/config/features/${featureCode}`,
+    method: 'put',
+    data
   })
 }
 
@@ -42,9 +57,10 @@ export function testAiChat(data) {
   })
 }
 
-export function getAiConfigStatus() {
+export function getAiConfigStatus(feature) {
   return request({
     url: 'ai/config/status',
-    method: 'get'
+    method: 'get',
+    params: feature ? { feature } : {}
   })
 }

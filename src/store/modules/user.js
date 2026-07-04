@@ -2,6 +2,7 @@
  * 用户登录态 Vuex 模块：Token、昵称头像、登录/注销/拉取信息；与 Cookie、WebSocket 连接联动。
  */
 import { login, logout, getInfo } from '@/api/user'
+import { fetchClientPublicIp } from '@/utils/clientPublicIp'
 import { getToken, setToken, removeToken, setUserId, removeUserId, setRole, removeRole, setGradeId } from '@/utils/auth'
 
 import { resetRouter } from '@/router'
@@ -41,37 +42,39 @@ const actions = {
   // 用户登录：写 Token、解析 JWT 中的角色并写入本地存储，再建立 WebSocket
   login({ commit }, userInfo) {
     return new Promise((resolve, reject) => {
-      login(userInfo).then(response => {
-        const { data } = response
-        if (response.code === 1) {
-          const info = parseJwt(data)
-          const user = JSON.parse(info.userInfo)
-          const roleId = JSON.parse(info.userInfo).roleId
-          setUserId(user.id)
-          if (roleId === 1) {
-            window.localStorage.setItem('roles', 'student')
-            setRole('student')
-            setGradeId(user.gradeId)
-          } else if (roleId === 2) {
-            window.localStorage.setItem('roles', 'teacher')
-            setRole('teacher')
-          } else if (roleId === 3) {
-            window.localStorage.setItem('roles', 'admin')
-            setRole('admin')
+      fetchClientPublicIp()
+        .then((clientPublicIp) => login(userInfo, clientPublicIp))
+        .then(response => {
+          const { data } = response
+          if (response.code === 1) {
+            const info = parseJwt(data)
+            const user = JSON.parse(info.userInfo)
+            const roleId = JSON.parse(info.userInfo).roleId
+            setUserId(user.id)
+            if (roleId === 1) {
+              window.localStorage.setItem('roles', 'student')
+              setRole('student')
+              setGradeId(user.gradeId)
+            } else if (roleId === 2) {
+              window.localStorage.setItem('roles', 'teacher')
+              setRole('teacher')
+            } else if (roleId === 3) {
+              window.localStorage.setItem('roles', 'admin')
+              setRole('admin')
+            }
+            // 建立websocket连接
+            connectWebSocket()
+            commit('SET_TOKEN', data)
+            // STU-01：记住我 → Cookie 带过期天数；否则为会话级 Cookie
+            const remember = !!userInfo.rememberMe
+            setToken(data, remember ? { expiresDays: 7 } : {})
+            resolve()
+          } else {
+            reject(response)
           }
-          // 建立websocket连接
-          connectWebSocket()
-          commit('SET_TOKEN', data)
-          // STU-01：记住我 → Cookie 带过期天数；否则为会话级 Cookie
-          const remember = !!userInfo.rememberMe
-          setToken(data, remember ? { expiresDays: 7 } : {})
-          resolve()
-        } else {
-          reject(response)
-        }
-      }).catch(error => {
-        reject(error)
-      })
+        }).catch(error => {
+          reject(error)
+        })
     })
   },
 
@@ -109,7 +112,9 @@ const actions = {
   // 用户注销：请求后端登出，清理 Cookie、本地存储并断开 WebSocket
   logout({ commit, state, dispatch }) {
     return new Promise((resolve, reject) => {
-      logout().then(() => {
+      fetchClientPublicIp()
+        .then((clientPublicIp) => logout(clientPublicIp))
+        .then(() => {
         removeToken()
         resetRouter()
         commit('RESET_STATE')

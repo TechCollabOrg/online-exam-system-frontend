@@ -3,122 +3,107 @@
     <el-card shadow="never">
       <div slot="header" class="clearfix">
         <span class="page-title">API 连接配置</span>
-        <span class="sub">OpenAI 兼容接口（硅基流动、自建代理等）。保存并启用后，教师与学生可使用 AI 助手、阅卷与成绩简报等功能。</span>
+        <span class="sub">先配置「默认连接」；各 AI 功能可沿用默认，也可单独指定 API 与模型。</span>
       </div>
 
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="140px" class="config-form">
-        <el-form-item label="聊天补全来源">
-          <el-tag type="info">自定义（兼容 OpenAI）</el-tag>
-        </el-form-item>
+      <el-tabs v-model="activeTab" type="border-card" class="config-tabs">
+        <el-tab-pane label="默认连接" name="default">
+          <p class="tab-hint">所有功能的兜底配置；未单独设置的功能均使用此处。</p>
+          <el-form ref="defaultFormRef" :model="defaultForm" :rules="defaultRules" label-width="120px" class="config-form">
+            <el-form-item label="基础 URL" prop="baseUrl">
+              <el-input v-model="defaultForm.baseUrl" placeholder="例如 https://api.siliconflow.cn/v1" clearable />
+            </el-form-item>
+            <el-form-item label="API 密钥" prop="apiKey">
+              <el-input
+                v-model="defaultForm.apiKey"
+                type="password"
+                show-password
+                :placeholder="defaultApiKeySet ? '已保存，留空不修改' : '请输入 API Key'"
+                clearable
+              />
+            </el-form-item>
+            <el-form-item label="模型" prop="modelName">
+              <el-row :gutter="8" type="flex">
+                <el-col :span="16">
+                  <el-select
+                    v-model="defaultForm.modelName"
+                    filterable
+                    allow-create
+                    default-first-option
+                    placeholder="测试连接后选择"
+                    style="width: 100%"
+                    :loading="modelsLoading"
+                  >
+                    <el-option v-for="m in modelOptions" :key="m" :label="m" :value="m" />
+                  </el-select>
+                </el-col>
+                <el-col :span="8">
+                  <el-button :loading="modelsLoading" @click="loadDefaultModels">拉取模型</el-button>
+                </el-col>
+              </el-row>
+            </el-form-item>
+            <el-form-item label="启用">
+              <el-switch v-model="defaultForm.enabled" active-text="启用" inactive-text="停用" />
+            </el-form-item>
+            <el-form-item label="连接状态">
+              <span :class="['status-dot', connectionStatus]" />
+              <span>{{ connectionStatusText }}</span>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" plain :loading="testing" @click="testDefaultConnection">测试连接</el-button>
+              <el-button type="primary" :loading="saving" @click="saveDefault">保存默认配置</el-button>
+            </el-form-item>
+            <el-divider content-position="left">测试对话</el-divider>
+            <el-form-item label="测试内容">
+              <el-input v-model="testMessage" type="textarea" :rows="2" maxlength="500" />
+            </el-form-item>
+            <el-form-item>
+              <el-button :loading="chatTesting" :disabled="!defaultForm.enabled" @click="testDefaultChat">发送</el-button>
+            </el-form-item>
+            <el-form-item v-if="testReply" label="回复">
+              <div class="test-reply">{{ testReply }}</div>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
 
-        <el-form-item label="基础 URL" prop="baseUrl">
-          <el-input
-            v-model="form.baseUrl"
-            placeholder="例如 https://api.siliconflow.cn/v1"
-            clearable
-          />
-          <div class="hint">需包含 /v1；系统会请求 {基础URL}/models 与对话接口。</div>
-        </el-form-item>
-
-        <el-form-item label="API 密钥" prop="apiKey">
-          <el-input
-            v-model="form.apiKey"
-            type="password"
-            show-password
-            :placeholder="apiKeySet ? '已保存密钥，留空则不修改' : '请输入 API Key'"
-            clearable
-          />
-        </el-form-item>
-
-        <el-form-item label="可用模型">
-          <el-row :gutter="12" type="flex" align="middle">
-            <el-col :span="14">
-              <el-select
-                v-model="form.modelName"
-                filterable
-                allow-create
-                default-first-option
-                placeholder="先测试连接后从列表选择，或手动输入模型名"
-                style="width: 100%"
-                :loading="modelsLoading"
-              >
-                <el-option
-                  v-for="m in modelOptions"
-                  :key="m"
-                  :label="m"
-                  :value="m"
-                />
-              </el-select>
-            </el-col>
-            <el-col :span="10">
-              <el-button :loading="modelsLoading" @click="loadModels">刷新模型列表</el-button>
-            </el-col>
-          </el-row>
-        </el-form-item>
-
-        <el-form-item label="启用配置">
-          <el-switch v-model="form.enabled" active-text="启用" inactive-text="停用" />
-        </el-form-item>
-
-        <el-form-item label="连接状态">
-          <span v-if="connectionStatus === 'valid'" class="status-dot valid" />
-          <span v-else-if="connectionStatus === 'invalid'" class="status-dot invalid" />
-          <span v-else class="status-dot unknown" />
-          <span class="status-text">{{ connectionStatusText }}</span>
-          <span v-if="saved.lastTestTime" class="status-time">（上次测试：{{ saved.lastTestTime }}）</span>
-        </el-form-item>
-
-        <el-form-item>
-          <el-button type="primary" :loading="testing" @click="handleTestConnection">测试连接</el-button>
-          <el-button type="success" :loading="saving" @click="handleSave">保存配置</el-button>
-        </el-form-item>
-
-        <el-divider content-position="left">发送测试消息</el-divider>
-        <el-form-item label="测试内容">
-          <el-input
-            v-model="testMessage"
-            type="textarea"
-            :rows="3"
-            maxlength="500"
-            show-word-limit
-            placeholder="保存并启用后，可发送一条短消息验证对话"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button :loading="chatTesting" :disabled="!form.enabled" @click="handleTestChat">发送测试消息</el-button>
-        </el-form-item>
-        <el-form-item v-if="testReply" label="测试回复">
-          <div class="test-reply">{{ testReply }}</div>
-        </el-form-item>
-      </el-form>
+        <el-tab-pane
+          v-for="f in features"
+          :key="f.featureCode"
+          :label="f.featureLabel"
+          :name="f.featureCode"
+        >
+          <p class="tab-hint">{{ f.featureHint }}</p>
+          <ai-feature-config-panel :feature="f" @saved="loadOverview" />
+        </el-tab-pane>
+      </el-tabs>
     </el-card>
   </div>
 </template>
 
 <script>
 import {
-  getAiConfig,
+  getAiConfigOverview,
   saveAiConfig,
   testAiConnection,
   fetchAiModels,
   testAiChat
 } from '@/api/aiConfig'
+import AiFeatureConfigPanel from '@/components/AiFeatureConfigPanel'
 
 export default {
   name: 'AiApiConfig',
+  components: { AiFeatureConfigPanel },
   data() {
     return {
-      form: {
+      activeTab: 'default',
+      features: [],
+      defaultForm: {
         baseUrl: '',
         apiKey: '',
         modelName: '',
         enabled: false
       },
-      saved: {
-        lastTestOk: null,
-        lastTestTime: null
-      },
-      apiKeySet: false,
+      defaultApiKeySet: false,
       modelOptions: [],
       modelsLoading: false,
       testing: false,
@@ -127,96 +112,68 @@ export default {
       connectionStatus: 'unknown',
       testMessage: '你好，请回复「连接正常」。',
       testReply: '',
-      rules: {
+      defaultRules: {
         baseUrl: [{ required: true, message: '请填写基础 URL', trigger: 'blur' }],
-        modelName: [{ required: true, message: '请选择或填写模型', trigger: 'change' }]
+        modelName: [{ required: true, message: '请选择模型', trigger: 'change' }]
       }
     }
   },
   computed: {
     connectionStatusText() {
-      if (this.connectionStatus === 'valid') return 'Valid — 连接正常'
-      if (this.connectionStatus === 'invalid') return 'Invalid — 连接失败'
+      if (this.connectionStatus === 'valid') return '连接正常'
+      if (this.connectionStatus === 'invalid') return '连接失败'
       return '未测试'
     }
   },
   created() {
-    this.loadConfig()
+    this.loadOverview()
   },
   methods: {
-    probePayload() {
+    defaultProbe() {
       return {
-        baseUrl: (this.form.baseUrl || '').trim(),
-        apiKey: (this.form.apiKey || '').trim() || undefined
+        baseUrl: (this.defaultForm.baseUrl || '').trim(),
+        apiKey: (this.defaultForm.apiKey || '').trim() || undefined
       }
     },
-    async loadConfig() {
-      const res = await getAiConfig()
+    async loadOverview() {
+      const res = await getAiConfigOverview()
       const d = res.data || {}
-      this.form.baseUrl = d.baseUrl || ''
-      this.form.modelName = d.modelName || ''
-      this.form.enabled = !!d.enabled
-      this.form.apiKey = ''
-      this.apiKeySet = !!d.apiKeySet
-      this.saved.lastTestTime = d.lastTestTime || ''
-      if (d.lastTestOk === true) {
-        this.connectionStatus = 'valid'
-      } else if (d.lastTestOk === false) {
-        this.connectionStatus = 'invalid'
-      }
-      if (this.form.modelName) {
-        this.modelOptions = [this.form.modelName]
+      const def = d.defaultConfig || {}
+      this.defaultForm.baseUrl = def.baseUrl || ''
+      this.defaultForm.modelName = def.modelName || ''
+      this.defaultForm.enabled = !!def.enabled
+      this.defaultForm.apiKey = ''
+      this.defaultApiKeySet = !!def.apiKeySet
+      this.features = d.features || []
+      if (def.lastTestOk === true) this.connectionStatus = 'valid'
+      else if (def.lastTestOk === false) this.connectionStatus = 'invalid'
+      if (this.defaultForm.modelName) {
+        this.modelOptions = [this.defaultForm.modelName]
       }
     },
-    async loadModels() {
-      if (!(this.form.baseUrl || '').trim()) {
+    async loadDefaultModels() {
+      if (!(this.defaultForm.baseUrl || '').trim()) {
         this.$message.warning('请先填写基础 URL')
-        return
-      }
-      if (!this.apiKeySet && !(this.form.apiKey || '').trim()) {
-        this.$message.warning('请填写 API 密钥')
         return
       }
       this.modelsLoading = true
       try {
-        const res = await fetchAiModels(this.probePayload())
-        const list = res.data || []
-        this.modelOptions = list
-        if (list.length === 0) {
-          this.$message.warning('未获取到模型，可手动输入模型名')
-        } else {
-          this.$message.success('已获取 ' + list.length + ' 个模型')
-          if (!this.form.modelName && list.length > 0) {
-            this.form.modelName = list[0]
-          }
-        }
+        const res = await fetchAiModels(this.defaultProbe())
+        this.modelOptions = res.data || []
       } finally {
         this.modelsLoading = false
       }
     },
-    async handleTestConnection() {
-      if (!(this.form.baseUrl || '').trim()) {
-        this.$message.warning('请填写基础 URL')
-        return
-      }
-      if (!this.apiKeySet && !(this.form.apiKey || '').trim()) {
-        this.$message.warning('请填写 API 密钥')
-        return
-      }
+    async testDefaultConnection() {
       this.testing = true
-      this.testReply = ''
       try {
-        const res = await testAiConnection(this.probePayload())
+        const res = await testAiConnection(this.defaultProbe())
         const d = res.data || {}
+        this.connectionStatus = d.valid ? 'valid' : 'invalid'
         if (d.valid) {
-          this.connectionStatus = 'valid'
           this.modelOptions = d.models || []
-          if (this.modelOptions.length && !this.form.modelName) {
-            this.form.modelName = this.modelOptions[0]
-          }
-          this.$message.success(d.message || '连接成功')
+          this.$message.success('连接成功')
         } else {
-          this.connectionStatus = 'invalid'
           this.$message.error(d.message || '连接失败')
         }
       } catch (e) {
@@ -225,43 +182,34 @@ export default {
         this.testing = false
       }
     },
-    handleSave() {
-      this.$refs.formRef.validate(async valid => {
+    saveDefault() {
+      this.$refs.defaultFormRef.validate(async valid => {
         if (!valid) return
-        if (!this.apiKeySet && !(this.form.apiKey || '').trim()) {
+        if (!this.defaultApiKeySet && !(this.defaultForm.apiKey || '').trim()) {
           this.$message.warning('首次保存请填写 API 密钥')
           return
         }
         this.saving = true
         try {
           await saveAiConfig({
-            baseUrl: this.form.baseUrl.trim(),
-            apiKey: (this.form.apiKey || '').trim(),
-            modelName: this.form.modelName.trim(),
-            enabled: this.form.enabled
+            baseUrl: this.defaultForm.baseUrl.trim(),
+            apiKey: (this.defaultForm.apiKey || '').trim(),
+            modelName: this.defaultForm.modelName.trim(),
+            enabled: this.defaultForm.enabled
           })
-          this.$message.success('保存成功')
-          this.form.apiKey = ''
-          await this.loadConfig()
+          this.$message.success('默认配置已保存')
+          await this.loadOverview()
         } finally {
           this.saving = false
         }
       })
     },
-    async handleTestChat() {
-      const text = (this.testMessage || '').trim()
-      if (!text) {
-        this.$message.warning('请输入测试内容')
-        return
-      }
+    async testDefaultChat() {
       this.chatTesting = true
       this.testReply = ''
       try {
-        const res = await testAiChat({ message: text })
+        const res = await testAiChat({ message: (this.testMessage || '').trim() })
         this.testReply = res.data || ''
-        if (this.testReply) {
-          this.$message.success('已收到回复')
-        }
       } finally {
         this.chatTesting = false
       }
@@ -280,22 +228,24 @@ export default {
   color: #909399;
   font-size: 13px;
 }
+.config-tabs {
+  border: none;
+  box-shadow: none;
+}
+.tab-hint {
+  color: #909399;
+  font-size: 13px;
+  margin: 0 0 16px;
+}
 .config-form {
   max-width: 720px;
 }
-.hint {
-  font-size: 12px;
-  color: #909399;
-  line-height: 1.4;
-  margin-top: 4px;
-}
 .status-dot {
   display: inline-block;
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  margin-right: 8px;
-  vertical-align: middle;
+  margin-right: 6px;
 }
 .status-dot.valid {
   background: #67c23a;
@@ -306,21 +256,10 @@ export default {
 .status-dot.unknown {
   background: #dcdfe6;
 }
-.status-text {
-  vertical-align: middle;
-}
-.status-time {
-  margin-left: 8px;
-  color: #909399;
-  font-size: 12px;
-}
 .test-reply {
   white-space: pre-wrap;
-  line-height: 1.6;
-  color: #303133;
   background: #f5f7fa;
   padding: 12px;
   border-radius: 4px;
-  min-height: 48px;
 }
 </style>

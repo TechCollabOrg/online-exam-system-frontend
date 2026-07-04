@@ -37,10 +37,12 @@
                         v-if="index.quType === 5"
                         :stem-content="questionStemDisplay(index)"
                         :stem-image="index.image"
+                        :stem-audio="index.audio"
                       />
                       <div v-if="index.quType !== 5 && questionStemDisplay(index)" style="margin: 8px 0 12px">
                         <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">{{ indexx + 1 }}、</div>
                         <rich-html-content :html="questionStemDisplay(index)" />
+                        <question-audio-player :audio="index.audio" />
                       </div>
 
                       <!-- 选项 -->
@@ -121,10 +123,12 @@
                         v-if="index.quType === 5"
                         :stem-content="questionStemDisplay(index)"
                         :stem-image="index.image"
+                        :stem-audio="index.audio"
                       />
                       <div v-if="index.quType !== 5 && questionStemDisplay(index)" style="margin: 8px 0 12px">
                         <div class="qu_content" style="font-weight: 600; margin-bottom: 6px">题干</div>
                         <rich-html-content :html="questionStemDisplay(index)" />
+                        <question-audio-player :audio="index.audio" />
                       </div>
 
                       <!-- 选项 -->
@@ -186,6 +190,7 @@
                       <compound-stem-block
                         :stem-content="questionStemDisplay(item)"
                         :stem-image="item.image"
+                        :stem-audio="item.audio"
                       />
                       <div
                         v-for="(sub, sidx) in item.subItemList || []"
@@ -309,13 +314,14 @@ import imageUrlsMixin from '@/mixins/imageUrlsMixin'
 import RichHtmlContent from '@/components/RichHtmlContent'
 import AnalysisRichBlock from '@/components/AnalysisRichBlock'
 import CompoundStemBlock from '@/components/CompoundStemBlock'
+import QuestionAudioPlayer from '@/components/QuestionAudioPlayer'
 import ClassSelect from '@/components/ClassSelect'
 import { saqReferenceDisplayHtml } from '@/utils/saqAnswerHtml'
 import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
 
 export default {
   name: 'ExamProcess',
-  components: { RichHtmlContent, AnalysisRichBlock, CompoundStemBlock, ClassSelect },
+  components: { RichHtmlContent, QuestionAudioPlayer, AnalysisRichBlock, CompoundStemBlock, ClassSelect },
   mixins: [imageUrlsMixin],
   data() {
     return {

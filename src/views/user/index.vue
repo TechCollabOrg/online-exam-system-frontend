@@ -42,9 +42,17 @@
         </template>
       </el-table-column>
       <el-table-column prop="gradeName" label="班级" align="center" />
+      <el-table-column prop="major" label="专业" align="center" />
       <el-table-column prop="createTime" label="注册时间" align="center" />
-      <el-table-column align="center" label="操作">
+      <el-table-column align="center" label="操作" width="160">
         <template slot-scope="{ row }">
+          <el-button
+            v-if="role == 'admin' && row.roleId == 1"
+            type="text"
+            size="small"
+            style="font-size: 14px"
+            @click="openEditDialog(row)"
+          >编辑</el-button>
           <el-button
             v-if="role == 'teacher'"
             type="text"
@@ -93,12 +101,42 @@
             </el-form-item>
           </el-col>
         </el-row>
+        <el-row>
+          <el-col :span="11">
+            <el-form-item v-if="role == 'teacher' || (role == 'admin' && addForm.roleId == '1')" label="专业" :label-width="formLabelWidth">
+              <el-input v-model="addForm.major" autocomplete="off" placeholder="请输入专业" />
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="addUserDiologVisible = false">取 消</el-button>
         <el-button type="primary" @click="addUser">确 定</el-button>
       </div>
     </el-dialog>
+
+    <!-- 编辑学生班级与专业 -->
+    <el-dialog title="编辑学生信息" :visible.sync="editUserDialogVisible">
+      <el-form :model="editForm">
+        <el-form-item label="用户名" :label-width="formLabelWidth">
+          <el-input v-model="editForm.userName" disabled />
+        </el-form-item>
+        <el-form-item label="真实姓名" :label-width="formLabelWidth">
+          <el-input v-model="editForm.realName" disabled />
+        </el-form-item>
+        <el-form-item label="班级选择" :label-width="formLabelWidth">
+          <ClassSelect v-model="editForm.gradeId" :is-multiple="false" clearable />
+        </el-form-item>
+        <el-form-item label="专业" :label-width="formLabelWidth">
+          <el-input v-model="editForm.major" autocomplete="off" placeholder="请输入专业" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="editUserDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="saveUserProfile">确 定</el-button>
+      </div>
+    </el-dialog>
+
     <!-- 文件上传 -->
     <el-dialog
       width="400px"
@@ -148,7 +186,7 @@
 
 <script>
 import ClassSelect from '@/components/ClassSelect'
-import { userPaging, classAdd, userDel, userImport } from '@/api/user'
+import { userPaging, classAdd, userDel, userImport, userUpdateProfile } from '@/api/user'
 import { userClassRemove } from '@/api/class_'
 export default {
   components: { ClassSelect },
@@ -164,6 +202,8 @@ export default {
       fileList: [],
       // 新增用户对话框
       addUserDiologVisible: false,
+      // 编辑学生对话框
+      editUserDialogVisible: false,
       // 导入用户对话框
       fileDialogVisible: false,
       // 新增用户表单
@@ -171,7 +211,16 @@ export default {
         userName: '',
         realName: '',
         roleId: '',
-        gradeId: ''
+        gradeId: '',
+        major: ''
+      },
+      // 编辑学生表单
+      editForm: {
+        id: null,
+        userName: '',
+        realName: '',
+        gradeId: '',
+        major: ''
       },
       // 筛选栏表单
       searchForm: {
@@ -223,11 +272,17 @@ export default {
     },
     // 添加用户逻辑
     addUser() {
+      const isStudent = this.role === 'teacher' || (this.role === 'admin' && String(this.addForm.roleId) === '1')
+      if (isStudent && !String(this.addForm.major || '').trim()) {
+        this.$message.warning('请填写学生专业')
+        return
+      }
       const data = {
         userName: this.addForm.userName,
         realName: this.addForm.realName,
         roleId: this.addForm.roleId,
-        gradeId: this.addForm.gradeId
+        gradeId: this.addForm.gradeId,
+        major: isStudent ? String(this.addForm.major).trim() : undefined
       }
       classAdd(data).then((res) => {
         if (res.code) {
@@ -236,6 +291,7 @@ export default {
           this.addForm.realName = ''
           this.addForm.roleId = ''
           this.addForm.gradeId = ''
+          this.addForm.major = ''
           // 刷新页面数据
           this.getUserPage(this.pageNum, this.pageSize)
           // 关闭新增用户对话框
@@ -249,6 +305,38 @@ export default {
             type: 'info',
             message: res.msg
           })
+        }
+      })
+    },
+    // 打开编辑学生对话框
+    openEditDialog(row) {
+      this.editForm = {
+        id: row.id,
+        userName: row.userName,
+        realName: row.realName,
+        gradeId: row.gradeId || '',
+        major: row.major || ''
+      }
+      this.editUserDialogVisible = true
+    },
+    // 保存学生班级与专业
+    saveUserProfile() {
+      if (!String(this.editForm.major || '').trim()) {
+        this.$message.warning('请填写学生专业')
+        return
+      }
+      const data = {
+        id: this.editForm.id,
+        gradeId: this.editForm.gradeId || null,
+        major: String(this.editForm.major).trim()
+      }
+      userUpdateProfile(this.editForm.id, data).then((res) => {
+        if (res.code) {
+          this.editUserDialogVisible = false
+          this.getUserPage(this.pageNum, this.pageSize, this.searchForm.searchRealName, this.searchForm.searchClass)
+          this.$message.success('保存成功')
+        } else {
+          this.$message.info(res.msg)
         }
       })
     },

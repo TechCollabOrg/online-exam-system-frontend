@@ -3,7 +3,7 @@
     <div class="noticeDetail_detail">
       <div class="noticeDetail_head">
         <div>{{ data.title==""||data.title==null?"暂无标题":data.title }}</div>
-        <div v-if="currentRole === 'teacher'"><el-button type="primary" @click="projectionScreen">投屏模式</el-button></div>
+        <div v-if="currentRole === 'teacher' || currentRole === 'admin'"><el-button type="primary" @click="projectionScreen">投屏模式</el-button></div>
       </div>
       <div class="noticeDetail_main">
         <div v-if="data.content!=null&&data.content!=''" v-html="data.content" />
@@ -72,8 +72,7 @@ import 'quill/dist/quill.snow.css'
 import 'quill/dist/quill.bubble.css'
 import Discussion from '@/components/discussion'
 import { getDiscussionRely, discussionDetail } from '@/api/discussion'
-import { getDiscussionId, setDiscussionId } from '@/utils/auth'
-import { getRole } from '@/utils/jwtUtils'
+import { getDiscussionId, setDiscussionId, getRole } from '@/utils/auth'
 import { EventBus } from '@/utils/websocket'
 import { replyAdd, replyDel } from '@/api/reply'
 export default {
@@ -120,14 +119,8 @@ export default {
     }
   },
   created() {
-    // this.row = this.$route.query.row;
     this.currentDiscussionId = this.$route.query.discussionId
-    // 获取角色判断是否是教师和管理员
-    const role = getRole()
-    if (role === 3 || role === 2) {
-      this.currentRole = 'teacher'
-    }
-    console.log(this.currentRole)
+    this.currentRole = window.localStorage.getItem('roles') || getRole()
     if (this.currentDiscussionId) {
       // 获取到讨论id，将它放进浏览器本地存储中
       setDiscussionId(this.currentDiscussionId)

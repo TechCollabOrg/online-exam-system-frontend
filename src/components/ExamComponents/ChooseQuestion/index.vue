@@ -27,31 +27,59 @@
     </el-form>
     <el-form :inline="true">
       <el-form-item v-if="singleChoiceQuestions" label="单选分数">
-        <el-input
+        <el-input-number
           v-model="questionList.radioScore"
-          placeholder="输入试题名称"
+          :min="0"
+          :precision="2"
+          :step="0.5"
+          :controls="false"
+          style="width: 120px"
           @change="scoreFun"
         />
       </el-form-item>
       <el-form-item v-if="multipleChoiceQuestions" label="多选分数">
-        <el-input
+        <el-input-number
           v-model="questionList.multiScore"
-          placeholder="输入试题名称"
+          :min="0"
+          :precision="2"
+          :step="0.5"
+          :controls="false"
+          style="width: 120px"
           @change="scoreFun"
         />
       </el-form-item>
       <el-form-item v-if="trueOrFalseQuestions" label="判断分数">
-        <el-input
+        <el-input-number
           v-model="questionList.judgeScore"
-          placeholder="输入试题名称"
+          :min="0"
+          :precision="2"
+          :step="0.5"
+          :controls="false"
+          style="width: 120px"
           @change="scoreFun"
         />
       </el-form-item>
       <el-form-item v-if="shortAnswerQuestions" label="简答分数">
-        <el-input v-model="questionList.saqScore" placeholder="输入试题名称" @change="scoreFun" />
+        <el-input-number
+          v-model="questionList.saqScore"
+          :min="0"
+          :precision="2"
+          :step="0.5"
+          :controls="false"
+          style="width: 120px"
+          @change="scoreFun"
+        />
       </el-form-item>
       <el-form-item v-if="compoundQuestions" label="复合题分数">
-        <el-input v-model="questionList.compoundScore" placeholder="输入默认分值" @change="scoreFun" />
+        <el-input-number
+          v-model="questionList.compoundScore"
+          :min="0"
+          :precision="2"
+          :step="0.5"
+          :controls="false"
+          style="width: 120px"
+          @change="scoreFun"
+        />
       </el-form-item>
     </el-form>
     <!-- table -->
@@ -154,9 +182,11 @@
             v-if="detailQuestion.quType === 5"
             :stem-content="questionStemDisplay(detailQuestion)"
             :stem-image="detailQuestion.image"
+            :stem-audio="detailQuestion.audio"
           />
           <div v-if="detailQuestion.quType !== 5 && questionStemDisplay(detailQuestion)" style="margin-bottom: 14px">
             <rich-html-content :html="questionStemDisplay(detailQuestion)" />
+            <question-audio-player :audio="detailQuestion.audio" />
           </div>
           <template v-if="detailQuestion.quType === 5 && detailQuestion.subItems && detailQuestion.subItems.length">
             <div
@@ -218,8 +248,10 @@
           <el-form-item label="本题分值">
             <el-input-number
               v-model="scoreEditValue"
-              :min="1"
+              :min="0.01"
               :max="999"
+              :precision="2"
+              :step="0.1"
               :controls="true"
               style="width: 160px"
             />
@@ -252,10 +284,11 @@ import { quPaging, quDetail } from '@/api/question'
 import RepoSelect from '@/components/RepoSelect'
 import CompoundStemBlock from '@/components/CompoundStemBlock'
 import RichHtmlContent from '@/components/RichHtmlContent'
+import QuestionAudioPlayer from '@/components/QuestionAudioPlayer'
 import { questionStemPlainSummary, questionStemDisplayHtml } from '@/utils/questionStemHtml'
 
 export default {
-  components: { RepoSelect, CompoundStemBlock, RichHtmlContent },
+  components: { RepoSelect, CompoundStemBlock, RichHtmlContent, QuestionAudioPlayer },
   data() {
     return {
       singleChoiceQuestions: false,

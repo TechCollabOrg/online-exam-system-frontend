@@ -71,10 +71,27 @@ export default {
     this.loadGrades()
   },
   methods: {
+    dedupeGrades(list) {
+      const source = Array.isArray(list) ? list : []
+      const seen = new Set()
+      const result = []
+      for (const item of source) {
+        if (!item || item.id === '' || item.id == null) {
+          continue
+        }
+        const key = String(item.id)
+        if (seen.has(key)) {
+          continue
+        }
+        seen.add(key)
+        result.push(item)
+      }
+      return result
+    },
     normalizeValue(val) {
       if (this.isMultiple) {
         if (Array.isArray(val)) {
-          return val.filter((id) => id !== '' && id != null)
+          return Array.from(new Set(val.filter((id) => id !== '' && id != null)))
         }
         if (val === '' || val == null) {
           return []
@@ -89,7 +106,7 @@ export default {
     async loadGrades() {
       try {
         const res = await getAllGrades()
-        this.gradeList = Array.isArray(res.data) ? res.data : []
+        this.gradeList = this.dedupeGrades(res.data)
       } catch (e) {
         this.gradeList = []
       }

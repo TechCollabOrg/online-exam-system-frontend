@@ -42,3 +42,25 @@ export function fetchPaging(params) {
     params
   })
 }
+
+export function getRepoKnowledgeTree(repoId) {
+  return request({
+    url: `repo/${repoId}/knowledge-tree`,
+    method: 'get'
+  })
+}
+
+export function generateRepoKnowledgeTree(repoId) {
+  return request({
+    url: `repo/${repoId}/knowledge-tree/generate`,
+    method: 'post',
+    timeout: 180000
+  })
+}
+
+export function getRepoKnowledgePoints(repoId) {
+  return request({
+    url: `repo/${repoId}/knowledge-points`,
+    method: 'get'
+  })
+}

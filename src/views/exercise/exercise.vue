@@ -120,6 +120,17 @@
                 >{{ index + 1 }}</el-tag>
               </el-row>
             </div>
+            <div v-if="paperData.compoundList != undefined && paperData.compoundList.length > 0">
+              <p class="card-title">复合题</p>
+              <el-row :gutter="24" class="card-line">
+                <el-tag
+                  v-for="(item, index) in paperData.compoundList"
+                  :key="index"
+                  :type="cardItemClass(item.exercised, item.quId, item.isRight)"
+                  @click="selectQuId(item, index)"
+                >{{ index + 1 }}</el-tag>
+              </el-row>
+            </div>
           </div>
 
           <!-- </div> -->
@@ -146,6 +157,19 @@
               <span>{{ number == 1 ? curTypeIndex + 1 : currentQuIndex + 1 }}.</span>
             </p>
             <rich-html-content :html="questionStemDisplay(quDetail)" />
+          </div>
+
+          <div v-if="quDetail.quType === 5">
+            <p style="margin: 10px 0 8px">
+              <span
+                :class="['question-type', 'compound']"
+              >{{ shouQuType(quDetail.quType) }}</span>
+              <span>{{ number == 1 ? curTypeIndex + 1 : currentQuIndex + 1 }}.</span>
+            </p>
+            <compound-question-display
+              v-model="compoundAnswers"
+              :sub-items="quDetail.subItems || []"
+            />
           </div>
 
           <div v-if="quDetail.quType == 1 || quDetail.quType == 3">
@@ -326,6 +350,7 @@ import { getQuestion, getQuestionDetail, submitAnswer, getAnswerInfo } from '@/a
 import { Loading } from 'element-ui'
 import imageUrlsMixin from '@/mixins/imageUrlsMixin'
 import CompoundStemBlock from '@/components/CompoundStemBlock'
+import CompoundQuestionDisplay from '@/components/CompoundQuestionDisplay'
 import {
   enterExamDisplayMode,
   exitExamDisplayMode,
@@ -338,7 +363,7 @@ import { questionStemDisplayHtml } from '@/utils/questionStemHtml'
 
 export default {
   name: 'ExamProcess',
-  components: { RichHtmlContent, AnalysisRichBlock, CompoundStemBlock },
+  components: { RichHtmlContent, AnalysisRichBlock, CompoundStemBlock, CompoundQuestionDisplay },
   mixins: [imageUrlsMixin],
 
   data() {
@@ -376,10 +401,12 @@ export default {
         radioList: [],
         multiList: [],
         judgeList: [],
-        saqList: []
+        saqList: [],
+        compoundList: []
       },
       radioValue: '',
       multiValue: [],
+      compoundAnswers: {},
       answeredIds: [],
       debounceFlag: false,
       isAnswered: false,
@@ -396,7 +423,8 @@ export default {
         return this.paperData.radioList.length +
                this.paperData.multiList.length +
                this.paperData.judgeList.length +
-               this.paperData.saqList.length
+               this.paperData.saqList.length +
+               (this.paperData.compoundList ? this.paperData.compoundList.length : 0)
       }
     },
     // 统计回答正确的题数
@@ -408,10 +436,11 @@ export default {
         list = this.paperData.radioList.concat(
           this.paperData.multiList,
           this.paperData.judgeList,
-          this.paperData.saqList
+          this.paperData.saqList,
+          this.paperData.compoundList || []
         )
       }
-      return list.filter(item => item.isRight).length
+      return list.filter(item => item.exercised && item.isRight).length
     },
     // 统计已作答但回答错误的题数
     wrongCount() {
@@ -422,7 +451,8 @@ export default {
         list = this.paperData.radioList.concat(
           this.paperData.multiList,
           this.paperData.judgeList,
-          this.paperData.saqList
+          this.paperData.saqList,
+          this.paperData.compoundList || []
         )
       }
       return list.filter(item => item.exercised && !item.isRight).length
@@ -440,7 +470,8 @@ export default {
         list = this.paperData.radioList.concat(
           this.paperData.multiList,
           this.paperData.judgeList,
-          this.paperData.saqList
+          this.paperData.saqList,
+          this.paperData.compoundList || []
         )
       }
       // 筛选出所有已作答的题目
@@ -478,7 +509,7 @@ export default {
     }
   },
   created() {
-    this.repoId = this.$route.query.repoId
+    this.repoId = Number(this.$route.query.repoId) || this.$route.query.repoId
     this.repoTitle = this.$route.query.repoTitle
     this.test()
   },
@@ -557,6 +588,7 @@ export default {
     resetAnswerState() {
       this.radioValue = ''
       this.multiValue = []
+      this.compoundAnswers = {}
       this.rightQuAnswer = {}
       this.showAnalysis = 0
       this.isAnswered = false
@@ -567,7 +599,8 @@ export default {
         1: this.paperData.radioList,
         2: this.paperData.multiList,
         3: this.paperData.judgeList,
-        4: this.paperData.saqList
+        4: this.paperData.saqList,
+        5: this.paperData.compoundList
       }[this.curListIndex]
 
       if (this.curTypeIndex < currentList.length - 1) {
@@ -578,17 +611,27 @@ export default {
           1: { index: 2, list: this.paperData.multiList },
           2: { index: 3, list: this.paperData.judgeList },
           3: { index: 4, list: this.paperData.saqList },
-          4: { index: 1, list: this.paperData.radioList }
+          4: { index: 5, list: this.paperData.compoundList },
+          5: { index: 1, list: this.paperData.radioList }
         }
         const nextType = nextTypeMap[this.curListIndex]
         this.curListIndex = nextType.index
         this.curTypeIndex = 0
-        this.curQuId = nextType.list[0]?.quId || ''
+        this.curQuId = nextType.list[0]?.quId || null
       }
     },
 
-    // 修改结束刷题逻辑：确认后显示答题统计弹框
-    exitFun() {
+    // 修改结束刷题逻辑：先提交当前未保存的答案，再显示答题统计弹框
+    async exitFun() {
+      if (!this.isAnswered && this.canSubmitCurrent()) {
+        try {
+          await this.fillAnswer()
+          this.isAnswered = true
+          this.showAnalysis = 1
+        } catch (e) {
+          // 用户未作答或提交失败时仍允许查看统计并结束
+        }
+      }
       this.statisticsDialogVisible = true
     },
 
@@ -617,6 +660,7 @@ export default {
       this.paperData.multiList = []
       this.paperData.judgeList = []
       this.paperData.saqList = []
+      this.paperData.compoundList = []
 
       if (this.number === 1) {
         this.quList.forEach((item) => {
@@ -628,6 +672,8 @@ export default {
             this.paperData.judgeList.push(item)
           } else if (item.quType === 4) {
             this.paperData.saqList.push(item)
+          } else if (item.quType === 5) {
+            this.paperData.compoundList.push(item)
           }
         })
         this.quList = []
@@ -647,7 +693,7 @@ export default {
       this.paperData.multiList = []
       this.paperData.judgeList = []
       this.paperData.saqList = []
-      // }
+      this.paperData.compoundList = []
       // 按题型
       if (this.number === 1) {
         this.quList.forEach((item) => {
@@ -659,6 +705,8 @@ export default {
             this.paperData.judgeList.push(item)
           } else if (item.quType === 4) {
             this.paperData.saqList.push(item)
+          } else if (item.quType === 5) {
+            this.paperData.compoundList.push(item)
           }
         })
         this.quList = []
@@ -684,15 +732,14 @@ export default {
           return '' // 默认值，或者可以处理其他情况
       }
     },
-    change(index) {
+    async change(index) {
       this.number = index
       this.preText = '上一题'
       this.nextText = '提交答案'
       this.showAnalysis = 0
 
-      this.getQuestionList()
-
-      setTimeout(() => this.getCurrentQuDetial(), 200)
+      await this.getQuestionList()
+      await this.getCurrentQuDetial()
     },
 
     getRightAnswer() {
@@ -727,27 +774,38 @@ export default {
         this.curListIndex = 3
       } else if (item.quType === 4) {
         this.curListIndex = 4
+      } else if (item.quType === 5) {
+        this.curListIndex = 5
       }
       this.getCurrentQuDetial()
     },
+    resolveCurrentQuId() {
+      if (this.number === 0) {
+        const item = this.quList[this.currentQuIndex]
+        return item && item.quId
+      }
+      return this.curQuId
+    },
     async getCurrentQuDetial() {
       this.isAnswered = false
+      this.compoundAnswers = {}
+      const quId = this.resolveCurrentQuId()
+      if (!quId) {
+        this.quDetail = {}
+        return
+      }
       const loading = Loading.service({
         text: '拼命加载中',
         background: 'rgba(0, 0, 0, 0.7)'
       })
-      if (this.number === 0) {
-        setTimeout(() => {
-          getQuestionDetail(this.quList[this.currentQuIndex].quId).then((res) => {
-            this.quDetail = res.data
-          })
-        }, 100)
-      } else if (this.number === 1) {
-        getQuestionDetail(this.curQuId).then((res) => {
-          this.quDetail = res.data
-        })
+      try {
+        const res = await getQuestionDetail(quId)
+        this.quDetail = res.data || {}
+      } catch (error) {
+        console.error('加载题目详情失败:', error)
+      } finally {
+        loading.close()
       }
-      loading.close()
     },
 
     // 答题卡样式
@@ -764,7 +822,22 @@ export default {
     },
     // 用户按顺序刷题，初始化试题Id
     initQuId() {
-      this.curQuId = this.paperData.radioList[0].quId
+      const typeLists = [
+        { index: 1, list: this.paperData.radioList },
+        { index: 2, list: this.paperData.multiList },
+        { index: 3, list: this.paperData.judgeList },
+        { index: 4, list: this.paperData.saqList },
+        { index: 5, list: this.paperData.compoundList }
+      ]
+      for (const entry of typeLists) {
+        if (entry.list && entry.list.length > 0 && entry.list[0].quId != null) {
+          this.curListIndex = entry.index
+          this.curTypeIndex = 0
+          this.curQuId = entry.list[0].quId
+          return
+        }
+      }
+      this.curQuId = null
     },
 
     // 用于按顺序刷题，初始化试题顺序
@@ -858,29 +931,68 @@ export default {
         loading.close()
       }
     },
-    async fillAnswer() {
-      if (this.radioValue || this.multiValue.length) {
-        let params = {}
-        if (this.radioValue) {
-          params = {
-            repoId: this.quDetail.repoId,
-            quId: this.quDetail.id,
-            answer: this.radioValue,
-            quType: parseInt(this.quDetail.quType)
-          }
-        }
-        if (this.multiValue.length) {
-          params = {
-            repoId: this.quDetail.repoId,
-            quId: this.quDetail.id,
-            answer: this.multiValue.join(','),
-            quType: parseInt(this.quDetail.quType)
-          }
-        }
-        const res = await submitAnswer(params)
-        this.rightQuAnswer = res
+    buildCompoundAnswerContent() {
+      return JSON.stringify(this.compoundAnswers || {})
+    },
+    compoundHasAnyFill() {
+      const ans = this.compoundAnswers || {}
+      return Object.keys(ans).some(k => {
+        const v = ans[k]
+        if (Array.isArray(v)) return v.some(s => s != null && String(s).trim() !== '')
+        return v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && v.length === 0)
+      })
+    },
+    buildSubmitParams() {
+      const repoId = Number(this.quDetail.repoId || this.repoId)
+      if (!repoId || Number.isNaN(repoId)) {
+        return null
       }
-      this.getQuestionList()
+      if (this.quDetail.quType === 5 && this.compoundHasAnyFill()) {
+        return {
+          repoId,
+          quId: this.quDetail.id,
+          answer: this.buildCompoundAnswerContent(),
+          quType: 5
+        }
+      }
+      if (this.quDetail.quType === 4 && this.radioValue) {
+        return {
+          repoId,
+          quId: this.quDetail.id,
+          answer: String(this.radioValue),
+          quType: 4
+        }
+      }
+      if (this.radioValue) {
+        return {
+          repoId,
+          quId: this.quDetail.id,
+          answer: String(this.radioValue),
+          quType: parseInt(this.quDetail.quType)
+        }
+      }
+      if (this.multiValue.length) {
+        return {
+          repoId,
+          quId: this.quDetail.id,
+          answer: this.multiValue.join(','),
+          quType: parseInt(this.quDetail.quType)
+        }
+      }
+      return null
+    },
+    canSubmitCurrent() {
+      return !!this.buildSubmitParams()
+    },
+    async fillAnswer() {
+      const params = this.buildSubmitParams()
+      if (!params) {
+        this.$message.warning('请先作答再提交')
+        throw new Error('no answer')
+      }
+      const res = await submitAnswer(params)
+      this.rightQuAnswer = res
+      await this.getQuestionList()
     },
     async showButton() {
       if (this.currentQuIndex === 0) {
@@ -912,7 +1024,7 @@ export default {
         const previousQuestion = this.quList[this.currentQuIndex]
         if (previousQuestion && previousQuestion.exercised) {
           try {
-            const res = await getAnswerInfo(previousQuestion.repoId, previousQuestion.quId)
+            const res = await getAnswerInfo(previousQuestion.repoId || this.repoId, previousQuestion.quId)
             this.rightQuAnswer = res
             if (res.data) {
               this.isAnswered = true
@@ -963,9 +1075,12 @@ export default {
         case 2: return this.paperData.multiList
         case 3: return this.paperData.judgeList
         case 4: return this.paperData.saqList
+        case 5: return this.paperData.compoundList
+        default: return []
       }
     },
     getLastTypeIndex() {
+      if (this.paperData.compoundList && this.paperData.compoundList.length > 0) return 5
       if (this.paperData.saqList.length > 0) return 4
       if (this.paperData.judgeList.length > 0) return 3
       if (this.paperData.multiList.length > 0) return 2
